@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import AileenVideo from '../components/AileenVideo';
+import dynamic from 'next/dynamic';
 import { useLanguage } from '../context/LanguageContext';
+
+const AileenVideo = dynamic(() => import('../components/AileenVideo'), { ssr: false });
 
 export default function HomePage() {
   const [videoComplete, setVideoComplete] = useState(false);
