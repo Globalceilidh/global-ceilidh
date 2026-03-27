@@ -1,207 +1,158 @@
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useLanguage } from '../../context/LanguageContext';
 
-const apps = [
-  { id: 'abair-de', gd: 'Abair De?', en: 'Abair De?', desc_en: 'Immersive Gàidhlig language learning through real-world scenes', desc_gd: 'Ionnsachadh Gàidhlig bogadh tro shuidheachaidhean beatha làitheil' },
-  { id: 'de-sin-de-seo', gd: 'Dè Sin \\ Dè Seo', en: 'Dè Sin \\ Dè Seo', desc_en: 'Coming soon', desc_gd: 'A\' tighinn a dh\'aithghearr' },
-  { id: 'fichead-ceist', gd: 'Fichead Ceist', en: 'Fichead Ceist', desc_en: 'Coming soon', desc_gd: 'A\' tighinn a dh\'aithghearr' },
-];
-
-const sections = [
-  {
-    id: 1,
-    gd: 'Earrann 1',
-    en: 'Section 1',
-    units: [
-      { id: 'cafaidh', gd: 'An Cafaidh Balla Cloiche', en: 'The Stone Wall Café', image: '/coffee-shop.png' },
-      { id: 'dachaigh', gd: 'Dhachaigh Agus Teaghlach', en: 'Home & Family', image: null },
-      { id: 'slainte', gd: 'Slàinte Mhath', en: 'The Pub', image: null },
-      { id: 'pairc', gd: "A' Phàirc", en: 'The Park', image: null },
-      { id: 'cidsin', gd: "Anns a' Chidsin", en: 'In the Kitchen', image: null },
-      { id: 'margaidh', gd: "Aig a' Mhargaidh", en: 'At the Market', image: null },
-    ],
-  },
-  {
-    id: 2,
-    gd: 'Earrann 2',
-    en: 'Section 2',
-    units: [
-      { id: 's2-u1', gd: 'Àite 1', en: 'Place 1', image: null },
-      { id: 's2-u2', gd: 'Àite 2', en: 'Place 2', image: null },
-      { id: 's2-u3', gd: 'Àite 3', en: 'Place 3', image: null },
-      { id: 's2-u4', gd: 'Àite 4', en: 'Place 4', image: null },
-      { id: 's2-u5', gd: 'Àite 5', en: 'Place 5', image: null },
-      { id: 's2-u6', gd: 'Ceòl', en: 'Music', image: null },
-    ],
-  },
-  {
-    id: 3,
-    gd: 'Earrann 3',
-    en: 'Section 3',
-    units: [
-      { id: 's3-u1', gd: 'Àite 1', en: 'Place 1', image: null },
-      { id: 's3-u2', gd: 'Àite 2', en: 'Place 2', image: null },
-      { id: 's3-u3', gd: 'Àite 3', en: 'Place 3', image: null },
-      { id: 's3-u4', gd: 'Àite 4', en: 'Place 4', image: null },
-      { id: 's3-u5', gd: 'Àite 5', en: 'Place 5', image: null },
-      { id: 's3-u6', gd: 'Àite 6', en: 'Place 6', image: null },
-    ],
-  },
-  {
-    id: 4,
-    gd: 'Earrann 4',
-    en: 'Section 4',
-    units: [
-      { id: 's4-u1', gd: 'Àite 1', en: 'Place 1', image: null },
-      { id: 's4-u2', gd: 'Àite 2', en: 'Place 2', image: null },
-      { id: 's4-u3', gd: 'Àite 3', en: 'Place 3', image: null },
-      { id: 's4-u4', gd: 'Àite 4', en: 'Place 4', image: null },
-      { id: 's4-u5', gd: 'Àite 5', en: 'Place 5', image: null },
-      { id: 's4-u6', gd: 'Àite 6', en: 'Place 6', image: null },
-    ],
-  },
-];
+const LessonEngine = dynamic(() => import('../../components/LessonEngine'), { ssr: false });
 
 export default function LearnPage() {
   const { t, language } = useLanguage();
-  const [activeApp, setActiveApp] = useState('abair-de');
+  const [lessonStarted, setLessonStarted] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState(null);
+
+  const levels = [
+    {
+      id: 'beginner',
+      gd: 'Tòiseachadh',
+      en: 'Beginner',
+      desc_en: 'Complete beginner — all Gàidhlig shown with English and pronunciation',
+      desc_gd: 'Tòiseachadh ùr — Gàidhlig air fad le Beurla agus fuaimneachadh',
+      color: 'border-tarheel bg-tarheel-pale',
+      active: 'border-tarheel bg-tarheel text-white',
+    },
+    {
+      id: 'intermediate',
+      gd: 'Meadhanach',
+      en: 'Intermediate',
+      desc_en: 'Early learner — English hidden, hover to reveal',
+      desc_gd: 'Tòiseachadh — Beurla falaichte, suath gus fhoillseachadh',
+      color: 'border-cobalt/30 bg-cobalt-light',
+      active: 'border-cobalt bg-cobalt text-white',
+    },
+    {
+      id: 'advanced',
+      gd: 'Adhartach',
+      en: 'Advanced',
+      desc_en: 'Full immersion — Gàidhlig only throughout',
+      desc_gd: 'Bogadh iomlan — Gàidhlig a-mhàin air feadh',
+      color: 'border-gc-border bg-gc-bg',
+      active: 'border-gc-dark bg-gc-dark text-white',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gc-bg">
 
-      {/* Hero */}
-      <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
-        <div className="absolute inset-0 overflow-hidden">
-          <img
-            src="/coffee-shop.png"
-            alt="An Cafaidh Balla Cloiche"
-            className="w-full h-full object-cover opacity-25"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
-        </div>
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="section-label text-tarheel mb-2">GlobalCeilidh.com</p>
-          <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 tracking-wide">
-            {language === 'gd' ? 'Ionnsaich' : 'Learn'}
-          </h1>
-          <p className="text-white/70 font-body text-lg">
-            {language === 'gd' ? 'Tagh an aplacaid agad' : 'Choose your app to begin'}
-          </p>
-        </div>
-      </section>
+      {!lessonStarted ? (
+        <>
+          {/* Hero */}
+          <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src="/coffee-shop.png"
+                alt="An Cafaidh Balla Cloiche"
+                className="w-full h-full object-cover opacity-25"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
+            </div>
+            <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <p className="section-label text-tarheel mb-2">GlobalCeilidh.com</p>
+              <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 tracking-wide">
+                {t('learn.title')}
+              </h1>
+              <p className="text-white/70 font-body text-lg">
+                {t('learn.subtitle')}
+              </p>
+            </div>
+          </section>
 
-      {/* App Selector */}
-      <section className="py-8 border-b border-gc-border bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row gap-3">
-            {apps.map(app => (
-              <button
-                key={app.id}
-                onClick={() => setActiveApp(app.id)}
-                className={`flex-1 px-6 py-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                  activeApp === app.id
-                    ? 'border-tarheel bg-tarheel text-white'
-                    : 'border-gc-border bg-gc-bg hover:border-tarheel text-gc-text'
-                }`}
-              >
-                <div className="font-display font-semibold text-lg">{app.gd}</div>
-                <div className={`text-sm font-body mt-1 ${activeApp === app.id ? 'text-white/80' : 'text-gc-muted'}`}>
-                  {language === 'gd' ? app.desc_gd : app.desc_en}
+          {/* Lesson selector */}
+          <section className="py-12">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+              {/* Scene intro */}
+              <div className="bg-white rounded-2xl border border-gc-border p-6 mb-8 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-tarheel/10 border border-tarheel/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl font-display text-tarheel font-bold">A</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-display tracking-widest uppercase text-tarheel mb-1">Aileen</p>
+                    <p className="text-gc-text font-body leading-relaxed">
+                      {language === 'gd'
+                        ? 'Fàilte gu An Cafaidh Balla Cloiche — an àite as fheàrr leat a chleachdas sinn airson Gàidhlig ionnsachadh tro shuidheachaidhean beatha làitheil. Tagh do ìre gus tòiseachadh.'
+                        : 'Welcome to An Cafaidh Balla Cloiche — The Stone Wall Coffee Shop. We\'ll use this real-world setting to learn Gàidhlig naturally. Choose your level to begin.'}
+                    </p>
+                    <p className="text-cobalt font-body font-medium mt-2">
+                      Tagh do ìre — Choose your level
+                    </p>
+                  </div>
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Abair De? Content */}
-      {activeApp === 'abair-de' && (
-        <section className="py-10">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            {sections.map(section => (
-              <div key={section.id}>
-
-                {/* Section Header */}
-                <h2 className="text-xl font-display font-semibold text-gc-dark mb-6 pb-2 border-b border-gc-border">
-                  {language === 'gd' ? section.gd : section.en}
-                </h2>
-
-                {/* 2x3 Unit Grid */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  {section.units.map(unit => (
-                    <Link
-                      key={unit.id}
-                      href={`/ionnsaich/${unit.id}`}
-                      className="group rounded-xl overflow-hidden border border-gc-border hover:border-tarheel transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      {/* Thumbnail */}
-                      <div className="relative h-28 bg-gc-dark overflow-hidden">
-                        {unit.image ? (
-                          <img
-                            src={unit.image}
-                            alt={unit.en}
-                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gc-dark to-gc-mid">
-                            <span className="text-3xl opacity-40">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span>
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-gc-dark/60 to-transparent" />
-                      </div>
-
-                      {/* Label */}
-                      <div className="p-3 bg-white">
-                        <p className="font-display text-sm font-semibold text-gc-dark leading-snug">
-                          {language === 'gd' ? unit.gd : unit.en}
-                        </p>
-                        {language === 'gd' && (
-                          <p className="text-xs text-gc-muted mt-0.5">{unit.en}</p>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-
-                {/* Section Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <a
-                    href={`/downloads/earrann-${section.id}.pdf`}
-                    download
-                    className="flex-1 px-5 py-3 border border-tarheel text-tarheel-dark font-medium rounded-lg hover:bg-tarheel-pale transition-colors text-center text-sm font-display tracking-wide"
-                  >
-                    📄 {language === 'gd' ? `Luchdaich sìos Earrann ${section.id}` : `Download Section ${section.id} Guide`}
-                  </a>
-                  <button className="flex-1 px-5 py-3 border border-gc-border text-gc-text font-medium rounded-lg hover:border-tarheel hover:bg-tarheel-pale transition-colors text-sm font-display tracking-wide">
-                    📖 {language === 'gd' ? 'Ionnsaich mar Aon Aonad Iomlan' : 'Learn As One Complete Unit'}
-                  </button>
-                </div>
-
               </div>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* Coming Soon for other apps */}
-      {activeApp !== 'abair-de' && (
-        <section className="py-20">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p className="text-5xl mb-6">🏴󠁧󠁢󠁳󠁣󠁴󠁿</p>
-            <h2 className="text-2xl font-display font-semibold text-gc-dark mb-3">
-              {language === 'gd' ? 'A\' tighinn a dh\'aithghearr' : 'Coming Soon'}
-            </h2>
-            <p className="text-gc-muted font-body">
-              {language === 'gd'
-                ? 'Tha sinn ag obair air seo an-dràsta.'
-                : 'We\'re working on this right now. Check back soon.'}
-            </p>
-          </div>
-        </section>
-      )}
+              {/* Level Cards */}
+              <div className="grid gap-4 mb-8">
+                {levels.map(level => (
+                  <button
+                    key={level.id}
+                    onClick={() => setSelectedLevel(level.id)}
+                    className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${
+                      selectedLevel === level.id ? level.active : level.color + ' hover:border-tarheel'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-display font-semibold text-lg mb-1">
+                          {level.gd}
+                          <span className="font-body font-normal text-sm ml-2 opacity-70">— {level.en}</span>
+                        </div>
+                        <p className={`text-sm font-body ${selectedLevel === level.id ? 'text-white/80' : 'text-gc-muted'}`}>
+                          {language === 'gd' ? level.desc_gd : level.desc_en}
+                        </p>
+                      </div>
+                      {selectedLevel === level.id && (
+                        <span className="text-2xl ml-4">✓</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
 
+              {/* Download guide + Start buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href="/treòrachadh-leasan-1.pdf"
+                  download
+                  className="flex-1 px-6 py-3 border border-tarheel text-tarheel-dark font-medium rounded-lg hover:bg-tarheel-pale transition-colors text-center text-sm font-display tracking-wide"
+                >
+                  📄 {t('learn.guide_btn')}
+                </a>
+                <button
+                  onClick={() => selectedLevel && setLessonStarted(true)}
+                  disabled={!selectedLevel}
+                  className={`flex-1 px-6 py-3 font-medium rounded-lg transition-colors text-sm font-display tracking-wide ${
+                    selectedLevel
+                      ? 'bg-tarheel text-white hover:bg-tarheel-dark cursor-pointer'
+                      : 'bg-gc-border text-gc-muted cursor-not-allowed'
+                  }`}
+                >
+                  {language === 'gd' ? 'Tòisich an Leasan →' : 'Start Lesson →'}
+                </button>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <button
+            onClick={() => { setLessonStarted(false); setSelectedLevel(null); }}
+            className="mb-6 text-sm text-gc-muted hover:text-tarheel-dark flex items-center gap-2 transition-colors"
+          >
+            ← {t('common.back')}
+          </button>
+          <LessonEngine level={selectedLevel} language={language} />
+        </div>
+      )}
     </div>
   );
 }
