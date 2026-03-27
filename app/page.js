@@ -161,18 +161,19 @@ export default function HomePage() {
                 <p className="text-gc-muted text-sm italic">DOO-khkhas — a hereditary connection to the land and people of your ancestors</p>
               </div>
             </div>
-            <div className="relative">
-              {/* Aileen placeholder card */}
-              <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-gc-dark to-gc-mid aspect-[3/4] flex flex-col items-center justify-center shadow-xl">
-                <div className="w-20 h-20 rounded-full bg-tarheel/20 border-2 border-tarheel/40 flex items-center justify-center mb-4">
-                  <span className="text-3xl text-white font-display">A</span>
-                </div>
-                <p className="text-tarheel font-display tracking-widest uppercase text-sm mb-2">Aileen</p>
-                <p className="text-white/50 text-xs text-center px-8">
+            <div className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-xl">
+              <img
+                src="/aileen-headshot.png"
+                alt="Aileen — GlobalCeilidh.com AI Tutor"
+                className="w-full h-full object-cover object-top"
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-gc-dark via-gc-dark/60 to-transparent">
+                <p className="text-tarheel font-display tracking-widest uppercase text-sm mb-1">Aileen</p>
+                <p className="text-white/70 text-xs mb-3">
                   {language === 'gd' ? 'Do thidsear Gàidhlig AI' : 'Your AI Gàidhlig tutor'}
                 </p>
                 <Link href="/ionnsaich"
-                  className="mt-6 px-6 py-2.5 bg-tarheel text-white text-sm font-medium rounded-lg hover:bg-tarheel-dark transition-colors">
+                  className="inline-block px-4 py-2 bg-tarheel text-white text-xs font-medium rounded-lg hover:bg-tarheel-dark transition-colors">
                   {language === 'gd' ? 'Coinnich ri Aileen' : 'Meet Aileen'}
                 </Link>
               </div>
