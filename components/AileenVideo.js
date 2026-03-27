@@ -1,13 +1,14 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+
+const WELCOME_VIDEO_ID = 'IwO6_a6ovig';
+const WELCOME_BACK_VIDEO_ID = 'IwO6_a6ovig';
 
 export default function AileenVideo({ onComplete }) {
   const [isFirstVisit, setIsFirstVisit] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
-  const videoRef = useRef(null);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -18,7 +19,6 @@ export default function AileenVideo({ onComplete }) {
     } else {
       setIsFirstVisit(false);
     }
-    // Small delay before showing video
     setTimeout(() => setShowVideo(true), 800);
   }, []);
 
@@ -29,50 +29,25 @@ export default function AileenVideo({ onComplete }) {
 
   if (!showVideo || isDismissed || isFirstVisit === null) return null;
 
-  // Video URLs — replace with actual HeyGen rendered video URLs
-  const videoUrl = isFirstVisit
-    ? '/videos/aileen-welcome.mp4'      // Full welcome video ~70 seconds
-    : '/videos/aileen-welcome-back.mp4'; // Short return video ~15 seconds
-
-  const videoLabel = isFirstVisit
-    ? (t('home.welcome') || 'Welcome to GlobalCeilidh.com')
-    : 'Fàilte air ais — Welcome back';
+  const videoId = isFirstVisit ? WELCOME_VIDEO_ID : WELCOME_BACK_VIDEO_ID;
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0&showinfo=0&loop=1&playlist=${videoId}`;
 
   return (
-    <div className={`fixed inset-0 z-40 flex items-center justify-center transition-all duration-500 ${
-      showVideo ? 'opacity-100' : 'opacity-0'
-    }`}
+    <div
+      className={`fixed inset-0 z-40 flex items-center justify-center transition-all duration-500 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
       style={{ background: 'rgba(15, 25, 35, 0.92)' }}
     >
-      <div className="relative max-w-md w-full mx-4">
-
-        {/* Video container */}
+      <div className="relative max-w-sm w-full mx-4">
         <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gc-dark">
-
-          {/* Video placeholder — replace src with actual video */}
-          <div className="aspect-[9/16] bg-gradient-to-b from-gc-mid to-gc-dark flex flex-col items-center justify-center">
-
-            {/* Aileen placeholder while video loads */}
-            <div className="w-24 h-24 rounded-full bg-tarheel/20 border-2 border-tarheel/40 flex items-center justify-center mb-4">
-              <span className="text-4xl">A</span>
-            </div>
-            <p className="text-tarheel text-sm font-display tracking-widest uppercase mb-2">Aileen</p>
-            <p className="text-white/60 text-xs text-center px-6">{videoLabel}</p>
-
-            {/* Actual video element — uncomment when video files are uploaded */}
-            {/*
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              autoPlay
-              playsInline
-              onEnded={handleDismiss}
-              className="absolute inset-0 w-full h-full object-cover"
+          <div className="aspect-[9/16] relative">
+            <iframe
+              src={embedUrl}
+              className="absolute inset-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="Aileen — GlobalCeilidh.com"
             />
-            */}
           </div>
-
-          {/* Skip / Continue button */}
           <div className="p-4 bg-gc-dark">
             <button
               onClick={handleDismiss}
@@ -82,18 +57,14 @@ export default function AileenVideo({ onComplete }) {
             </button>
           </div>
         </div>
-
-        {/* Close button */}
         <button
           onClick={handleDismiss}
           className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors text-sm"
         >
           ✕
         </button>
-
-        {/* Video label */}
         <p className="text-center text-white/40 text-xs mt-3 tracking-wide">
-          GlobalCeilidh.com — {isFirstVisit ? 'First visit' : 'Welcome back'}
+          {isFirstVisit ? 'Fàilte gu GlobalCeilidh.com' : 'Fàilte air ais — Welcome back'}
         </p>
       </div>
     </div>
