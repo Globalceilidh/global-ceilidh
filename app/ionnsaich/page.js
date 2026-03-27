@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -47,8 +46,16 @@ export default function LearnPage() {
       {!lessonStarted ? (
         <>
           {/* Hero */}
-          <section className="bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src="/coffee-shop.png"
+                alt="An Cafaidh Balla Cloiche"
+                className="w-full h-full object-cover opacity-25"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
+            </div>
+            <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
               <p className="section-label text-tarheel mb-2">GlobalCeilidh.com</p>
               <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 tracking-wide">
                 {t('learn.title')}
