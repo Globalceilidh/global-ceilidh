@@ -1,15 +1,11 @@
-import { Inter } from 'next/font/google';
 import './globals.css';
-import { LanguageProvider } from '../context/LanguageContext';
-import Navigation from '../components/Navigation';
-import Footer from '../components/Footer';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+import ClientWrapper from '../components/ClientWrapper';
 
 export const metadata = {
   title: 'GlobalCeilidh.com — The Global Home of Scottish Gaelic Culture',
   description: 'Learn Scottish Gaelic, connect with the global diaspora, find events, and join the community. Fàilte gu GlobalCeilidh.com.',
   keywords: 'Scottish Gaelic, Gàidhlig, learn Gaelic, diaspora, Highland Games, ceilidh, GlobalCeilidh',
+  metadataBase: new URL('https://globalceilidh.com'),
   openGraph: {
     title: 'GlobalCeilidh.com',
     description: 'The global home of Scottish Gaelic language, culture and community.',
@@ -22,7 +18,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -31,14 +27,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.className} bg-white text-gc-text antialiased`}>
-        <LanguageProvider>
-          <Navigation />
-          <main className="pt-16 min-h-screen">
-            {children}
-          </main>
-          <Footer />
-        </LanguageProvider>
+      <body className="bg-white antialiased">
+        <ClientWrapper>
+          {children}
+        </ClientWrapper>
       </body>
     </html>
   );
