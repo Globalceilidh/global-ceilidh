@@ -35,14 +35,11 @@ export default function Navigation() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-full bg-tarheel flex items-center justify-center flex-shrink-0">
-              <svg viewBox="0 0 32 32" className="w-5 h-5" fill="none">
-                <path d="M16 4 C16 4, 8 8, 8 16 C8 22 12 26 16 28 C20 26 24 22 24 16 C24 8 16 4 16 4Z" 
-                  fill="white" opacity="0.9"/>
-                <path d="M16 8 C16 8, 11 11, 11 16 C11 20 13 23 16 25" 
-                  stroke="white" strokeWidth="1.5" fill="none" opacity="0.6"/>
-              </svg>
-            </div>
+            <img 
+              src="/gc-logo.png" 
+              alt="GlobalCeilidh.com" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <div className="font-display text-sm font-semibold tracking-widest text-gc-dark uppercase">
                 GlobalCeilidh
