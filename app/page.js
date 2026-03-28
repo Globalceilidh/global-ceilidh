@@ -52,56 +52,60 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gc-bg">
 
-      {/* Aileen Video Overlay */}
       {showVideo && (
         <AileenVideo onDismiss={() => setShowVideo(false)} language={language} />
       )}
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gc-dark overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
-        {/* Animated swirl background */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-15">
-          <svg viewBox="0 0 800 800" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        {/* Background: dark charcoal top-left fading to blue-grey bottom-right */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(135deg, #0d1117 0%, #111827 30%, #1a2744 60%, #1e3a5f 80%, #2a4a6e 100%)',
+          }}
+        />
+
+        {/* Faint swirl watermark on the right */}
+        <div className="absolute inset-0 flex items-center justify-end opacity-10 pointer-events-none overflow-hidden">
+          <svg viewBox="0 0 600 600" className="w-3/4 h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <radialGradient id="spiralGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#7BAFD4" stopOpacity="0.8"/>
+              <radialGradient id="swirlGrad" cx="40%" cy="50%" r="60%">
+                <stop offset="0%" stopColor="#7BAFD4" stopOpacity="1"/>
                 <stop offset="100%" stopColor="#7BAFD4" stopOpacity="0"/>
               </radialGradient>
             </defs>
-            {/* Spiral rings */}
-            {[400, 340, 280, 220, 160, 100, 60, 30].map((r, i) => (
+            {[280, 240, 200, 165, 132, 102, 75, 52, 33, 18].map((r, i) => (
               <circle
                 key={i}
-                cx="400"
-                cy="400"
+                cx="300"
+                cy="300"
                 r={r}
                 fill="none"
-                stroke="url(#spiralGrad)"
-                strokeWidth={i === 0 ? "2" : "1.5"}
-                strokeOpacity={0.6 - i * 0.06}
+                stroke="url(#swirlGrad)"
+                strokeWidth="1.2"
+                strokeOpacity={0.9 - i * 0.07}
               />
             ))}
-            {/* Spiral arms */}
             <path
-              d="M400,400 Q500,300 600,400 Q700,500 600,600 Q500,700 400,600 Q300,500 400,400"
+              d="M300,300 C380,220 460,260 460,340 C460,420 380,460 300,460 C220,460 160,400 160,320 C160,240 220,180 300,180 C370,180 420,230 420,300"
               fill="none"
-              stroke="#7BAFD4"
+              stroke="url(#swirlGrad)"
               strokeWidth="1.5"
-              strokeOpacity="0.4"
+              strokeOpacity="0.6"
             />
             <path
-              d="M400,400 Q300,300 200,400 Q100,500 200,600 Q300,700 400,600 Q500,500 400,400"
+              d="M300,300 C240,240 200,270 200,330 C200,390 250,430 310,420 C370,410 400,360 390,300 C380,250 340,220 300,230"
               fill="none"
-              stroke="#7BAFD4"
-              strokeWidth="1.5"
-              strokeOpacity="0.3"
+              stroke="url(#swirlGrad)"
+              strokeWidth="1.2"
+              strokeOpacity="0.4"
             />
           </svg>
         </div>
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gc-dark/60 via-transparent to-gc-dark/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
 
         {/* Hero content */}
         <div className="relative text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
@@ -119,7 +123,6 @@ export default function HomePage() {
               : 'The global home of Scottish Gaelic heritage, culture, and community'}
           </p>
 
-          {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link
               href="/ionnsaich"
@@ -131,11 +134,11 @@ export default function HomePage() {
               href="/coimhearsnachd"
               className="px-8 py-4 border border-white/30 text-white font-display font-medium rounded-lg hover:bg-white/10 transition-colors tracking-wide"
             >
-              {language === 'gd' ? 'Còmhla ris a\' Choimhearsnachd' : 'Join the Community'}
+              {language === 'gd' ? "Còmhla ris a' Choimhearsnachd" : 'Join the Community'}
             </Link>
           </div>
 
-          {/* Scroll indicator — below buttons */}
+          {/* Scroll indicator below buttons */}
           <div className="flex flex-col items-center gap-2 text-white/40">
             <span className="text-xs font-display tracking-widest uppercase">Scroll</span>
             <div className="w-px h-8 bg-white/20 animate-pulse" />
@@ -151,8 +154,8 @@ export default function HomePage() {
               <div className="text-4xl font-display font-bold mb-1">~57,000</div>
               <div className="text-sm font-body text-white/80">
                 {language === 'gd'
-                  ? 'fileantaich anns an RA — 60-70% de luchd-ionnsachaidh air feadh an t-saoghail'
-                  : 'fluent speakers in the UK — 60-70% of all learners live outside it'}
+                  ? "fileantaich dùthchasach Gàidhlig anns an RA — 60-70% de luchd-ionnsachaidh a' fuireach an àite eile san t-saoghal"
+                  : 'native Gàidhlig speakers in the UK — 60-70% of all learners live elsewhere in the world'}
               </div>
             </div>
             <div>
@@ -181,18 +184,18 @@ export default function HomePage() {
               </p>
               <h2 className="text-4xl font-display font-semibold text-gc-dark mb-6 leading-tight">
                 {language === 'gd'
-                  ? 'Àite Cruinneachaidh airson a\' Ghàidheil Chruinneil'
+                  ? "Àite Cruinneachaidh airson a' Ghàidheil Chruinneil"
                   : 'A Gathering Place for the Global Gael'}
               </h2>
               <p className="text-gc-text font-body leading-relaxed mb-4">
                 {language === 'gd'
-                  ? 'Ged a tha meadhan saoghal na Gàidhlig daonnan anns na Gàidhealtachd agus Eileanan na h-Alba, tha 60-70% de na daoine a tha an sàs ann an cultar Gàidhlig air-loidhne a\' fuireach taobh a-muigh an Rìoghachd Aonaichte. Chaidh an àrd-ùrlar seo a thogail airson a h-uile fear dhiubh — airson tusa — ge b\'e àite san t-saoghal don deach do thuras.'
-                  : 'While the epicentre of the Scottish Gaelic world has always been — and will always be — the Highlands and Islands of Scotland, sixty to seventy percent of people engaging with Gàidhlig culture online live outside the United Kingdom. This platform was built for all of them — for you — wherever in the world your journey has taken you.'}
+                  ? "Ged a tha meadhan saoghal na Gàidhlig daonnan anns na Gàidhealtachd agus Eileanan na h-Alba, tha 60-70% de na daoine a tha an sàs ann an cultar Gàidhlig air-loidhne a' fuireach taobh a-muigh an Rìoghachd Aonaichte. Chaidh an àrd-ùrlar seo a thogail airson a h-uile fear dhiubh — airson tusa — ge b'e àite san t-saoghal don deach do thuras."
+                  : "While the epicentre of the Scottish Gaelic world has always been — and will always be — the Highlands and Islands of Scotland, sixty to seventy percent of people engaging with Gàidhlig culture online live outside the United Kingdom. This platform was built for all of them — for you — wherever in the world your journey has taken you."}
               </p>
               <p className="text-gc-text font-body leading-relaxed mb-6">
                 {language === 'gd'
-                  ? 'Ma dh\'fhairich thu riamh an tarraing sin — an dùthchas — a dh\'ionnsaigh saoghal na Gàidhlig, tha thu anns an àite cheart.'
-                  : 'If you\'ve ever felt that pull — that dùthchas — toward the Gaelic world, you are in the right place.'}
+                  ? "Ma dh'fhairich thu riamh an tarraing sin — an dùthchas — a dh'ionnsaigh saoghal na Gàidhlig, tha thu anns an àite cheart."
+                  : "If you've ever felt that pull — that dùthchas — toward the Gaelic world, you are in the right place."}
               </p>
               <div className="bg-tarheel-pale border-l-4 border-tarheel p-4 rounded-r-lg">
                 <p className="font-display font-semibold text-tarheel-dark text-sm mb-1">Dùthchas</p>
@@ -202,7 +205,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Aileen card */}
             <div className="relative">
               <div className="rounded-2xl overflow-hidden shadow-xl border border-gc-border">
                 <img
@@ -233,10 +235,10 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-xs font-display tracking-widest uppercase text-tarheel mb-3">
-              {language === 'gd' ? 'Na th\'againn' : 'What We Offer'}
+              {language === 'gd' ? "Na th'againn" : 'What We Offer'}
             </p>
             <h2 className="text-4xl font-display font-semibold text-gc-dark">
-              {language === 'gd' ? 'Gach nì a th\'a dhìth ort' : 'Everything You Need'}
+              {language === 'gd' ? "Gach nì a th'a dhìth ort" : 'Everything You Need'}
             </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
@@ -262,9 +264,7 @@ export default function HomePage() {
             {language === 'gd' ? 'Tha sinn an seo' : 'We Are Here'}
           </h2>
           <p className="text-white/70 font-body text-lg mb-8">
-            {language === 'gd'
-              ? 'Ceud mìle fàilte — a hundred thousand welcomes'
-              : 'Ceud mìle fàilte — a hundred thousand welcomes'}
+            Ceud mìle fàilte — a hundred thousand welcomes
           </p>
           <Link
             href="/ionnsaich"
