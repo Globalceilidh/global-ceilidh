@@ -1,193 +1,155 @@
 'use client';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../../context/LanguageContext';
 
-const AileenVideo = dynamic(() => import('../components/AileenVideo'), { ssr: false });
+const LessonEngine = dynamic(() => import('../../components/LessonEngine'), { ssr: false });
 
-export default function HomePage() {
-  const { language } = useLanguage();
-  const [showVideo, setShowVideo] = useState(false);
+export default function LearnPage() {
+  const { t, language } = useLanguage();
+  const [lessonStarted, setLessonStarted] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState(null);
 
-  useEffect(() => {
-    const visited = localStorage.getItem('gc_visited');
-    if (!visited) {
-      setShowVideo(true);
-      localStorage.setItem('gc_visited', 'true');
-    }
-  }, []);
-
-  const features = [
+  const levels = [
     {
-      icon: '🎓',
-      title_en: 'Immersive Learning',
-      title_gd: 'Ionnsachadh Bogaidh',
-      desc_en: 'Learn Gàidhlig through real-world scenes with AI tutor Aileen',
-      desc_gd: 'Ionnsaich Gàidhlig tro shuidheachaidhean beatha làitheil le Aileen',
+      id: 'beginner',
+      gd: 'Tòiseachadh',
+      en: 'Beginner',
+      desc_en: 'Complete beginner — all Gàidhlig shown with English and pronunciation',
+      desc_gd: 'Tòiseachadh ùr — Gàidhlig air fad le Beurla agus fuaimneachadh',
+      color: 'border-tarheel bg-tarheel-pale',
+      active: 'border-tarheel bg-tarheel text-white',
     },
     {
-      icon: '🌍',
-      title_en: 'Global Community',
-      title_gd: 'Coimhearsnachd Cruinneil',
-      desc_en: 'Connect with Gaels across Scotland, North America, Australia and beyond',
-      desc_gd: 'Ceangail le Gàidheil air feadh na cruinne',
+      id: 'intermediate',
+      gd: 'Meadhanach',
+      en: 'Intermediate',
+      desc_en: 'Early learner — English hidden, hover to reveal',
+      desc_gd: 'Tòiseachadh — Beurla falaichte, suath gus fhoillseachadh',
+      color: 'border-cobalt/30 bg-cobalt-light',
+      active: 'border-cobalt bg-cobalt text-white',
     },
     {
-      icon: '📅',
-      title_en: 'Events & News',
-      title_gd: 'Tachartasan & Naidheachdan',
-      desc_en: 'Stay connected with the global Gàidhlig calendar and latest news',
-      desc_gd: 'Fuirich ceangailte ri tachartasan is naidheachdan Gàidhlig',
-    },
-    {
-      icon: '🎵',
-      title_en: 'Culture & Media',
-      title_gd: 'Cultar & Meadhanan',
-      desc_en: 'Music, literature, podcasts, and the living culture of the Gael',
-      desc_gd: 'Ceòl, litreachas, podcastan, agus cultar beò nan Gàidheal',
+      id: 'advanced',
+      gd: 'Adhartach',
+      en: 'Advanced',
+      desc_en: 'Full immersion — Gàidhlig only throughout',
+      desc_gd: 'Bogadh iomlan — Gàidhlig a-mhàin air feadh',
+      color: 'border-gc-border bg-gc-bg',
+      active: 'border-gc-dark bg-gc-dark text-white',
     },
   ];
 
   return (
     <div className="min-h-screen bg-gc-bg">
 
-      {showVideo && (
-        <AileenVideo onDismiss={() => setShowVideo(false)} language={language} />
-      )}
-
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gc-dark overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            background: 'radial-gradient(ellipse at 70% 50%, rgba(123,175,212,0.3) 0%, transparent 60%)',
-          }}/>
-          <svg viewBox="0 0 800 800" className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="400" cy="400" r="350" fill="none" stroke="#7BAFD4" strokeWidth="1"/>
-            <circle cx="400" cy="400" r="280" fill="none" stroke="#7BAFD4" strokeWidth="1"/>
-            <circle cx="400" cy="400" r="210" fill="none" stroke="#7BAFD4" strokeWidth="1"/>
-            <circle cx="400" cy="400" r="140" fill="none" stroke="#7BAFD4" strokeWidth="1"/>
-            <circle cx="400" cy="400" r="70" fill="none" stroke="#7BAFD4" strokeWidth="1"/>
-          </svg>
-        </div>
-
-        <div className="relative text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-          <p className="text-tarheel font-display tracking-widest text-sm uppercase mb-4">GlobalCeilidh.com</p>
-          <h1 className="text-5xl md:text-7xl font-display font-semibold text-white mb-6 tracking-wide leading-tight">
-            {language === 'gd' ? 'Fàilte gu' : 'Welcome to'}
-            <br />
-            <span className="text-tarheel">GlobalCeilidh.com</span>
-          </h1>
-          <p className="text-white/70 font-body text-xl mb-10 italic">
-            {language === 'gd'
-              ? 'Dachaigh cruinneil cànan, cultar, agus coimhearsnachd na Gàidhlig'
-              : 'The global home of Scottish Gaelic language, culture, and community'}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link href="/ionnsaich" className="px-8 py-4 bg-tarheel text-white font-display font-medium rounded-lg hover:bg-tarheel-dark transition-colors tracking-wide">
-              {language === 'gd' ? 'Tòisich Ionnsachadh Gàidhlig' : 'Start Learning Gàidhlig'}
-            </Link>
-            <Link href="/coimhearsnachd" className="px-8 py-4 border border-white/30 text-white font-display font-medium rounded-lg hover:bg-white/10 transition-colors tracking-wide">
-              {language === 'gd' ? "Còmhla ris a' Choimhearsnachd" : 'Join the Community'}
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2 text-white/40 mt-4">
-            <span className="text-xs font-display tracking-widest uppercase">Scroll</span>
-            <div className="w-px h-8 bg-white/20 animate-pulse"/>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="bg-tarheel py-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-white">
-            <div>
-              <div className="text-4xl font-display font-bold mb-1">60-70%</div>
-              <div className="text-sm font-body text-white/80">{language === 'gd' ? 'de luchd-ionnsachaidh taobh a-muigh an RA' : 'of learners outside the UK'}</div>
+      {!lessonStarted ? (
+        <>
+          {/* Hero */}
+          <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src="/coffee-shop.png"
+                alt="An Cafaidh Balla Cloiche"
+                className="w-full h-full object-cover opacity-25"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
             </div>
-            <div>
-              <div className="text-4xl font-display font-bold mb-1">5</div>
-              <div className="text-sm font-body text-white/80">{language === 'gd' ? 'coimhearsnachdan diaspora' : 'diaspora communities'}</div>
-            </div>
-            <div>
-              <div className="text-4xl font-display font-bold mb-1">∞</div>
-              <div className="text-sm font-body text-white/80">{language === 'gd' ? 'faclan ri lorg' : 'words to discover'}</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission */}
-      <section className="py-20 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-xs font-display tracking-widest uppercase text-tarheel mb-3">{language === 'gd' ? 'Ar Misean' : 'Our Mission'}</p>
-              <h2 className="text-4xl font-display font-semibold text-gc-dark mb-6 leading-tight">
-                {language === 'gd' ? "Àite Cruinneachaidh airson a' Ghàidheil Chruinneil" : 'A Gathering Place for the Global Gael'}
-              </h2>
-              <p className="text-gc-text font-body leading-relaxed mb-4">
-                {language === 'gd'
-                  ? "Tha 60-70% de na daoine a tha an sàs ann an cultar Gàidhlig air-loidhne a' fuireach taobh a-muigh an Rìoghachd Aonaichte. Chaidh an àrd-ùrlar seo a thogail airson an fheadhainn sin — airson tusa — ge b'e àite san t-saoghal don deach do thuras."
-                  : 'Sixty to seventy percent of people engaging with Scottish Gaelic culture online are outside the United Kingdom. This platform was built for them — for you — wherever in the world your journey has taken you.'}
+            <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <p className="section-label text-tarheel mb-2">GlobalCeilidh.com</p>
+              <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 tracking-wide">
+                {t('learn.title')}
+              </h1>
+              <p className="text-white/70 font-body text-lg">
+                {t('learn.subtitle')}
               </p>
-              <p className="text-gc-text font-body leading-relaxed mb-6">
-                {language === 'gd'
-                  ? "Ma dh'fhairich thu riamh an tarraing sin — an dùthchas — a dh'ionnsaigh saoghal na Gàidhlig, tha thu anns an àite cheart."
-                  : "If you've ever felt that pull — that dùthchas — toward the Gaelic world, you are in the right place."}
-              </p>
-              <div className="bg-tarheel-pale border-l-4 border-tarheel p-4 rounded-r-lg">
-                <p className="font-display font-semibold text-tarheel-dark text-sm mb-1">Dùthchas</p>
-                <p className="text-gc-muted font-body text-sm italic">DOO-khkhas — a hereditary connection to the land and people of your ancestors</p>
-              </div>
             </div>
-            <div className="relative">
-              <div className="rounded-2xl overflow-hidden shadow-xl border border-gc-border">
-                <img src="/aileen-headshot.png" alt="Aileen" className="w-full h-80 object-cover object-top"/>
-                <div className="bg-white p-4">
-                  <p className="text-xs font-display tracking-widest uppercase text-tarheel mb-1">Aileen</p>
-                  <p className="text-gc-muted font-body text-sm">{language === 'gd' ? 'Do thidsear Gàidhlig AI' : 'Your AI Gàidhlig tutor'}</p>
-                  <Link href="/ionnsaich" className="mt-3 inline-block px-4 py-2 bg-tarheel-pale text-tarheel-dark text-sm font-medium rounded-lg hover:bg-tarheel hover:text-white transition-colors font-display">
-                    {language === 'gd' ? 'Coinnich ri Aileen' : 'Meet Aileen'}
-                  </Link>
+          </section>
+
+          {/* Lesson selector */}
+          <section className="py-12">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+              <div className="bg-white rounded-2xl border border-gc-border p-6 mb-8 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-tarheel/10 border border-tarheel/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl font-display text-tarheel font-bold">A</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-display tracking-widest uppercase text-tarheel mb-1">Aileen</p>
+                    <p className="text-gc-text font-body leading-relaxed">
+                      {language === 'gd'
+                        ? 'Fàilte gu An Cafaidh Balla Cloiche — an àite as fheàrr leat a chleachdas sinn airson Gàidhlig ionnsachadh tro shuidheachaidhean beatha làitheil. Tagh do ìre gus tòiseachadh.'
+                        : 'Welcome to An Cafaidh Balla Cloiche — The Stone Wall Coffee Shop. We\'ll use this real-world setting to learn Gàidhlig naturally. Choose your level to begin.'}
+                    </p>
+                    <p className="text-cobalt font-body font-medium mt-2">
+                      Tagh do ìre — Choose your level
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Features */}
-      <section className="py-20 bg-gc-bg">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-xs font-display tracking-widest uppercase text-tarheel mb-3">{language === 'gd' ? "Na th'againn" : 'What We Offer'}</p>
-            <h2 className="text-4xl font-display font-semibold text-gc-dark">{language === 'gd' ? "Gach nì a th'a dhìth ort" : 'Everything You Need'}</h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {features.map((feature, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gc-border p-6 shadow-sm hover:shadow-md hover:border-tarheel transition-all duration-200">
-                <div className="text-3xl mb-4">{feature.icon}</div>
-                <h3 className="font-display font-semibold text-gc-dark text-lg mb-2">{language === 'gd' ? feature.title_gd : feature.title_en}</h3>
-                <p className="text-gc-muted font-body text-sm leading-relaxed">{language === 'gd' ? feature.desc_gd : feature.desc_en}</p>
+              <div className="grid gap-4 mb-8">
+                {levels.map(level => (
+                  <button
+                    key={level.id}
+                    onClick={() => setSelectedLevel(level.id)}
+                    className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${
+                      selectedLevel === level.id ? level.active : level.color + ' hover:border-tarheel'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-display font-semibold text-lg mb-1">
+                          {level.gd}
+                          <span className="font-body font-normal text-sm ml-2 opacity-70">— {level.en}</span>
+                        </div>
+                        <p className={`text-sm font-body ${selectedLevel === level.id ? 'text-white/80' : 'text-gc-muted'}`}>
+                          {language === 'gd' ? level.desc_gd : level.desc_en}
+                        </p>
+                      </div>
+                      {selectedLevel === level.id && (
+                        <span className="text-2xl ml-4">✓</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-gc-dark text-white text-center">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-display font-semibold mb-4">{language === 'gd' ? 'Tha sinn an seo' : 'We Are Here'}</h2>
-          <p className="text-white/70 font-body text-lg mb-8">Ceud mìle fàilte — a hundred thousand welcomes</p>
-          <Link href="/ionnsaich" className="inline-block px-8 py-4 bg-tarheel text-white font-display font-medium rounded-lg hover:bg-tarheel-dark transition-colors tracking-wide">
-            {language === 'gd' ? 'Tòisich an-diugh' : 'Begin Today'}
-          </Link>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href="/treòrachadh-leasan-1.pdf"
+                  download
+                  className="flex-1 px-6 py-3 border border-tarheel text-tarheel-dark font-medium rounded-lg hover:bg-tarheel-pale transition-colors text-center text-sm font-display tracking-wide"
+                >
+                  📄 {t('learn.guide_btn')}
+                </a>
+                <button
+                  onClick={() => selectedLevel && setLessonStarted(true)}
+                  disabled={!selectedLevel}
+                  className={`flex-1 px-6 py-3 font-medium rounded-lg transition-colors text-sm font-display tracking-wide ${
+                    selectedLevel
+                      ? 'bg-tarheel text-white hover:bg-tarheel-dark cursor-pointer'
+                      : 'bg-gc-border text-gc-muted cursor-not-allowed'
+                  }`}
+                >
+                  {language === 'gd' ? 'Tòisich an Leasan →' : 'Start Lesson →'}
+                </button>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <button
+            onClick={() => { setLessonStarted(false); setSelectedLevel(null); }}
+            className="mb-6 text-sm text-gc-muted hover:text-tarheel-dark flex items-center gap-2 transition-colors"
+          >
+            ← {t('common.back')}
+          </button>
+          <LessonEngine level={selectedLevel} language={language} />
         </div>
-      </section>
-
+      )}
     </div>
   );
 }
