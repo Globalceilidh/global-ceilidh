@@ -24,7 +24,7 @@ export default function Navigation() {
     { href: '/meadhanan', label: t('nav.media') },
   ];
 
-  const isActive = (href) => pathname === href;
+  const isActive = (href) => pathname === href || pathname.startsWith(href + '/');
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -33,13 +33,45 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          {/* Logo */}
+          {/* Logo — SVG swirl matching hero background */}
           <Link href="/" className="flex items-center gap-3 group">
-            <img 
-              src="/gc-logo.png" 
-              alt="GlobalCeilidh.com" 
-              className="w-10 h-10 object-contain"
-            />
+            <div className="w-10 h-10 flex-shrink-0">
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                <defs>
+                  <radialGradient id="navSwirlBg" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#1a2744"/>
+                    <stop offset="100%" stopColor="#0d1117"/>
+                  </radialGradient>
+                  <radialGradient id="navSwirlRings" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#7BAFD4" stopOpacity="1"/>
+                    <stop offset="100%" stopColor="#7BAFD4" stopOpacity="0"/>
+                  </radialGradient>
+                </defs>
+                {/* Dark background circle */}
+                <circle cx="50" cy="50" r="50" fill="url(#navSwirlBg)"/>
+                {/* Swirl rings */}
+                {[38, 30, 22, 15, 9, 4].map((r, i) => (
+                  <circle
+                    key={i}
+                    cx="50"
+                    cy="50"
+                    r={r}
+                    fill="none"
+                    stroke="url(#navSwirlRings)"
+                    strokeWidth="1"
+                    strokeOpacity={0.9 - i * 0.1}
+                  />
+                ))}
+                {/* Spiral arm */}
+                <path
+                  d="M50,50 C65,35 78,42 78,55 C78,68 65,76 52,74 C39,72 30,62 32,50 C34,38 44,32 54,36"
+                  fill="none"
+                  stroke="#7BAFD4"
+                  strokeWidth="1.2"
+                  strokeOpacity="0.7"
+                />
+              </svg>
+            </div>
             <div>
               <div className="font-display text-sm font-semibold tracking-widest text-gc-dark uppercase">
                 GlobalCeilidh
@@ -65,13 +97,11 @@ export default function Navigation() {
             ))}
           </div>
 
-          {/* Right side — Language Toggle + CTA */}
+          {/* Right side */}
           <div className="hidden md:flex items-center gap-3">
-
-            {/* Language Toggle */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gc-border hover:border-tarheel transition-all duration-200 group"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gc-border hover:border-tarheel transition-all duration-200"
               title={language === 'en' ? 'Switch to Gàidhlig' : 'Switch to English'}
             >
               <span className={`text-xs font-medium tracking-wide transition-colors ${
@@ -89,7 +119,6 @@ export default function Navigation() {
               }`}>GD</span>
             </button>
 
-            {/* CTA */}
             <Link
               href="/ionnsaich"
               className="px-4 py-2 bg-tarheel text-white text-sm font-medium rounded-md hover:bg-tarheel-dark transition-colors duration-200 tracking-wide"
@@ -132,10 +161,7 @@ export default function Navigation() {
               <span className="text-sm text-gc-muted">
                 {language === 'en' ? 'Switch to Gàidhlig' : 'Switch to English'}
               </span>
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-2"
-              >
+              <button onClick={toggleLanguage} className="flex items-center gap-2">
                 <span className={`text-xs font-medium ${language === 'en' ? 'text-tarheel-dark' : 'text-gc-muted'}`}>EN</span>
                 <div className={`w-8 h-4 rounded-full relative ${language === 'gd' ? 'bg-tarheel' : 'bg-gc-border'}`}>
                   <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all duration-300 ${language === 'gd' ? 'left-4' : 'left-0.5'}`}/>
