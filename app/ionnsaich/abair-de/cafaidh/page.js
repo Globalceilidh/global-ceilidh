@@ -7,7 +7,7 @@ import { useLanguage } from '../../../../context/LanguageContext';
 const LessonEngine = dynamic(() => import('../../../../components/LessonEngine'), { ssr: false });
 
 export default function CafaidhPage() {
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const [lessonStarted, setLessonStarted] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(null);
 
@@ -16,36 +16,27 @@ export default function CafaidhPage() {
       id: 'beginner',
       gd: 'Tòiseachadh',
       en: 'Beginner',
-      desc_en: 'All Gàidhlig shown with English and pronunciation',
-      desc_gd: 'Gàidhlig air fad le Beurla agus fuaimneachadh',
-      color: 'border-tarheel bg-tarheel-pale text-gc-dark',
+      desc_en: 'Complete beginner — all Gàidhlig shown with English and pronunciation',
+      desc_gd: 'Tòiseachadh ùr — Gàidhlig air fad le Beurla agus fuaimneachadh',
+      color: 'border-tarheel bg-tarheel-pale',
       active: 'border-tarheel bg-tarheel text-white',
     },
     {
       id: 'intermediate',
       gd: 'Meadhanach',
       en: 'Intermediate',
-      desc_en: 'English hidden, hover to reveal',
-      desc_gd: 'Beurla falaichte, suath gus fhoillseachadh',
-      color: 'border-cobalt/30 bg-cobalt-light text-gc-dark',
+      desc_en: 'Early learner — English hidden, hover to reveal',
+      desc_gd: 'Tòiseachadh — Beurla falaichte, suath gus fhoillseachadh',
+      color: 'border-cobalt/30 bg-cobalt-light',
       active: 'border-cobalt bg-cobalt text-white',
     },
     {
       id: 'advanced',
       gd: 'Adhartach',
       en: 'Advanced',
-      desc_en: 'Full immersion — Gàidhlig only',
-      desc_gd: 'Bogadh iomlan — Gàidhlig a-mhàin',
-      color: 'border-gc-border bg-gc-bg text-gc-dark',
-      active: 'border-gc-dark bg-gc-dark text-white',
-    },
-    {
-      id: 'fluent',
-      gd: 'Fileanta',
-      en: 'Fluent',
-      desc_en: 'Expert level — no assistance',
-      desc_gd: 'Ìre eòlaich — gun chuideachadh',
-      color: 'border-gc-border bg-gc-bg text-gc-dark',
+      desc_en: 'Full immersion — Gàidhlig only throughout',
+      desc_gd: 'Bogadh iomlan — Gàidhlig a-mhàin air feadh',
+      color: 'border-gc-border bg-gc-bg',
       active: 'border-gc-dark bg-gc-dark text-white',
     },
   ];
@@ -56,7 +47,7 @@ export default function CafaidhPage() {
       {!lessonStarted ? (
         <>
           {/* Hero */}
-          <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-12">
+          <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
             <div className="absolute inset-0 overflow-hidden">
               <img
                 src="/coffee-shop.png"
@@ -73,25 +64,20 @@ export default function CafaidhPage() {
                 ← {language === 'gd' ? 'Air ais' : 'Back'}
               </Link>
               <p className="section-label text-tarheel mb-2">GlobalCeilidh.com</p>
-              <h1 className="text-4xl md:text-5xl font-display font-semibold mb-2 tracking-wide">
+              <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 tracking-wide">
                 {language === 'gd' ? 'An Cafaidh Balla Cloiche' : 'The Stone Wall Café'}
               </h1>
+              <p className="text-white/70 font-body text-lg">
+                {language === 'gd' ? 'Le Aileen — Do Thidsear Gàidhlig AI' : 'With Aileen — Your AI Gàidhlig Tutor'}
+              </p>
             </div>
           </section>
 
+          {/* Lesson selector */}
           <section className="py-12">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-              {/* Coffee shop image */}
-              <div className="rounded-2xl overflow-hidden mb-8 shadow-sm border border-gc-border">
-                <img
-                  src="/coffee-shop.png"
-                  alt="An Cafaidh Balla Cloiche"
-                  className="w-full h-56 object-cover"
-                />
-              </div>
-
-              {/* Aileen welcome message */}
+              {/* Aileen intro */}
               <div className="bg-white rounded-2xl border border-gc-border p-6 mb-8 shadow-sm">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-tarheel/10 border border-tarheel/20 flex items-center justify-center flex-shrink-0">
@@ -105,51 +91,49 @@ export default function CafaidhPage() {
                         : "Welcome to An Cafaidh Balla Cloiche — The Stone Wall Coffee Shop. We'll use this real-world setting to learn Gàidhlig naturally. Choose your level to begin."}
                     </p>
                     <p className="text-cobalt font-body font-medium mt-2">
-                      {language === 'gd' ? 'Tagh do ìre —' : 'Choose your level —'}
+                      Tagh do ìre — Choose your level
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Level selector — horizontal */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+              {/* Level Cards */}
+              <div className="grid gap-4 mb-8">
                 {levels.map(level => (
                   <button
                     key={level.id}
                     onClick={() => setSelectedLevel(level.id)}
-                    className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                    className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${
                       selectedLevel === level.id ? level.active : level.color + ' hover:border-tarheel'
                     }`}
                   >
-                    <div className="font-display font-semibold text-sm mb-1">
-                      {language === 'gd' ? level.gd : level.en}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-display font-semibold text-lg mb-1">
+                          {level.gd}
+                          <span className="font-body font-normal text-sm ml-2 opacity-70">— {level.en}</span>
+                        </div>
+                        <p className={`text-sm font-body ${selectedLevel === level.id ? 'text-white/80' : 'text-gc-muted'}`}>
+                          {language === 'gd' ? level.desc_gd : level.desc_en}
+                        </p>
+                      </div>
+                      {selectedLevel === level.id && (
+                        <span className="text-2xl ml-4">✓</span>
+                      )}
                     </div>
-                    <p className={`text-xs font-body leading-snug ${
-                      selectedLevel === level.id ? 'text-white/80' : 'text-gc-muted'
-                    }`}>
-                      {language === 'gd' ? level.desc_gd : level.desc_en}
-                    </p>
-                    {selectedLevel === level.id && (
-                      <span className="text-lg mt-1 block">✓</span>
-                    )}
                   </button>
                 ))}
               </div>
 
-              {/* Three buttons */}
+              {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
                   href="/treòrachadh-leasan-1.pdf"
                   download
                   className="flex-1 px-6 py-3 border border-tarheel text-tarheel-dark font-medium rounded-lg hover:bg-tarheel-pale transition-colors text-center text-sm font-display tracking-wide"
                 >
-                  📄 {language === 'gd' ? 'Luchdaich sìos Treòrachadh' : 'Download Lesson Guide'}
+                  📄 {t('learn.guide_btn')}
                 </a>
-                <button
-                  className="flex-1 px-6 py-3 border border-gc-border text-gc-text font-medium rounded-lg hover:border-tarheel hover:bg-tarheel-pale transition-colors text-sm font-display tracking-wide"
-                >
-                  📖 {language === 'gd' ? 'Abairtean is Faclan' : 'Phrases and Words'}
-                </button>
                 <button
                   onClick={() => selectedLevel && setLessonStarted(true)}
                   disabled={!selectedLevel}
@@ -172,7 +156,7 @@ export default function CafaidhPage() {
             onClick={() => { setLessonStarted(false); setSelectedLevel(null); }}
             className="mb-6 text-sm text-gc-muted hover:text-tarheel-dark flex items-center gap-2 transition-colors"
           >
-            ← {language === 'gd' ? 'Air ais' : 'Back'}
+            ← {t('common.back')}
           </button>
           <LessonEngine level={selectedLevel} language={language} />
         </div>
