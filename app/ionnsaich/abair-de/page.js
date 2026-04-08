@@ -8,8 +8,8 @@ const sections = [
     gd: 'Earrann 1',
     en: 'Section 1',
     units: [
-      { id: 'cafaidh', gd: 'An Cafaidh Balla Cloiche', en: 'The Stone Wall Café', image: '/coffee-shop.png' },
-      { id: 'dachaigh', gd: 'Dhachaigh Agus Teaghlach', en: 'Home & Family', image: null },
+      { id: 'cafaidh', gd: 'An Cafaidh Balla Cloiche', en: 'The Stone Wall Café', image: '/ceitidh-cafe-outside.png' },
+      { id: 'dachaigh', gd: 'Dhachaigh Agus Teaghlach', en: 'Home & Family', image: '/dachaigh-family.png' },
       { id: 'slainte', gd: 'Slàinte Mhath', en: 'The Pub', image: null },
       { id: 'pairc', gd: "A' Phàirc", en: 'The Park', image: null },
       { id: 'cidsin', gd: "Anns a' Chidsin", en: 'In the Kitchen', image: null },
@@ -84,9 +84,7 @@ export default function AbairDePage() {
             Abair De?
           </h1>
           <p className="text-white/70 font-body text-lg">
-            {language === 'gd'
-              ? 'Tagh aon de na h-aonadan agad'
-              : 'Choose a unit to begin'}
+            {language === 'gd' ? 'Tagh aon de na h-aonadan agad' : 'Choose a unit to begin'}
           </p>
         </div>
       </section>
@@ -102,7 +100,7 @@ export default function AbairDePage() {
                 {language === 'gd' ? section.gd : section.en}
               </h2>
 
-              {/* 2x3 Unit Grid */}
+              {/* 2x3 Grid */}
               <div className="grid grid-cols-3 gap-4 mb-6">
                 {section.units.map(unit => (
                   <Link
