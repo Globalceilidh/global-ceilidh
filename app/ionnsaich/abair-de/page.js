@@ -10,10 +10,10 @@ const sections = [
     units: [
       { id: 'cafaidh', gd: 'An Cafaidh Balla Cloiche', en: 'The Stone Wall Café', image: '/ceitidh-cafe-outside.png' },
       { id: 'dachaigh', gd: 'Dhachaigh Agus Teaghlach', en: 'Home & Family', image: '/dachaigh-family.png' },
-      { id: 'slainte', gd: 'Slàinte Mhath', en: 'The Pub', image: null },
-      { id: 'pairc', gd: "A' Phàirc", en: 'The Park', image: null },
-      { id: 'cidsin', gd: "Anns a' Chidsin", en: 'In the Kitchen', image: null },
-      { id: 'margaidh', gd: "Aig a' Mhargaidh", en: 'At the Market', image: null },
+      { id: 'slainte', gd: 'Slàinte Mhath', en: 'The Pub', image: '/slainte-bartender.png' },
+      { id: 'pairc', gd: "A' Phàirc", en: 'The Park', image: '/pairc-baile-na-cuairteig.png' },
+      { id: 'cidsin', gd: "Anns a' Chidsin", en: 'In the Kitchen', image: '/cidsin-parents-cooking.png' },
+      { id: 'margaidh', gd: "Aig a' Mhargaidh", en: 'At the Market', image: '/margaidh-baile-na-cuairteig.png' },
     ],
   },
   {
@@ -67,7 +67,7 @@ export default function AbairDePage() {
       <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-12">
         <div className="absolute inset-0 overflow-hidden">
           <img
-            src="/coffee-shop.png"
+            src="/ceitidh-cafe-outside.png"
             alt="Abair De?"
             className="w-full h-full object-cover opacity-20"
           />
