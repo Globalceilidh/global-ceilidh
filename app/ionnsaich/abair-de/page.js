@@ -69,7 +69,7 @@ export default function AbairDePage() {
           <img
             src="/ceitidh-cafe-outside.png"
             alt="Abair De?"
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover object-top opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
         </div>
@@ -109,12 +109,12 @@ export default function AbairDePage() {
                     className="group rounded-xl overflow-hidden border border-gc-border hover:border-tarheel transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     {/* Thumbnail */}
-                    <div className="relative h-28 bg-gc-dark overflow-hidden">
+                    <div className="relative h-36 bg-gc-dark overflow-hidden">
                       {unit.image ? (
                         <img
                           src={unit.image}
                           alt={unit.en}
-                          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+                          className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gc-dark to-gc-mid">
