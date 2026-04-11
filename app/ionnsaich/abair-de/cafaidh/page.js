@@ -50,11 +50,11 @@ export default function CafaidhPage() {
           <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
             <div className="absolute inset-0 overflow-hidden">
               <img
-                src="/coffee-shop.png"
+                src="/ceitidh-cafe-welcome.png"
                 alt="An Cafaidh Balla Cloiche"
-                className="w-full h-full object-cover opacity-25"
+                className="w-full h-full object-cover object-top opacity-50"
               />
-              <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
+              <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/60 to-gc-mid/50" />
             </div>
             <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
               <Link
@@ -77,7 +77,6 @@ export default function CafaidhPage() {
           <section className="py-12">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-              {/* Aileen intro */}
               <div className="bg-white rounded-2xl border border-gc-border p-6 mb-8 shadow-sm">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-tarheel/10 border border-tarheel/20 flex items-center justify-center flex-shrink-0">
@@ -97,7 +96,6 @@ export default function CafaidhPage() {
                 </div>
               </div>
 
-              {/* Level Cards */}
               <div className="grid gap-4 mb-8">
                 {levels.map(level => (
                   <button
@@ -125,7 +123,6 @@ export default function CafaidhPage() {
                 ))}
               </div>
 
-              {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
                   href="/treòrachadh-leasan-1.pdf"
