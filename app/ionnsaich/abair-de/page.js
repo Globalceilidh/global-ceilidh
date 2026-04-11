@@ -64,26 +64,26 @@ export default function AbairDePage() {
     <div className="min-h-screen bg-gc-bg">
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-12">
+      <section className="relative text-white py-12">
         <div className="absolute inset-0 overflow-hidden">
           <img
             src="/ceitidh-cafe-outside.png"
             alt="Abair De?"
-            className="w-full h-full object-cover object-top opacity-50"
+            className="w-full h-full object-cover object-top"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/60 to-gc-mid/50" />
         </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/ionnsaich"
-            className="text-white/60 hover:text-white text-sm mb-4 inline-flex items-center gap-2 transition-colors"
+            className="text-white text-sm mb-4 inline-flex items-center gap-2 transition-colors hover:text-tarheel"
+            style={{textShadow: '0 1px 4px rgba(0,0,0,0.9)'}}
           >
             ← {language === 'gd' ? 'Air ais' : 'Back'}
           </Link>
-          <h1 className="text-4xl md:text-5xl font-display font-semibold mb-2 tracking-wide">
+          <h1 className="text-4xl md:text-5xl font-display font-semibold mb-2 tracking-wide" style={{textShadow: '0 2px 8px rgba(0,0,0,0.9)'}}>
             Abair De?
           </h1>
-          <p className="text-white/70 font-body text-lg">
+          <p className="text-white font-body text-lg" style={{textShadow: '0 1px 4px rgba(0,0,0,0.9)'}}>
             {language === 'gd' ? 'Tagh aon de na h-aonadan agad' : 'Choose a unit to begin'}
           </p>
         </div>
@@ -111,14 +111,13 @@ export default function AbairDePage() {
                         <img
                           src={unit.image}
                           alt={unit.en}
-                          className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-all duration-300"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gc-dark to-gc-mid">
                           <span className="text-3xl opacity-40">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gc-dark/60 to-transparent" />
                     </div>
 
                     <div className="p-3 bg-white">
