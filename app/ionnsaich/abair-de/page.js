@@ -69,9 +69,9 @@ export default function AbairDePage() {
           <img
             src="/ceitidh-cafe-outside.png"
             alt="Abair De?"
-            className="w-full h-full object-cover object-top opacity-20"
+            className="w-full h-full object-cover object-top opacity-50"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
+          <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/60 to-gc-mid/50" />
         </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
@@ -95,12 +95,10 @@ export default function AbairDePage() {
           {sections.map(section => (
             <div key={section.id}>
 
-              {/* Section Header */}
               <h2 className="text-xl font-display font-semibold text-gc-dark mb-6 pb-2 border-b border-gc-border">
                 {language === 'gd' ? section.gd : section.en}
               </h2>
 
-              {/* 2x3 Grid */}
               <div className="grid grid-cols-3 gap-4 mb-6">
                 {section.units.map(unit => (
                   <Link
@@ -108,7 +106,6 @@ export default function AbairDePage() {
                     href={`/ionnsaich/abair-de/${unit.id}`}
                     className="group rounded-xl overflow-hidden border border-gc-border hover:border-tarheel transition-all duration-200 shadow-sm hover:shadow-md"
                   >
-                    {/* Thumbnail */}
                     <div className="relative h-36 bg-gc-dark overflow-hidden">
                       {unit.image ? (
                         <img
@@ -124,7 +121,6 @@ export default function AbairDePage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-gc-dark/60 to-transparent" />
                     </div>
 
-                    {/* Label */}
                     <div className="p-3 bg-white">
                       <p className="font-display text-sm font-semibold text-gc-dark leading-snug">
                         {language === 'gd' ? unit.gd : unit.en}
@@ -137,7 +133,6 @@ export default function AbairDePage() {
                 ))}
               </div>
 
-              {/* Section Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <a
                   href={`/downloads/earrann-${section.id}.pdf`}
