@@ -36,21 +36,20 @@ export default function LearnPage() {
     <div className="min-h-screen bg-gc-bg">
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
+      <section className="relative text-white py-16">
         <div className="absolute inset-0 overflow-hidden">
           <img
             src="/coffee-shop.png"
             alt="Ionnsaich"
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/60 to-gc-mid/50" />
         </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="section-label text-tarheel mb-2">GlobalCeilidh.com</p>
-          <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 tracking-wide">
+          <p className="section-label text-tarheel mb-2" style={{textShadow: '0 1px 4px rgba(0,0,0,0.8)'}}>GlobalCeilidh.com</p>
+          <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 tracking-wide" style={{textShadow: '0 2px 8px rgba(0,0,0,0.9)'}}>
             {language === 'gd' ? 'Ionnsaich Gàidhlig' : 'Learn Gàidhlig'}
           </h1>
-          <p className="text-white/70 font-body text-lg">
+          <p className="text-white font-body text-lg" style={{textShadow: '0 1px 4px rgba(0,0,0,0.9)'}}>
             {language === 'gd' ? 'Tagh an aplacaid agad' : 'Choose your learning app'}
           </p>
         </div>
