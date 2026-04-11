@@ -41,9 +41,9 @@ export default function LearnPage() {
           <img
             src="/coffee-shop.png"
             alt="Ionnsaich"
-            className="w-full h-full object-cover opacity-25"
+            className="w-full h-full object-cover opacity-50"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/85 to-gc-mid/75" />
+          <div className="absolute inset-0 bg-gradient-to-br from-gc-dark/60 to-gc-mid/50" />
         </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="section-label text-tarheel mb-2">GlobalCeilidh.com</p>
