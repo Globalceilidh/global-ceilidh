@@ -4,6 +4,7 @@ import { LanguageProvider } from '../context/LanguageContext';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { ClerkProvider } from '@clerk/nextjs';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -41,6 +42,7 @@ export default function RootLayout({ children }) {
             </main>
             <Footer />
           </LanguageProvider>
+	 <Analytics />
         </body>
       </html>
     </ClerkProvider>
