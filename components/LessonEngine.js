@@ -1,39 +1,23 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-
-const PHRASES = [
-  { g:"Madainn mhath", e:"Good morning", ph:"MAH-ting vah", ck:["good morning","madainn mhath"] },
-  { g:"Ciamar a tha sibh an-diugh?", e:"How are you today?", ph:"KIM-er ah hah shiv un JOO", ck:["how are you today","ciamar a tha sibh"] },
-  { g:"Tha mi gu math, tapadh leibh", e:"I am well, thank you", ph:"Hah mee goo mah, TAH-pah lyev", ck:["i am well thank you","tha mi gu math tapadh leibh","i am well"] },
-  { g:"Tha mi gu dòigheil, tapadh leibh", e:"I am fine, thank you", ph:"Hah mee goo DOY-yel, TAH-pah lyev", ck:["i am fine thank you","i am fine","tha mi gu doigheil"] },
-  { g:"Meadhan math, tapadh leibh", e:"Not bad, thank you", ph:"MEH-un mah, TAH-pah lyev", ck:["not bad thank you","not bad","meadhan math"] },
-  { g:"Ciamar a tha sibh fhèin?", e:"How are you yourself?", ph:"KIM-er ah hah shiv hayn", ck:["how are you yourself","ciamar a tha sibh fhein"] },
-  { g:"Cofaidh mòr, mas e ur toil e", e:"A large coffee, please", ph:"COH-fee more, mass eh oor tohl eh", ck:["large coffee please","cofaidh mor"] },
-  { g:"Cofaidh beag, mas e ur toil e", e:"A small coffee, please", ph:"COH-fee bek, mass eh oor tohl eh", ck:["small coffee please","cofaidh beag"] },
-  { g:"Tì le bainne, mas e ur toil e", e:"Tea with milk, please", ph:"Chee leh BAN-yeh", ck:["tea with milk please","tea with milk"] },
-  { g:"Seòclaid Theth, mas e ur toil e", e:"Hot chocolate, please", ph:"SHAW-kletch heh", ck:["hot chocolate please","hot chocolate"] },
-  { g:"Dè tha sibh ag iarraidh?", e:"What would you like?", ph:"Jeh hah shiv ak EE-ar-ee", ck:["what would you like","de tha sibh ag iarraidh"] },
-  { g:"Dè na chosgais?", e:"How much does it cost?", ph:"Jeh nah CHOSS-kish", ck:["how much does it cost","how much","de na chosgais"] },
-  { g:"Tapadh leibh", e:"Thank you", ph:"TAH-pah lyev", ck:["thank you","tapadh leibh"] },
-  { g:"Mar sin leibh", e:"Goodbye", ph:"Mar shin lyev", ck:["goodbye","mar sin leibh","tioraidh"] },
-];
+import { supabase } from '../lib/supabase';
 
 const REWARDS = [
-  { at:3, icon:"☕", t:"Cofaidh Beag!", g:"Còcaireachd mhath!" },
-  { at:6, icon:"☕", t:"Cofaidh Mòr!", g:"Glè mhath!" },
-  { at:9, icon:"🫐", t:"Sgona!", g:"Iongantach!" },
-  { at:11, icon:"🍲", t:"Brot an Latha!", g:"Sgoinneil!" },
-  { at:13, icon:"🥪", t:"Ceapaire!", g:"Bravo!" },
-  { at:15, icon:"🎂", t:"Cèic Mhilis!", g:"Air leth math!" },
+  { at: 3,  icon: '☕', t: 'Cofaidh Beag!',    g: 'Còcaireachd mhath!' },
+  { at: 6,  icon: '☕', t: 'Cofaidh Mòr!',     g: 'Glè mhath!' },
+  { at: 9,  icon: '🫐', t: 'Sgona!',           g: 'Iongantach!' },
+  { at: 11, icon: '🍲', t: 'Brot an Latha!',   g: 'Sgoinneil!' },
+  { at: 13, icon: '🥪', t: 'Ceapaire!',        g: 'Bravo!' },
+  { at: 15, icon: '🎂', t: 'Cèic Mhilis!',     g: 'Air leth math!' },
 ];
 
 function clean(s) {
   return s.toLowerCase()
-    .replace(/[àáâ]/g,'a').replace(/[èéê]/g,'e')
-    .replace(/[ìíî]/g,'i').replace(/[òóô]/g,'o').replace(/[ùúû]/g,'u')
-    .replace(/\(formal\)|\(informal\)/gi,'').replace(/^and\s+/i,'')
-    .replace(/[^a-z0-9\s']/g,'').replace(/\s+/g,' ').trim();
+    .replace(/[àáâ]/g, 'a').replace(/[èéê]/g, 'e')
+    .replace(/[ìíî]/g, 'i').replace(/[òóô]/g, 'o').replace(/[ùúû]/g, 'u')
+    .replace(/\(formal\)|\(informal\)/gi, '').replace(/^and\s+/i, '')
+    .replace(/[^a-z0-9\s']/g, '').replace(/\s+/g, ' ').trim();
 }
 
 export default function LessonEngine({ level }) {
@@ -49,17 +33,85 @@ export default function LessonEngine({ level }) {
   const [answered, setAnswered] = useState(false);
   const [reward, setReward] = useState(null);
   const [shownRewards, setShownRewards] = useState(new Set());
+  const [phrases, setPhrases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Map level prop to database level value
+  const dbLevel = level === 'beginner' ? 'toiseachadh'
+    : level === 'intermediate' ? 'meadhanach'
+    : level === 'advanced' ? 'adhartach'
+    : 'toiseachadh';
+
+  // Fetch lesson items from Supabase
   useEffect(() => {
-    const exercises = [];
-    PHRASES.forEach((p, i) => {
-      exercises.push({ type: 'to-english', p, i });
-      exercises.push({ type: 'to-gaelic', p, i });
-    });
-    setExList(exercises.sort(() => Math.random() - 0.5));
-  }, [level]);
+    async function fetchLessonItems() {
+      setLoading(true);
+      setError(null);
 
-  const progress = Math.round((learned.size / PHRASES.length) * 100);
+      try {
+        // Get the cafaidh immersion location
+        const { data: location, error: locError } = await supabase
+          .from('immersion_locations')
+          .select('id')
+          .eq('slug', 'cafaidh')
+          .single();
+
+        if (locError) throw locError;
+
+        // Get Unit 1 for this location and level
+        const { data: unit, error: unitError } = await supabase
+          .from('units')
+          .select('id')
+          .eq('immersion_location_id', location.id)
+          .eq('level', dbLevel)
+          .eq('unit_number', 1)
+          .single();
+
+        if (unitError) throw unitError;
+
+        // Get all lesson items for this unit
+        const { data: items, error: itemsError } = await supabase
+          .from('lesson_items')
+          .select('*')
+          .eq('unit_id', unit.id)
+          .eq('item_type', 'phrase')
+          .order('sort_order');
+
+        if (itemsError) throw itemsError;
+
+        // Transform to phrase format
+        const transformed = items.map(item => ({
+          g: item.gaelic,
+          e: item.english,
+          ph: item.phonetic || '',
+          ck: [item.english.toLowerCase(), item.gaelic?.toLowerCase()].filter(Boolean),
+        }));
+
+        setPhrases(transformed);
+
+        // Build exercise list
+        const exercises = [];
+        transformed.forEach((p, i) => {
+          exercises.push({ type: 'to-english', p, i });
+          exercises.push({ type: 'to-gaelic', p, i });
+        });
+        setExList(exercises.sort(() => Math.random() - 0.5));
+
+      } catch (err) {
+        console.error('Failed to load lesson:', err);
+        setError('Cha deach an leasan a luchdadh. The lesson could not be loaded.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchLessonItems();
+  }, [level, dbLevel]);
+
+  const progress = phrases.length > 0
+    ? Math.round((learned.size / phrases.length) * 100)
+    : 0;
 
   const checkAnswer = () => {
     if (answered || !answer.trim()) return;
@@ -72,7 +124,7 @@ export default function LessonEngine({ level }) {
     if (ex.type === 'to-english') {
       ok = p.ck.some(acc => clean(acc) === ca);
       if (!ok) {
-        const keys = clean(p.e).split(' ').filter(w => w.length > 3 && !['formal','informal','please'].includes(w));
+        const keys = clean(p.e).split(' ').filter(w => w.length > 3 && !['formal', 'informal', 'please'].includes(w));
         const hits = keys.filter(k => ca.includes(k));
         ok = keys.length > 0 && hits.length >= Math.ceil(keys.length * 0.7);
         close = !ok && hits.length >= 1;
@@ -121,6 +173,31 @@ export default function LessonEngine({ level }) {
 
   const currentEx = exList[exIdx];
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gc-border shadow-sm p-8 text-center">
+        <div className="animate-pulse">
+          <div className="w-12 h-12 rounded-full bg-tarheel/20 mx-auto mb-4 flex items-center justify-center">
+            <span className="text-xl font-display text-tarheel font-bold">A</span>
+          </div>
+          <p className="text-gc-muted text-sm">
+            {language === 'gd' ? 'A\' luchdadh an leasan...' : 'Loading lesson...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-8 text-center">
+        <p className="text-red-600 text-sm">{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gc-border shadow-sm overflow-hidden">
 
@@ -142,7 +219,6 @@ export default function LessonEngine({ level }) {
             <div><div className="text-lg font-display font-bold">{learned.size}</div><div className="text-xs text-white/50">Learned</div></div>
           </div>
         </div>
-        {/* Progress bar */}
         <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
           <div className="h-full bg-tarheel rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
@@ -163,9 +239,9 @@ export default function LessonEngine({ level }) {
       {/* Tabs */}
       <div className="flex border-b border-gc-border">
         {[
-          { id: 'learn', en: 'Learn', gd: 'Ionnsaich' },
-          { id: 'practice', en: 'Practice', gd: 'Cleachd' },
-          { id: 'challenge', en: 'Challenge', gd: 'Dùbhlan' },
+          { id: 'learn',    en: 'Learn',     gd: 'Ionnsaich' },
+          { id: 'practice', en: 'Practice',  gd: 'Cleachd' },
+          { id: 'challenge',en: 'Challenge', gd: 'Dùbhlan' },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex-1 py-3 text-sm font-medium transition-colors ${
@@ -183,7 +259,6 @@ export default function LessonEngine({ level }) {
         {/* Learn Tab */}
         {tab === 'learn' && (
           <div>
-            {/* Greeting exchange */}
             <div className="bg-tarheel-pale rounded-xl p-4 mb-4 border border-tarheel/20">
               <p className="text-xs font-display tracking-widest uppercase text-tarheel-dark mb-3">
                 {language === 'gd' ? 'Ionnsaich mar aon aonad' : 'Learn as one complete unit'}
@@ -203,9 +278,8 @@ export default function LessonEngine({ level }) {
               ))}
             </div>
 
-            {/* Phrase grid */}
             <div className="grid grid-cols-1 gap-2">
-              {PHRASES.map((p, i) => (
+              {phrases.map((p, i) => (
                 <button key={i}
                   onClick={() => setLearned(prev => new Set([...prev, i]))}
                   className={`text-left p-3 rounded-lg border transition-all ${
@@ -220,6 +294,9 @@ export default function LessonEngine({ level }) {
                         <p className={`text-xs mt-0.5 ${learned.has(i) ? 'text-green-600' : 'text-gc-muted'} ${level === 'intermediate' ? 'blur-sm hover:blur-none transition-all' : ''}`}>
                           {p.e}
                         </p>
+                      )}
+                      {p.ph && level === 'beginner' && (
+                        <p className="text-xs text-cobalt mt-0.5 italic">{p.ph}</p>
                       )}
                     </div>
                     {learned.has(i) && <span className="text-green-500 text-sm ml-2">✓</span>}
@@ -250,10 +327,15 @@ export default function LessonEngine({ level }) {
             ) : (
               <div>
                 <div className="flex justify-between text-xs text-gc-muted mb-4">
-                  <span>{currentEx.type === 'to-english' ? (language === 'gd' ? 'Ciall sa Bheurla?' : 'What does this mean in English?') : (language === 'gd' ? 'Ciamar a chanas tu sa Ghàidhlig?' : 'How do you say this in Gàidhlig?')}</span>
+                  <span>{currentEx.type === 'to-english'
+                    ? (language === 'gd' ? 'Ciall sa Bheurla?' : 'What does this mean in English?')
+                    : (language === 'gd' ? 'Ciamar a chanas tu sa Ghàidhlig?' : 'How do you say this in Gàidhlig?')}
+                  </span>
                   <span>{exIdx + 1} / {exList.length}</span>
                 </div>
-                <p className="text-xl font-medium text-cobalt mb-4 font-body">{currentEx.type === 'to-english' ? currentEx.p.g : currentEx.p.e}</p>
+                <p className="text-xl font-medium text-cobalt mb-4 font-body">
+                  {currentEx.type === 'to-english' ? currentEx.p.g : currentEx.p.e}
+                </p>
                 <input
                   value={answer}
                   onChange={e => setAnswer(e.target.value)}
@@ -298,7 +380,9 @@ export default function LessonEngine({ level }) {
             <p className="text-gc-muted text-sm mb-4">
               {correct >= 6
                 ? (language === 'gd' ? 'Tha an dùbhlan deiseil dhut!' : 'The challenge is ready for you!')
-                : (language === 'gd' ? `Feumaidh tu ${6 - correct} ceist eile a chur às dèidh a chèile` : `Complete ${6 - correct} more exercises to unlock`)}
+                : (language === 'gd'
+                  ? `Feumaidh tu ${6 - correct} ceist eile a chur às dèidh a chèile`
+                  : `Complete ${6 - correct} more exercises to unlock`)}
             </p>
             {correct >= 6 && (
               <button onClick={() => setTab('practice')}
