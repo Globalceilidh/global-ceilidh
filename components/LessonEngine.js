@@ -20,7 +20,7 @@ function clean(s) {
     .replace(/[^a-z0-9\s']/g, '').replace(/\s+/g, ' ').trim();
 }
 
-export default function LessonEngine({ level }) {
+export default function LessonEngine({ level, locationSlug = 'cafaidh' }) {
   const { language } = useLanguage();
   const [tab, setTab] = useState('learn');
   const [score, setScore] = useState(0);
@@ -54,7 +54,7 @@ export default function LessonEngine({ level }) {
         const { data: location, error: locError } = await supabase
           .from('immersion_locations')
           .select('id')
-          .eq('slug', 'cafaidh')
+          .eq('slug', locationSlug)
           .single();
 
         if (locError) throw locError;
