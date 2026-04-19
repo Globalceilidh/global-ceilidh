@@ -52,16 +52,6 @@ GlobalCeilidh.com is a Scottish Gaelic language learning platform — think Duol
 4. Migration 003
 5. Cosmetic pass (after structure is stable)
 
-## SRUTH — NEWSLETTER SYSTEM
-- Separate backend repo: Globalceilidh/sruth-backend
-- FastAPI + Celery + Redis on Railway
-- Content intelligence pipeline: RSS/scraper ingestion, LLM processing, editorial approval
-- Three outputs: private morning brief, subscriber newsletter, GlobalCeilidh.com content queue
-- Supabase shared database
-- Defaults to Scottish Gaelic with English toggle
-- Revenue model: sponsored placements, classifieds
-- Electron desktop app + Expo mobile app for management
-
 ## HOW TO WORK WITH ME
 - I lose context between sessions — always start from this file
 - Don't ask me to recreate lost conversation — move forward
