@@ -6,7 +6,6 @@ import Footer from '../components/Footer';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import MainWrapper from '../components/MainWrapper';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const cinzel = Cinzel({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-cinzel' });
@@ -33,7 +32,9 @@ export default function RootLayout({ children }) {
         <body className={`${inter.className} bg-white text-gc-text antialiased`}>
           <LanguageProvider>
             <Navigation />
-            <MainWrapper>{children}</MainWrapper>
+            <main className="pt-16 min-h-screen">
+              {children}
+            </main>
             <Footer />
            </LanguageProvider>
 	  <Analytics />

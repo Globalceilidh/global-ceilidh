@@ -26,11 +26,11 @@ export default function SruthSignup() {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      position: 'fixed',
+      inset: 0,
+      zIndex: 9999,
+      overflowY: 'auto',
       background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 35%, rgba(0,0,0,0.65) 100%), url(/sruth-signup-bg.png) center top / cover no-repeat',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
     }}>
       <div style={{
         display: 'flex',
@@ -38,6 +38,7 @@ export default function SruthSignup() {
         alignItems: 'center',
         width: '100%',
         maxWidth: 720,
+        margin: '0 auto',
         padding: '32px 24px 60px',
         minHeight: '100vh',
       }}>
