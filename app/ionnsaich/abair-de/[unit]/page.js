@@ -56,7 +56,7 @@ export default function UnitPage() {
         <div className="text-center max-w-md mx-auto px-4">
           <p className="text-4xl mb-4">🏴󠁧󠁢󠁳󠁣󠁴󠁿</p>
           <h1 className="font-display text-2xl font-semibold text-gc-dark mb-3">
-            {language === 'gd' ? 'A' Tighinn a Dh'aithghearr' : 'Coming Soon'}
+            {language === 'gd' ? "A' Tighinn a Dh'aithghearr" : 'Coming Soon'}
           </h1>
           <p className="text-gc-muted font-body mb-6">
             {language === 'gd'
