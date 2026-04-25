@@ -29,20 +29,17 @@ export default function SruthSignup() {
       position: 'fixed',
       inset: 0,
       zIndex: 999,
-      backgroundImage: 'url(/sruth-signup-bg.png)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center top',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
       overflowY: 'auto',
     }}>
-      {/* Gradient overlay — light at top for black wordmark, dark at bottom for white text */}
+      {/* Background + gradient as a single pinned layer */}
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 35%, rgba(0,0,0,0.65) 100%)',
-        pointerEvents: 'none',
+        backgroundImage: 'url(/sruth-signup-bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 35%, rgba(0,0,0,0.65) 100%), url(/sruth-signup-bg.png) center top / cover no-repeat',
+        zIndex: 0,
       }} />
 
       <div style={{
@@ -53,6 +50,7 @@ export default function SruthSignup() {
         alignItems: 'center',
         width: '100%',
         maxWidth: 720,
+        margin: '0 auto',
         padding: '32px 24px 60px',
         minHeight: '100vh',
       }}>
