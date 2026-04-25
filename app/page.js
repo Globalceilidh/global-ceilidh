@@ -29,7 +29,7 @@ export default function ComingSoon() {
         <a href="/sruth" aria-label="Sign up for Sruth" title="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '61%', left: '62%',
+            top: '65%', left: '62%',
             width: '28%', height: '10%',
             display: 'block',
             cursor: 'pointer',
@@ -40,7 +40,7 @@ export default function ComingSoon() {
         <a href="/sruth" aria-label="Sign up for Sruth" title="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '80%', left: '52%',
+            top: '84%', left: '52%',
             width: '20%', height: '7%',
             display: 'block',
             cursor: 'pointer',
