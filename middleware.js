@@ -11,6 +11,7 @@ export default clerkMiddleware((auth, request) => {
     // Allow: homepage, API routes, Next.js internals, static files, webhooks
     const allowed =
       pathname === '/' ||
+      pathname === '/sruth' ||
       pathname.startsWith('/api/') ||
       pathname.startsWith('/_next/') ||
       pathname.startsWith('/favicon') ||
