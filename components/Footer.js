@@ -1,9 +1,13 @@
 'use client';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function Footer() {
+  const pathname = usePathname();
   const { t } = useLanguage();
+
+  if (pathname === '/sruth') return null;
 
   return (
     <footer className="bg-gc-dark text-white">
