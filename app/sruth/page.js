@@ -28,23 +28,11 @@ export default function SruthSignup() {
     <div style={{
       position: 'fixed',
       inset: 0,
-      zIndex: 999,
+      zIndex: 9999,
+      background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 35%, rgba(0,0,0,0.65) 100%), url(/sruth-signup-bg.png) center top / cover no-repeat',
       overflowY: 'auto',
     }}>
-      {/* Background + gradient as a single pinned layer */}
       <div style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundImage: 'url(/sruth-signup-bg.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 35%, rgba(0,0,0,0.65) 100%), url(/sruth-signup-bg.png) center top / cover no-repeat',
-        zIndex: 0,
-      }} />
-
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
