@@ -17,7 +17,7 @@ export default function ComingSoon() {
       }}>
         <div style={{ position: 'relative' }}>
           <img
-            src="/GC-Coming_Soon.png"
+            src="/GC-Comingsoon_2.png"
             alt="sruth. — GlobalCeilidh is coming soon"
             style={{ width: '100%', display: 'block' }}
           />
@@ -30,7 +30,22 @@ export default function ComingSoon() {
             style={{
               position: 'absolute',
               top: '3%', left: '13%',
-              width: '71%', height: '21%',
+              width: '74%', height: '20%',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          />
+
+          {/* ── "t-srutha" in "A bheil sibh deiseil airson an t-srutha?" ── */}
+          <button
+            onClick={() => setOpen(true)}
+            aria-label="Sign up for Sruth"
+            title="Sign up for sruth."
+            style={{
+              position: 'absolute',
+              top: '61%', left: '62%',
+              width: '28%', height: '10%',
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -44,7 +59,7 @@ export default function ComingSoon() {
             title="Sign up for sruth."
             style={{
               position: 'absolute',
-              top: '81%', left: '52%',
+              top: '80%', left: '52%',
               width: '20%', height: '7%',
               background: 'transparent',
               border: 'none',
