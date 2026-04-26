@@ -47,13 +47,12 @@ export default function SruthSignup() {
           style={{ width: '100%', height: '100%', display: 'block' }}
         />
 
-        {/* Form sits over the dashed rectangle (~56–68% from top in the 1920×1080 image) */}
+        {/* Dashed box in image: top 56%, left 27%, width 46%, height 14% */}
         <div style={{
           position: 'absolute',
-          top: '60%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '48%',
+          top: '61%',
+          left: '27%',
+          width: '46%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
