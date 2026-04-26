@@ -48,12 +48,12 @@ export default function ComingSoon() {
           }}
         />
 
-        {/* Hotspot: "sruth." in "Sign up for sruth." */}
+        {/* Hotspot: entire lower text block (t-srutha sentence through sruth. tagline) */}
         <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '74%', left: '52%',
-            width: '20%', height: '8%',
+            top: '60%', left: '20%',
+            width: '60%', height: '30%',
             display: 'block', cursor: 'pointer',
           }}
         />
