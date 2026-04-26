@@ -15,7 +15,7 @@ export default function SruthClient() {
       position: 'fixed',
       inset: 0,
       zIndex: 9999,
-      backgroundImage: 'url(/sruth-bg.jpg)',
+      backgroundImage: 'url(/sruth-signup-bg.png)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundColor: '#0d1117',
