@@ -32,8 +32,8 @@ export default function SruthSignup() {
 
       <div style={{
         position: 'absolute',
-        bottom: 150,
-        left: '48%',
+        bottom: 165,
+        left: '49%',
         transform: 'translateX(-50%)',
         width: 660,
         padding: 12,
@@ -93,7 +93,7 @@ export default function SruthSignup() {
                   <>
                     Join the&nbsp;
                     <span style={{ fontStyle: 'italic', fontWeight: 'bold', fontSize: 18, lineHeight: 1, marginLeft: 4 }}>
-                      sruth.
+                      s<span style={{ textDecoration: 'underline' }}>ru</span>th.
                     </span>
                   </>
                 )}
