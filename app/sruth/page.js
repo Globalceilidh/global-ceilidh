@@ -51,7 +51,7 @@ export default function SruthSignup() {
         {/* Email form — positioned over the dashed placeholder rectangle */}
         <div style={{
           position: 'absolute',
-          top: '57%',
+          top: '65%',
           left: '50%',
           transform: 'translateX(-50%)',
           width: '52%',
