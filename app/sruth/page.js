@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 // Dashed box position measured from the 1920×1080 source graphic
 const IMG_W = 1920;
 const IMG_H = 1080;
-const BOX = { top: 605, left: 510, width: 895, height: 150 };
+const BOX = { top: 720, left: 510, width: 895, height: 185 };
 
 export default function SruthSignup() {
   const imgRef = useRef(null);
