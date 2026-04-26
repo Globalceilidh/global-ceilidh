@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useLanguage } from '../../../context/LanguageContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Phrase data per unit — keyed by unit id
 const unitData = {

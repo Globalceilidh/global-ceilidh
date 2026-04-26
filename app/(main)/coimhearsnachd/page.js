@@ -1,5 +1,5 @@
 'use client';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const organisations = [
   { name: "Slighe nan Gàidheal", region: "North America", desc: "North American Gaelic organisation connecting diaspora communities across the continent." },

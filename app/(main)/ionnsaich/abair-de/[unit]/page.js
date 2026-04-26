@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useLanguage } from '../../../../context/LanguageContext';
+import { useLanguage } from '@/context/LanguageContext';
 
-const LessonEngine = dynamic(() => import('../../../../components/LessonEngine'), { ssr: false });
+const LessonEngine = dynamic(() => import('@/components/LessonEngine'), { ssr: false });
 
 const UNITS = {
   dachaigh: { gd: 'Dhachaigh Agus Teaghlach', en: 'Home & Family',   image: '/dachaigh-family.png' },

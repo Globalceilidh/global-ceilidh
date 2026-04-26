@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useLanguage } from '../../../../context/LanguageContext';
+import { useLanguage } from '@/context/LanguageContext';
 
-const LessonEngine = dynamic(() => import('../../../../components/LessonEngine'), { ssr: false });
+const LessonEngine = dynamic(() => import('@/components/LessonEngine'), { ssr: false });
 
 export default function CafaidhPage() {
   const { t, language } = useLanguage();

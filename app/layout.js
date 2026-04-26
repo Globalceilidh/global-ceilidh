@@ -1,8 +1,6 @@
 import { Inter, Cinzel, EB_Garamond } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '../context/LanguageContext';
-import Navigation from '../components/Navigation';
-import Footer from '../components/Footer';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -31,14 +29,10 @@ export default function RootLayout({ children }) {
       <html lang="en" className={`${inter.variable} ${cinzel.variable} ${ebGaramond.variable}`}>
         <body className={`${inter.className} bg-white text-gc-text antialiased`}>
           <LanguageProvider>
-            <Navigation />
-            <main className="pt-16 min-h-screen">
-              {children}
-            </main>
-            <Footer />
-           </LanguageProvider>
-	  <Analytics />
-	 <SpeedInsights />
+            {children}
+          </LanguageProvider>
+          <Analytics />
+          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>
