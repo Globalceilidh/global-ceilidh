@@ -52,8 +52,8 @@ export default function ComingSoon() {
         <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '77%', left: '55%',
-            width: '16%', height: '6%',
+            top: '74%', left: '52%',
+            width: '20%', height: '8%',
             display: 'block', cursor: 'pointer',
           }}
         />
