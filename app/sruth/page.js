@@ -167,7 +167,7 @@ export default function SruthSignup() {
             boxShadow: '0 8px 30px rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)' }}>
             {form(14, 42, 520)}
           </div>
-          <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)' }}>
+          <div style={{ position: 'absolute', bottom: 60, left: '49%', transform: 'translateX(-50%)' }}>
             <Countdown fontSize={13} />
           </div>
         </>
