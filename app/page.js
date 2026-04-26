@@ -16,7 +16,7 @@ const CONFIGS = {
     w: 1080, h: 1920,
     hotspots: [
       { top: 50,  left: 100, width: 880, height: 230 }, // sruth. wordmark
-      { top: 950, left: 80,  width: 920, height: 600 }, // lower text block
+      { top: 1050, left: 80, width: 940, height: 750 }, // lower text block
     ],
   },
 };
