@@ -1,11 +1,4 @@
-'use client';
-
 export default function ComingSoon() {
-  function goToSruth(e) {
-    e.preventDefault();
-    window.location.href = '/sruth';
-  }
-
   return (
     <div style={{
       position: 'fixed',
@@ -29,7 +22,7 @@ export default function ComingSoon() {
         />
 
         {/* Hotspot: "sruth." wordmark at top */}
-        <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
+        <a href="/sruth" aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
             top: '5%', left: '25%',
@@ -38,18 +31,8 @@ export default function ComingSoon() {
           }}
         />
 
-        {/* Hotspot: "t-srutha" in the sentence */}
-        <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
-          style={{
-            position: 'absolute',
-            top: '62%', left: '66%',
-            width: '22%', height: '7%',
-            display: 'block', cursor: 'pointer',
-          }}
-        />
-
-        {/* Hotspot: entire lower text block (t-srutha sentence through sruth. tagline) */}
-        <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
+        {/* Hotspot: entire lower text block */}
+        <a href="/sruth" aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
             top: '60%', left: '20%',
