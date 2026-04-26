@@ -35,7 +35,9 @@
       "Bash(git rm *)",
       "Bash(rm -f proxy.js components/SruthClient.js)",
       "Bash(rm -rf app/sruth)",
-      "Bash(ls app/sruth)"
+      "Bash(ls app/sruth)",
+      "Bash(npx next *)",
+      "Bash(kill %1)"
     ]
   }
 }
