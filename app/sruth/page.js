@@ -175,11 +175,11 @@ export default function SruthSignup() {
         <div style={{ position: 'fixed', top: mobileFormPos.top, left: mobileFormPos.left,
           width: mobileFormPos.width, height: mobileFormPos.height,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <Countdown fontSize={11} />
           <div style={{ width: mobileFormPos.cardW, padding: 10, background: 'rgba(255,255,255,0.92)',
             borderRadius: 10, boxShadow: '0 8px 30px rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)' }}>
             {form(mobileFormPos.fontSize, mobileFormPos.inputH, mobileFormPos.cardW)}
           </div>
+          <div style={{ marginTop: 8 }}><Countdown fontSize={11} /></div>
         </div>
       )}
     </div>
