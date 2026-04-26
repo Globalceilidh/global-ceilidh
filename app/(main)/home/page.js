@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import AileenVideo from '../components/AileenVideo';
-import { useLanguage } from '../context/LanguageContext';
+import AileenVideo from '@/components/AileenVideo';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function HomePage() {
   const [videoComplete, setVideoComplete] = useState(false);
