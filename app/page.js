@@ -1,9 +1,7 @@
 export default function ComingSoon() {
   return (
     <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 999,
+      minHeight: '100vh',
       backgroundColor: '#000',
       overflowY: 'auto',
     }}>
