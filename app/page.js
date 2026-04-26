@@ -32,8 +32,8 @@ export default function ComingSoon() {
         <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '2%', left: '25%',
-            width: '50%', height: '18%',
+            top: '5%', left: '25%',
+            width: '50%', height: '16%',
             display: 'block', cursor: 'pointer',
           }}
         />
@@ -42,7 +42,7 @@ export default function ComingSoon() {
         <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '62%', left: '55%',
+            top: '62%', left: '66%',
             width: '22%', height: '7%',
             display: 'block', cursor: 'pointer',
           }}
