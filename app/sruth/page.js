@@ -32,7 +32,7 @@ export default function SruthSignup() {
 
       <div style={{
         position: 'absolute',
-        bottom: 120,
+        bottom: 150,
         left: '48%',
         transform: 'translateX(-50%)',
         width: 660,
