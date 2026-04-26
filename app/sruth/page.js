@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// Dashed box position measured from the 1920×1080 source graphic
 const IMG_W = 1920;
 const IMG_H = 1080;
-const BOX = { top: 855, left: 540, width: 815, height: 160 };
+const BOX = { top: 720, left: 535, width: 850, height: 160 };
 
 export default function SruthSignup() {
   const imgRef = useRef(null);
@@ -17,16 +16,16 @@ export default function SruthSignup() {
     const img = imgRef.current;
     if (!img) return;
     const el = img.getBoundingClientRect();
-    // objectFit:contain — compute actual rendered image rect within the element
     const scale = Math.min(el.width / IMG_W, el.height / IMG_H);
     const rw = IMG_W * scale;
     const rh = IMG_H * scale;
     const ox = el.left + (el.width - rw) / 2;
     const oy = el.top + (el.height - rh) / 2;
     setFormPos({
-      top:   oy + BOX.top * scale + (BOX.height * scale - 44) / 2,
+      top:   oy + BOX.top * scale,
       left:  ox + BOX.left * scale,
       width: BOX.width * scale,
+      height: BOX.height * scale,
     });
   }, []);
 
@@ -76,26 +75,25 @@ export default function SruthSignup() {
       {formPos && (
         <div style={{
           position: 'fixed',
-          top:   formPos.top,
-          left:  formPos.left,
-          width: formPos.width,
+          top:    formPos.top,
+          left:   formPos.left,
+          width:  formPos.width,
+          height: formPos.height,
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          gap: '8px',
+          justifyContent: 'center',
         }}>
           {status === 'success' ? (
-            <p style={{
-              color: '#fff',
-              fontFamily: 'Georgia, serif',
-              fontSize: 16,
-              textAlign: 'center',
-              margin: 0,
-            }}>
+            <p style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: 18, textAlign: 'center', margin: 0 }}>
               You&apos;re in the current. Watch your inbox.
             </p>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', width: '100%', gap: '8px' }}>
+            <form onSubmit={handleSubmit} style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              width: '100%',
+            }}>
               <input
                 type="email"
                 value={email}
@@ -103,16 +101,16 @@ export default function SruthSignup() {
                 placeholder="your@email.com"
                 required
                 style={{
-                  flex: 1,
-                  padding: '10px 14px',
-                  fontSize: 15,
+                  width: '100%',
+                  height: 56,
+                  padding: '0 18px',
+                  fontSize: 16,
                   fontFamily: 'Georgia, serif',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   backgroundColor: 'rgba(255,255,255,0.92)',
                   color: '#111',
                   outline: 'none',
-                  height: 44,
                   boxSizing: 'border-box',
                 }}
               />
@@ -120,26 +118,26 @@ export default function SruthSignup() {
                 type="submit"
                 disabled={status === 'loading'}
                 style={{
-                  padding: '0 20px',
-                  fontSize: 15,
+                  width: '100%',
+                  height: 56,
+                  fontSize: 16,
                   fontFamily: 'Georgia, serif',
                   backgroundColor: '#1a1a1a',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   cursor: status === 'loading' ? 'wait' : 'pointer',
-                  height: 44,
-                  whiteSpace: 'nowrap',
+                  letterSpacing: '0.04em',
                 }}
               >
-                {status === 'loading' ? '...' : 'Join'}
+                {status === 'loading' ? '...' : 'Join the sruth'}
               </button>
+              {status === 'error' && (
+                <p style={{ color: '#ff6b6b', fontSize: 13, fontFamily: 'Georgia, serif', margin: 0, textAlign: 'center' }}>
+                  Something went wrong — try again.
+                </p>
+              )}
             </form>
-          )}
-          {status === 'error' && (
-            <p style={{ color: '#ff6b6b', fontSize: 13, fontFamily: 'Georgia, serif', margin: 0 }}>
-              Something went wrong — try again.
-            </p>
           )}
         </div>
       )}
