@@ -35,8 +35,8 @@ export default function SruthSignup() {
         bottom: 165,
         left: '49%',
         transform: 'translateX(-50%)',
-        width: 660,
-        padding: 12,
+        width: 520,
+        padding: 10,
         background: 'rgba(255,255,255,0.92)',
         borderRadius: 10,
         boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
@@ -57,7 +57,7 @@ export default function SruthSignup() {
                 required
                 style={{
                   width: '100%',
-                  height: 52,
+                  height: 42,
                   padding: '0 14px',
                   fontSize: 14,
                   fontFamily: 'Georgia, serif',
@@ -75,7 +75,7 @@ export default function SruthSignup() {
                 disabled={status === 'loading'}
                 style={{
                   width: '100%',
-                  height: 52,
+                  height: 42,
                   fontSize: 15,
                   fontFamily: 'Georgia, serif',
                   background: '#111',
