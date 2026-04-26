@@ -37,7 +37,8 @@
       "Bash(rm -rf app/sruth)",
       "Bash(ls app/sruth)",
       "Bash(npx next *)",
-      "Bash(kill %1)"
+      "Bash(kill %1)",
+      "Bash(identify \"C:/Dev/global-ceilidh/public/sruth_sign_up.png\")"
     ]
   }
 }
