@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m 'Fix Dockerfile: pin to python:3.12-slim-bookworm for Playwright compatibility *)",
+      "Bash(git push *)",
+      "WebFetch(domain:insightful-purpose-production-faf9.up.railway.app)",
+      "Bash(git commit -m 'Fix Railway start command: wrap in sh -c for PORT variable expansion *)",
+      "Bash(git commit -m 'Add POST /sources/seed endpoint for one-time source registry seeding *)",
+      "Bash(curl *)",
+      "Bash(python *)",
+      "Bash(git commit -m 'Replace SQLAlchemy with Supabase Python client *)",
+      "Bash(git commit -m 'Replace Celery dispatch with FastAPI BackgroundTasks for ingestion trigger *)",
+      "Bash(git commit -m 'Fix ingestion: call _process\\(\\) directly instead of Celery dispatch *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npm create *)",
+      "Bash(npx create-electron-app@latest sruth-admin --template=vite-typescript)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill *)",
+      "Bash(git commit *)",
+      "Bash(mkdir -p /c/Dev/sruth-admin/assets)",
+      "Bash(npm list *)",
+      "Bash(node *)",
+      "Bash(npm uninstall *)",
+      "Bash(python3 -c ' *)",
+      "Bash(pip install *)",
+      "Bash(python3 *)",
+      "Bash(npx create-expo-app@latest gc-app --template blank)",
+      "Bash(mkdir -p C:/Dev/gc-app/assets/images)",
+      "Bash(cp \"C:/Users/Scott/Desktop/Aileen_2_CGPT_3_20.png\" \"C:/Dev/gc-app/assets/images/aileen.png\")",
+      "Bash(npx expo *)",
+      "Bash(git init *)",
+      "Bash(git rm *)",
+      "Bash(rm -f proxy.js components/SruthClient.js)",
+      "Bash(rm -rf app/sruth)",
+      "Bash(ls app/sruth)"
+    ]
+  }
+}
