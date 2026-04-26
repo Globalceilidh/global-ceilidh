@@ -17,7 +17,7 @@ export default function ComingSoon() {
     }}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <img
-          src="/GC-Comingsoon_1.png"
+          src="/GC-Comingsoon_2.png"
           alt="sruth. — GlobalCeilidh is coming soon"
           style={{
             width: '100%',
@@ -28,12 +28,12 @@ export default function ComingSoon() {
           }}
         />
 
-        {/* Hotspot: large "sruth." wordmark at top */}
+        {/* Hotspot: "sruth." wordmark at top */}
         <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '3%', left: '20%',
-            width: '60%', height: '20%',
+            top: '2%', left: '25%',
+            width: '50%', height: '18%',
             display: 'block', cursor: 'pointer',
           }}
         />
@@ -42,18 +42,18 @@ export default function ComingSoon() {
         <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '64%', left: '62%',
-            width: '24%', height: '8%',
+            top: '62%', left: '55%',
+            width: '22%', height: '7%',
             display: 'block', cursor: 'pointer',
           }}
         />
 
-        {/* Hotspot: "sruth." in "Sign up for sruth." at bottom */}
+        {/* Hotspot: "sruth." in "Sign up for sruth." */}
         <a href="/sruth" onClick={goToSruth} aria-label="Sign up for sruth."
           style={{
             position: 'absolute',
-            top: '81%', left: '50%',
-            width: '18%', height: '6%',
+            top: '73%', left: '48%',
+            width: '16%', height: '6%',
             display: 'block', cursor: 'pointer',
           }}
         />
