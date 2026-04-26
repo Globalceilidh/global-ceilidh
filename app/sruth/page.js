@@ -162,11 +162,11 @@ export default function SruthSignup() {
       {/* Desktop form */}
       {!isMobile && (
         <div style={{ position: 'absolute', bottom: 179, left: '49.5%', transform: 'translateX(-50%)', width: 520 }}>
-          <Countdown fontSize={13} />
           <div style={{ padding: 10, background: 'rgba(255,255,255,0.92)', borderRadius: 10,
             boxShadow: '0 8px 30px rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)' }}>
             {form(14, 42, 520)}
           </div>
+          <div style={{ marginTop: 8 }}><Countdown fontSize={13} /></div>
         </div>
       )}
 
