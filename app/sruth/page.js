@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 const IMG_W = 1920;
 const IMG_H = 1080;
 const BOX = { top: 720, left: 535, width: 850, height: 160 };
-const INNER_W = 620; // px in source image coordinates
+const CARD_W = 660;
 
 export default function SruthSignup() {
   const imgRef = useRef(null);
@@ -22,17 +22,17 @@ export default function SruthSignup() {
     const rh = IMG_H * scale;
     const ox = el.left + (el.width - rw) / 2;
     const oy = el.top + (el.height - rh) / 2;
-    const boxW = BOX.width * scale;
-    const boxH = BOX.height * scale;
-    const innerW = INNER_W * scale;
     setFormPos({
       top:    oy + BOX.top * scale,
       left:   ox + BOX.left * scale,
-      width:  boxW,
-      height: boxH,
-      innerW,
-      inputH: 54 * scale,
-      fontSize: Math.round(15 * scale),
+      width:  BOX.width * scale,
+      height: BOX.height * scale,
+      cardW:  CARD_W * scale,
+      pad:    12 * scale,
+      inputH: 52 * scale,
+      fontSize: Math.max(12, Math.round(14 * scale)),
+      btnFontSize: Math.max(12, Math.round(15 * scale)),
+      wordmarkH: Math.round(24 * scale),
     });
   }, []);
 
@@ -74,6 +74,7 @@ export default function SruthSignup() {
       />
 
       {formPos && (
+        /* BOX overlay — centers the card over the dashed guide */
         <div style={{
           position: 'fixed',
           top:    formPos.top,
@@ -85,77 +86,96 @@ export default function SruthSignup() {
           justifyContent: 'center',
         }}>
           {status === 'success' ? (
-            <p style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: formPos.fontSize, textAlign: 'center', margin: 0 }}>
-              You&apos;re in the current. Watch your inbox.
-            </p>
+            <div style={{
+              width: formPos.cardW,
+              padding: formPos.pad,
+              background: 'rgba(255,255,255,0.92)',
+              borderRadius: 10,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+              backdropFilter: 'blur(4px)',
+              textAlign: 'center',
+            }}>
+              <p style={{ fontFamily: 'Georgia, serif', fontSize: formPos.btnFontSize, color: '#111', margin: 0 }}>
+                You&apos;re in the current. Watch your inbox.
+              </p>
+            </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{
+            /* White card — covers the dashed guide box */
+            <div style={{
+              width: formPos.cardW,
+              padding: formPos.pad,
+              background: 'rgba(255,255,255,0.92)',
+              borderRadius: 10,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+              backdropFilter: 'blur(4px)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 0,
-              width: formPos.innerW,
             }}>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                required
-                style={{
-                  width: '100%',
-                  height: formPos.inputH,
-                  padding: '0 18px',
-                  fontSize: formPos.fontSize,
-                  fontFamily: 'Georgia, serif',
-                  border: 'none',
-                  borderRadius: '6px 6px 0 0',
-                  backgroundColor: 'rgba(255,255,255,0.95)',
-                  color: '#111',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  display: 'block',
-                }}
-              />
-              <button
-                type="submit"
-                disabled={status === 'loading'}
-                style={{
-                  width: '100%',
-                  height: formPos.inputH,
-                  fontSize: formPos.fontSize,
-                  fontFamily: 'Georgia, serif',
-                  backgroundColor: '#1a1a1a',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '0 0 6px 6px',
-                  cursor: status === 'loading' ? 'wait' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  letterSpacing: '0.02em',
-                }}
-              >
-                {status === 'loading' ? '...' : (
-                  <>
-                    Join the{' '}
-                    <span style={{
-                      fontFamily: 'Georgia, serif',
-                      fontStyle: 'italic',
-                      fontWeight: 'bold',
-                      fontSize: Math.round(formPos.fontSize * 1.15),
-                    }}>
-                      sruth.
-                    </span>
-                  </>
-                )}
-              </button>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  style={{
+                    width: '100%',
+                    height: formPos.inputH,
+                    padding: `0 14px`,
+                    fontSize: formPos.fontSize,
+                    fontFamily: 'Georgia, serif',
+                    border: 'none',
+                    borderRadius: '6px 6px 0 0',
+                    background: '#f7f7f7',
+                    color: '#111',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    display: 'block',
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  style={{
+                    width: '100%',
+                    height: formPos.inputH,
+                    fontSize: formPos.btnFontSize,
+                    fontFamily: 'Georgia, serif',
+                    background: '#111',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '0 0 6px 6px',
+                    cursor: status === 'loading' ? 'wait' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {status === 'loading' ? '...' : (
+                    <>
+                      Join the&nbsp;
+                      <span style={{
+                        fontFamily: 'Georgia, serif',
+                        fontStyle: 'italic',
+                        fontWeight: 'bold',
+                        fontSize: formPos.wordmarkH,
+                        lineHeight: 1,
+                        verticalAlign: 'middle',
+                        marginLeft: 4,
+                      }}>
+                        sruth.
+                      </span>
+                    </>
+                  )}
+                </button>
+              </form>
               {status === 'error' && (
-                <p style={{ color: '#ff6b6b', fontSize: formPos.fontSize - 2, fontFamily: 'Georgia, serif', margin: '6px 0 0', textAlign: 'center' }}>
+                <p style={{ color: '#c0392b', fontSize: formPos.fontSize - 1, fontFamily: 'Georgia, serif', margin: '8px 0 0', textAlign: 'center' }}>
                   Something went wrong — try again.
                 </p>
               )}
-            </form>
+            </div>
           )}
         </div>
       )}
