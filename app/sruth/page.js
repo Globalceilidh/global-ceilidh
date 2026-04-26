@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 const IMG_W = 1920;
 const IMG_H = 1080;
 const BOX = { top: 720, left: 535, width: 850, height: 160 };
+const INNER_W = 620; // px in source image coordinates
 
 export default function SruthSignup() {
   const imgRef = useRef(null);
@@ -21,11 +22,17 @@ export default function SruthSignup() {
     const rh = IMG_H * scale;
     const ox = el.left + (el.width - rw) / 2;
     const oy = el.top + (el.height - rh) / 2;
+    const boxW = BOX.width * scale;
+    const boxH = BOX.height * scale;
+    const innerW = INNER_W * scale;
     setFormPos({
-      top:   oy + BOX.top * scale,
-      left:  ox + BOX.left * scale,
-      width: BOX.width * scale,
-      height: BOX.height * scale,
+      top:    oy + BOX.top * scale,
+      left:   ox + BOX.left * scale,
+      width:  boxW,
+      height: boxH,
+      innerW,
+      inputH: 54 * scale,
+      fontSize: Math.round(15 * scale),
     });
   }, []);
 
@@ -63,13 +70,7 @@ export default function SruthSignup() {
         ref={imgRef}
         src="/sruth_sign_up_2.png"
         alt="sruth. — Sign up"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-          objectPosition: 'center',
-          display: 'block',
-        }}
+        style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', display: 'block' }}
       />
 
       {formPos && (
@@ -84,15 +85,15 @@ export default function SruthSignup() {
           justifyContent: 'center',
         }}>
           {status === 'success' ? (
-            <p style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: 18, textAlign: 'center', margin: 0 }}>
+            <p style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: formPos.fontSize, textAlign: 'center', margin: 0 }}>
               You&apos;re in the current. Watch your inbox.
             </p>
           ) : (
             <form onSubmit={handleSubmit} style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 16,
-              width: '100%',
+              gap: 0,
+              width: formPos.innerW,
             }}>
               <input
                 type="email"
@@ -102,16 +103,17 @@ export default function SruthSignup() {
                 required
                 style={{
                   width: '100%',
-                  height: 56,
+                  height: formPos.inputH,
                   padding: '0 18px',
-                  fontSize: 16,
+                  fontSize: formPos.fontSize,
                   fontFamily: 'Georgia, serif',
                   border: 'none',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(255,255,255,0.92)',
+                  borderRadius: '6px 6px 0 0',
+                  backgroundColor: 'rgba(255,255,255,0.95)',
                   color: '#111',
                   outline: 'none',
                   boxSizing: 'border-box',
+                  display: 'block',
                 }}
               />
               <button
@@ -119,21 +121,37 @@ export default function SruthSignup() {
                 disabled={status === 'loading'}
                 style={{
                   width: '100%',
-                  height: 56,
-                  fontSize: 16,
+                  height: formPos.inputH,
+                  fontSize: formPos.fontSize,
                   fontFamily: 'Georgia, serif',
                   backgroundColor: '#1a1a1a',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '0 0 6px 6px',
                   cursor: status === 'loading' ? 'wait' : 'pointer',
-                  letterSpacing: '0.04em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  letterSpacing: '0.02em',
                 }}
               >
-                {status === 'loading' ? '...' : 'Join the sruth'}
+                {status === 'loading' ? '...' : (
+                  <>
+                    Join the{' '}
+                    <span style={{
+                      fontFamily: 'Georgia, serif',
+                      fontStyle: 'italic',
+                      fontWeight: 'bold',
+                      fontSize: Math.round(formPos.fontSize * 1.15),
+                    }}>
+                      sruth.
+                    </span>
+                  </>
+                )}
               </button>
               {status === 'error' && (
-                <p style={{ color: '#ff6b6b', fontSize: 13, fontFamily: 'Georgia, serif', margin: 0, textAlign: 'center' }}>
+                <p style={{ color: '#ff6b6b', fontSize: formPos.fontSize - 2, fontFamily: 'Georgia, serif', margin: '6px 0 0', textAlign: 'center' }}>
                   Something went wrong — try again.
                 </p>
               )}
