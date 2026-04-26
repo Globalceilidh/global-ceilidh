@@ -25,9 +25,7 @@ export default clerkMiddleware((auth, request) => {
 
   // If key is in the URL, set the cookie and redirect (stripping the key param)
   if (searchParams.get("key") === GC_KEY) {
-    const dest = new URL(pathname, request.url);
-    // Remove the key param from the destination URL
-    dest.searchParams.delete("key");
+    const dest = new URL('/home', request.url);
     const response = NextResponse.redirect(dest);
     response.cookies.set(COOKIE_NAME, GC_KEY, {
       httpOnly: true,
