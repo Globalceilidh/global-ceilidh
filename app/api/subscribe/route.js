@@ -25,7 +25,7 @@ function checkRateLimit(ip) {
 }
 
 export async function POST(request) {
-  const RESEND_KEY = process.env.RESEND_API_KEY || 're_g4SrEbQ2_FqfvrEW5fcuWabHnPzDH7YWK';
+  const RESEND_KEY = process.env.RESEND_API_KEY;
   try {
     const ip =
       request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
