@@ -7,7 +7,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // In-memory rate limit: 5 requests per IP per hour
 const rateLimitMap = new Map();
@@ -27,6 +26,7 @@ function checkRateLimit(ip) {
 }
 
 export async function POST(request) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   console.log('RESEND_KEY_PREFIX:', process.env.RESEND_API_KEY?.slice(0, 10) ?? 'MISSING');
   try {
     const ip =
