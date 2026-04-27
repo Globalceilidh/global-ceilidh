@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -26,7 +25,7 @@ function checkRateLimit(ip) {
 }
 
 export async function POST(request) {
-  const resend = new Resend('re_g4SrEbQ2_FqfvrEW5fcuWabHnPzDH7YWK');
+  const RESEND_KEY = 're_g4SrEbQ2_FqfvrEW5fcuWabHnPzDH7YWK';
   console.log('RESEND_KEY_PREFIX:', process.env.RESEND_API_KEY?.slice(0, 10) ?? 'MISSING');
   try {
     const ip =
@@ -60,7 +59,10 @@ export async function POST(request) {
 
     // Send welcome email — failure here must not break the signup response
     const firstName = name?.trim().split(' ')[0] || null;
-    resend.emails.send({
+    fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
       from: 'sruth. <sruth@globalceilidh.com>',
       to: email.toLowerCase().trim(),
       subject: 'Tha an sruth a\' tighinn. — You\'re in.',
@@ -91,7 +93,8 @@ export async function POST(request) {
   </table>
 </body>
 </html>`,
-    }).catch(err => console.error('Welcome email failed:', err));
+      }),
+    }).then(r => r.json()).then(r => console.log('Resend response:', JSON.stringify(r))).catch(err => console.error('Welcome email failed:', err));
 
     return NextResponse.json({ success: true });
   } catch (err) {
