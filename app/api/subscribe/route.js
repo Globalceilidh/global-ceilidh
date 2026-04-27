@@ -26,7 +26,7 @@ function checkRateLimit(ip) {
 }
 
 export async function POST(request) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(process.env.RESEND_API_KEY || 're_g4SrEbQ2_FqfvrEW5fcuWabHnPzDH7YWK');
   console.log('RESEND_KEY_PREFIX:', process.env.RESEND_API_KEY?.slice(0, 10) ?? 'MISSING');
   try {
     const ip =
