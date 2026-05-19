@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getPublishedIssues, padded } from './data';
+import Wordplate from './Wordplate';
 
 // ISR: re-read Supabase at most every 5 min. A real send writes html_archive,
 // so the new issue appears here within the window — no rebuild, no redeploy.
@@ -47,10 +48,8 @@ export default async function SruthArchive() {
         >
           Archive
         </p>
-        <h1 style={{ fontSize: 36, margin: '0 0 8px', fontWeight: 700 }}>
-          s<span style={{ textDecoration: 'underline' }}>ru</span>th.
-        </h1>
-        <p style={{ fontStyle: 'italic', color: '#555', margin: 0, fontSize: 16 }}>
+        <Wordplate />
+        <p style={{ fontStyle: 'italic', color: '#555', margin: '12px 0 0', fontSize: 16 }}>
           A daily current for the Scottish Gael — and anyone eavesdropping.
         </p>
       </header>
