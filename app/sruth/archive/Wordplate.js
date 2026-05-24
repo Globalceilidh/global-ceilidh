@@ -6,6 +6,16 @@ import { useRef, useState } from 'react';
 // Browsers block autoplay WITH sound, so: muted autoplay + loop (ambient),
 // with a 🔊 toggle to enable audio. Falls back to the text wordmark if the
 // video fails to load, so the page never breaks.
+//
+// Source file is 1920×1920 (square 1:1) with cream letterbox bars baked into
+// the top and bottom. The wrapper enforces a wider visible aspect ratio;
+// object-fit:cover scales the square video to fill that ratio so the bars
+// overflow and are clipped. Nudge these two constants by ±1–2 if the bars
+// don't mask off cleanly.
+const TOP_CROP_PCT = 17;
+const BOTTOM_CROP_PCT = 17;
+const VISIBLE_PCT = 100 - TOP_CROP_PCT - BOTTOM_CROP_PCT;
+
 export default function Wordplate() {
   const videoRef = useRef(null);
   const [failed, setFailed] = useState(false);
@@ -32,7 +42,19 @@ export default function Wordplate() {
   }
 
   return (
-    <div style={{ position: 'relative', margin: '0 0 12px', lineHeight: 0 }}>
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      maxWidth: 680,
+      margin: '0 auto 12px',
+      // Visible band aspect = source-width : (source-height × VISIBLE_PCT).
+      // Source is square, so this simplifies to 1 / (VISIBLE_PCT/100).
+      aspectRatio: `1 / ${VISIBLE_PCT / 100}`,
+      overflow: 'hidden',
+      borderRadius: 6,
+      lineHeight: 0,
+      background: '#000',  // shows behind during the first paint frame
+    }}>
       <video
         ref={videoRef}
         src="/sruth/sruth-wordplate.mp4"
@@ -46,9 +68,10 @@ export default function Wordplate() {
         style={{
           display: 'block',
           width: '100%',
-          maxWidth: 680,
-          height: 'auto',
-          borderRadius: 6,
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          border: 0,
         }}
       />
       <button
