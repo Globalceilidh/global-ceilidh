@@ -12,8 +12,8 @@ import { useRef, useState } from 'react';
 // object-fit:cover scales the square video to fill that ratio so the bars
 // overflow and are clipped. Nudge these two constants by ±1–2 if the bars
 // don't mask off cleanly.
-const TOP_CROP_PCT = 17;
-const BOTTOM_CROP_PCT = 17;
+const TOP_CROP_PCT = 21;
+const BOTTOM_CROP_PCT = 21;
 const VISIBLE_PCT = 100 - TOP_CROP_PCT - BOTTOM_CROP_PCT;
 
 export default function Wordplate() {
