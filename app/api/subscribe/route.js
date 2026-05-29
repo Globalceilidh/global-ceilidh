@@ -1,13 +1,28 @@
+import { randomBytes } from 'node:crypto';
+import { promises as dns } from 'node:dns';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+
+import { isDisposable } from '@/app/emails/disposable-domains';
+import { welcomeHtml, welcomeSubject, EMAIL_CONSTANTS } from '@/app/emails/templates';
+
+// Force Node runtime — Edge runtime doesn't expose dns/crypto for MX lookups
+// and token generation.
+export const runtime = 'nodejs';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// Admin BCC — every welcome email also lands here so the editor sees a real
+// copy of what the subscriber received, in the same client (Outlook), exactly
+// as it renders. Lightweight visibility without needing a separate audit log.
+const ADMIN_BCC = 'scott_whiteshouse@outlook.com';
 
-// In-memory rate limit: 5 requests per IP per hour
+// In-memory rate limit: 5 sign-up attempts per IP per hour. Resets when the
+// serverless function cold-starts, which is fine — we just need to slow the
+// most obvious abuse.
 const rateLimitMap = new Map();
 const LIMIT = 5;
 const WINDOW_MS = 60 * 60 * 1000;
@@ -24,6 +39,24 @@ function checkRateLimit(ip) {
   return true;
 }
 
+// Best-effort MX check: confirms the email's domain actually has mail servers.
+// Eliminates fake domains entirely. Adds ~100-300ms to the signup; we cap
+// the lookup so a slow DNS doesn't hang the user.
+async function hasMxRecords(email) {
+  const at = email.lastIndexOf('@');
+  if (at < 0) return false;
+  const domain = email.slice(at + 1).toLowerCase().trim();
+  try {
+    const records = await Promise.race([
+      dns.resolveMx(domain),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('mx-timeout')), 2500)),
+    ]);
+    return Array.isArray(records) && records.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request) {
   const RESEND_KEY = process.env.RESEND_API_KEY;
   try {
@@ -36,68 +69,120 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    const { email, name } = await request.json();
+    const body = await request.json();
+    const email = (body.email || '').toLowerCase().trim();
+    const name = (body.name || '').trim() || null;
+    const location = (body.location || '').trim() || null;
+    // Honeypot field: a real human leaves this blank. Bots fill every field
+    // they find. If this comes in populated, we ACK with success (so the bot
+    // doesn't realize) but write nothing and send nothing.
+    const honeypot = (body.website || '').trim();
+
+    if (honeypot) {
+      console.log(`[subscribe] honeypot triggered from ${ip}, dropping`);
+      return NextResponse.json({ success: true });
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email.trim())) {
+    if (!email || !emailRegex.test(email)) {
       return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 });
     }
 
-    const { error } = await supabase
+    if (isDisposable(email)) {
+      // Don't tell the spammer why; generic message.
+      return NextResponse.json({ error: 'Please use a permanent email address.' }, { status: 400 });
+    }
+
+    const mxOk = await hasMxRecords(email);
+    if (!mxOk) {
+      return NextResponse.json({ error: 'That email domain doesn\'t appear to receive mail.' }, { status: 400 });
+    }
+
+    // Length caps to keep the DB clean and prevent abuse.
+    const cappedName = name ? name.slice(0, 100) : null;
+    const cappedLocation = location ? location.slice(0, 100) : null;
+
+    // unsubscribe_token: persistent random token for the one-click unsubscribe
+    // link in every footer. Generated once on signup; never changes. URL-safe
+    // base64 (32 bytes → 43 chars). On re-signup of an existing email we
+    // preserve the existing token instead of rotating, so old footer links
+    // keep working.
+    const newToken = randomBytes(32).toString('base64url');
+
+    // Use a select-then-decide pattern instead of upsert so we know whether
+    // this is a NEW signup or a returning subscriber (changes welcome-email
+    // behavior — returning ones shouldn't get the welcome again).
+    const { data: existingRows } = await supabase
       .from('sruth_subscribers')
-      .upsert(
-        {
-          email: email.toLowerCase().trim(),
-          name: name?.trim() || null,
+      .select('id, unsubscribe_token, unsubscribed_at')
+      .eq('email', email)
+      .limit(1);
+
+    const existing = existingRows?.[0] || null;
+    const isNew = !existing;
+
+    if (existing) {
+      // Returning sub: update name/location if they provided new values,
+      // clear any unsubscribed_at (they're back), keep the existing token.
+      const updates = { unsubscribed_at: null };
+      if (cappedName) updates.name = cappedName;
+      if (cappedLocation) updates.location = cappedLocation;
+      if (!existing.unsubscribe_token) updates.unsubscribe_token = newToken;
+      const { error } = await supabase
+        .from('sruth_subscribers')
+        .update(updates)
+        .eq('id', existing.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from('sruth_subscribers')
+        .insert({
+          email,
+          name: cappedName,
+          location: cappedLocation,
           language_pref: 'both',
-        },
-        { onConflict: 'email' }
-      );
+          unsubscribe_token: newToken,
+        });
+      if (error) throw error;
+    }
 
-    if (error) throw error;
+    // ── Welcome email — AWAIT it so Vercel doesn't kill the function before
+    //    the fetch completes. The previous fire-and-forget version is exactly
+    //    why zero welcome emails have ever reached anyone. Returning users
+    //    don't get re-welcomed (they've seen it).
+    if (isNew && RESEND_KEY) {
+      const html = welcomeHtml({ name: cappedName, location: cappedLocation });
+      const subject = welcomeSubject(cappedName);
+      try {
+        const r = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: EMAIL_CONSTANTS.FROM_ADDR,
+            to: email,
+            bcc: ADMIN_BCC,
+            subject,
+            html,
+            reply_to: EMAIL_CONSTANTS.FEEDBACK_ADDR,
+          }),
+        });
+        if (!r.ok) {
+          const errText = await r.text();
+          console.error(`[subscribe] Resend ${r.status}: ${errText.slice(0, 300)}`);
+        }
+      } catch (e) {
+        console.error('[subscribe] welcome email exception:', e?.message || e);
+      }
+    } else if (isNew && !RESEND_KEY) {
+      console.error('[subscribe] RESEND_API_KEY missing — welcome email skipped');
+    }
 
-    // Send welcome email — failure here must not break the signup response
-    const firstName = name?.trim().split(' ')[0] || null;
-    fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-      from: 'sruth. <sruth@globalceilidh.com>',
-      to: email.toLowerCase().trim(),
-      subject: 'Tha an sruth a\' tighinn. — You\'re in.',
-      html: `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0a1628;font-family:'Georgia',serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a1628;padding:48px 24px;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-        <tr><td style="padding-bottom:32px;text-align:center;">
-          <span style="font-family:'Georgia',serif;font-style:italic;font-weight:bold;font-size:48px;color:#ffffff;letter-spacing:-1px;">sruth.</span>
-        </td></tr>
-        <tr><td style="background:#0f2040;border-radius:12px;padding:40px 40px 48px;">
-          <p style="color:#7eb8d4;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0 0 24px;">A bheil sibh deiseil?</p>
-          <p style="color:#ffffff;font-size:22px;font-weight:bold;margin:0 0 16px;line-height:1.3;">${firstName ? `${firstName}, the` : 'The'} current is coming.</p>
-          <p style="color:#c8d8e8;font-size:15px;line-height:1.7;margin:0 0 24px;">You're on the list for <strong style="color:#ffffff;">sruth.</strong> — a daily current of Scottish Gàidhlig language, culture, and community, launching <strong style="color:#ffffff;">May 15th</strong>.</p>
-          <p style="color:#c8d8e8;font-size:15px;line-height:1.7;margin:0 0 32px;">We'll bring you news, stories, and voices from across the Gàidhlig world — every morning, in your inbox.</p>
-          <div style="border-top:1px solid #1e3a5f;padding-top:32px;margin-top:8px;">
-            <p style="color:#7eb8d4;font-size:13px;line-height:1.6;margin:0;font-style:italic;">Tha an sruth a' tighinn.<br><span style="color:#4a6b8a;">The current is coming.</span></p>
-          </div>
-        </td></tr>
-        <tr><td style="padding-top:24px;text-align:center;">
-          <p style="color:#2a4a6a;font-size:11px;margin:0;">You're receiving this because you signed up at globalceilidh.com<br>© 2026 Lewis Highland Group LLC</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`,
-      }),
-    }).then(r => r.json()).then(r => console.log('Resend response:', JSON.stringify(r))).catch(err => console.error('Welcome email failed:', err));
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, isNew });
   } catch (err) {
-    console.error('Subscribe error:', err);
+    console.error('[subscribe] error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

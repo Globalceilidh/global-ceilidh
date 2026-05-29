@@ -60,6 +60,12 @@ export default function SruthSignup() {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileFormPos, setMobileFormPos] = useState(null);
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState('');
+  // Honeypot: a real human never types in this field — it's visually hidden.
+  // Bots that fill every form field will populate it; we drop those signups
+  // silently in the API route.
+  const [website, setWebsite] = useState('');
   const [status, setStatus] = useState('idle');
 
   useEffect(() => {
@@ -113,13 +119,20 @@ export default function SruthSignup() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name, location, website }),
       });
       setStatus(res.ok ? 'success' : 'error');
     } catch {
       setStatus('error');
     }
   }
+
+  const fieldStyle = (h, fs, radius) => ({
+    width: '100%', height: h, padding: '0 14px', fontSize: fs, fontFamily: 'Georgia, serif',
+    border: 'none', borderRadius: radius, background: '#f7f7f7', color: '#111',
+    outline: 'none', boxSizing: 'border-box', display: 'block',
+    borderBottom: '1px solid #e0e0e0',
+  });
 
   const form = (fontSize, inputH, cardW) => (
     status === 'success' ? (
@@ -129,12 +142,28 @@ export default function SruthSignup() {
     ) : (
       <>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {/* Honeypot — visually hidden, off-screen. Real users never see this
+              or fill it; lazy bots fill every field. */}
+          <input
+            type="text" name="website" tabIndex="-1" autoComplete="off"
+            value={website} onChange={e => setWebsite(e.target.value)}
+            style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+            aria-hidden="true"
+          />
+          <input
+            type="text" value={name} onChange={e => setName(e.target.value)}
+            placeholder="Name (optional)" maxLength={100}
+            style={fieldStyle(inputH, fontSize, '6px 6px 0 0')}
+          />
+          <input
+            type="text" value={location} onChange={e => setLocation(e.target.value)}
+            placeholder="Where are you reading from? (optional)" maxLength={100}
+            style={fieldStyle(inputH, fontSize, '0')}
+          />
           <input
             type="email" value={email} onChange={e => setEmail(e.target.value)}
             placeholder="your@email.com" required
-            style={{ width: '100%', height: inputH, padding: '0 14px', fontSize, fontFamily: 'Georgia, serif',
-              border: 'none', borderRadius: '6px 6px 0 0', background: '#f7f7f7', color: '#111',
-              outline: 'none', boxSizing: 'border-box', display: 'block' }}
+            style={{ ...fieldStyle(inputH, fontSize, '0'), borderBottom: 'none' }}
           />
           <button type="submit" disabled={status === 'loading'}
             style={{ width: '100%', height: inputH, fontSize, fontFamily: 'Georgia, serif',
