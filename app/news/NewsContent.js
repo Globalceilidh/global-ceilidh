@@ -28,7 +28,60 @@ function fmtDate(s, language) {
   } catch { return ''; }
 }
 
-function NewsCard({ item, language, featured = false }) {
+// Three density tiers based on rest count (items in the grid below the
+// featured slot). More items on the page → tighter grid → smaller
+// thumbnails so the page stays scannable instead of becoming a long scroll
+// of identical large cards.
+//
+//   sparse  ≤ 6 cards:  1 / 2 cols          big thumbnails, full summary
+//   normal  7–18 cards: 1 / 2 / 3 cols      medium thumbnails
+//   dense   ≥ 19 cards: 2 / 3 / 4 cols      compact thumbnails, short summary
+//
+// Featured card sizing tracks density too: a featured story at 30 items
+// shouldn't take up half the viewport.
+function densityFor(count) {
+  if (count <= 6) return 'sparse';
+  if (count <= 18) return 'normal';
+  return 'dense';
+}
+
+const GRID_CLASSES = {
+  sparse: 'grid grid-cols-1 md:grid-cols-2 gap-6',
+  normal: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6',
+  dense:  'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4',
+};
+
+const CARD_STYLES = {
+  sparse: {
+    imageAspect: 'aspect-video',
+    padding: 'p-6',
+    titleSize: 'text-lg',
+    bodySize: 'text-sm',
+    bodyMax: 200,
+  },
+  normal: {
+    imageAspect: 'aspect-video',
+    padding: 'p-5',
+    titleSize: 'text-base',
+    bodySize: 'text-sm',
+    bodyMax: 140,
+  },
+  dense: {
+    imageAspect: 'aspect-[4/3]',
+    padding: 'p-4',
+    titleSize: 'text-sm',
+    bodySize: 'text-xs',
+    bodyMax: 90,
+  },
+};
+
+const FEATURED_STYLES = {
+  sparse: { imageAspect: 'aspect-[21/9]', padding: 'p-8',     titleSize: 'text-2xl md:text-3xl', bodySize: 'text-base', bodyMax: 280 },
+  normal: { imageAspect: 'aspect-[21/9]', padding: 'p-7',     titleSize: 'text-2xl md:text-3xl', bodySize: 'text-base', bodyMax: 240 },
+  dense:  { imageAspect: 'aspect-[16/9]', padding: 'p-6',     titleSize: 'text-xl md:text-2xl',  bodySize: 'text-sm',   bodyMax: 180 },
+};
+
+function NewsCard({ item, language, featured = false, density = 'normal' }) {
   const href = item.slug ? `/news/${item.slug}` : '#';
   // Editor approved with bilingual title + summary where the classifier
   // produced both. Show in the user's chosen language; fall back to the
@@ -40,6 +93,8 @@ function NewsCard({ item, language, featured = false }) {
     ? (item.body_gd || item.body_en)
     : (item.body_en || item.body_gd);
 
+  const styles = featured ? FEATURED_STYLES[density] : CARD_STYLES[density];
+
   const cardClasses = featured
     ? "bg-white rounded-2xl border-2 border-tarheel/30 overflow-hidden hover:shadow-xl transition-shadow duration-200"
     : "bg-white rounded-2xl border border-gc-border overflow-hidden hover:shadow-lg transition-shadow duration-200";
@@ -48,7 +103,7 @@ function NewsCard({ item, language, featured = false }) {
     <Link href={href} className={cardClasses}>
       {item.image_url && (
         <div
-          className={featured ? "w-full aspect-[21/9] bg-gc-border" : "w-full aspect-video bg-gc-border"}
+          className={`w-full ${styles.imageAspect} bg-gc-border`}
           style={{
             backgroundImage: `url(${JSON.stringify(item.image_url)})`,
             backgroundSize: 'cover',
@@ -56,32 +111,28 @@ function NewsCard({ item, language, featured = false }) {
           }}
         />
       )}
-      <div className={featured ? "p-8" : "p-6"}>
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-tarheel-dark text-xs font-display tracking-widest uppercase font-medium">
+      <div className={styles.padding}>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-tarheel-dark text-[10px] font-display tracking-widest uppercase font-medium">
             {item.category || 'other'}
           </span>
           {featured && (
-            <span className="bg-tarheel-pale text-tarheel-dark text-[10px] font-display tracking-widest uppercase font-semibold px-2 py-1 rounded-full">
+            <span className="bg-tarheel-pale text-tarheel-dark text-[10px] font-display tracking-widest uppercase font-semibold px-2 py-0.5 rounded-full">
               ★ {language === 'gd' ? 'Air comharrachadh' : 'Featured'}
             </span>
           )}
         </div>
-        <h3 className={featured
-          ? "font-display font-semibold text-gc-dark text-2xl md:text-3xl leading-tight mb-3"
-          : "font-display font-semibold text-gc-dark text-lg leading-snug mb-2"}>
+        <h3 className={`font-display font-semibold text-gc-dark ${styles.titleSize} leading-snug mb-2`}>
           {title || (language === 'gd' ? 'Gun tiotal' : 'Untitled')}
         </h3>
         {body && (
-          <p className={featured
-            ? "font-body text-gc-text text-base leading-relaxed mb-4"
-            : "font-body text-gc-text text-sm leading-relaxed mb-3"}>
-            {body.length > (featured ? 280 : 180)
-              ? body.slice(0, featured ? 280 : 180) + '…'
+          <p className={`font-body text-gc-text ${styles.bodySize} leading-relaxed mb-3`}>
+            {body.length > styles.bodyMax
+              ? body.slice(0, styles.bodyMax) + '…'
               : body}
           </p>
         )}
-        <div className="text-gc-muted text-xs font-display tracking-wide uppercase">
+        <div className="text-gc-muted text-[10px] font-display tracking-wide uppercase">
           {item.source_name ? `${item.source_name} · ` : ''}{fmtDate(item.published_at, language)}
         </div>
       </div>
@@ -98,6 +149,7 @@ export default function NewsContent({ items, active }) {
   const rest = featured ? items.filter(i => i.id !== featured.id) : items;
 
   const activeTab = TABS.find(t => t.key === active) || TABS[0];
+  const density = densityFor(rest.length);
 
   return (
     <div className="min-h-screen bg-gc-bg">
@@ -160,14 +212,14 @@ export default function NewsContent({ items, active }) {
 
           {featured && (
             <div className="mb-8">
-              <NewsCard item={featured} language={language} featured />
+              <NewsCard item={featured} language={language} featured density={density} />
             </div>
           )}
 
           {rest.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={GRID_CLASSES[density]}>
               {rest.map(item => (
-                <NewsCard key={item.id} item={item} language={language} />
+                <NewsCard key={item.id} item={item} language={language} density={density} />
               ))}
             </div>
           )}
