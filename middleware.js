@@ -4,10 +4,17 @@ import { NextResponse } from "next/server";
 const GC_KEY = "6776";
 const COOKIE_NAME = "gc_access";
 
-// These routes are always public — no key required
+// These routes are always public — no key required.
+//
+// Site-wide gating policy (Scott, 2026-05-30): everything is pre-launch
+// gated EXCEPT the root, the launched Sruth product, and the Sruth
+// archive. Anything still in development — /news, future marketing pages,
+// editor previews — sits behind the cookie-key gate. The editor accesses
+// gated routes by visiting any URL with ?key=6776, which sets the
+// gc_access cookie for 30 days. Add a route here only when it's ready
+// for public visibility.
 const PUBLIC_PREFIXES = [
   "/sruth",
-  "/news",
   "/coming-soon-features",
   "/api/",
   "/_next/",
