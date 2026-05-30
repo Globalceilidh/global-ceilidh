@@ -7,6 +7,7 @@ const COOKIE_NAME = "gc_access";
 // These routes are always public — no key required
 const PUBLIC_PREFIXES = [
   "/sruth",
+  "/news",
   "/coming-soon-features",
   "/api/",
   "/_next/",
