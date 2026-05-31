@@ -30,6 +30,15 @@ export default async function SruthIssuePage({ params }) {
 
   const num = padded(issue.number);
 
+  // Email HTML is rendered in an iframe. Without intervention, links inside
+  // default to target=_self and try to load destinations (Spotify, news
+  // outlets) INSIDE the iframe — which most sites refuse via X-Frame-Options.
+  // Injecting <base target="_blank"> makes every link open in a new tab.
+  const html = issue.html.replace(
+    /<head([^>]*)>/i,
+    '<head$1><base target="_blank" rel="noopener">'
+  );
+
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header
@@ -59,7 +68,7 @@ export default async function SruthIssuePage({ params }) {
       </header>
 
       <iframe
-        srcDoc={issue.html}
+        srcDoc={html}
         title={`Sruth Nº ${num}`}
         style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
       />
