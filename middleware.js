@@ -15,6 +15,7 @@ const COOKIE_NAME = "gc_access";
 // for public visibility.
 const PUBLIC_PREFIXES = [
   "/sruth",
+  "/feisean",
   "/coming-soon-features",
   "/api/",
   "/_next/",
