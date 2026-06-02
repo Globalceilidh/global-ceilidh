@@ -1,6 +1,9 @@
+import { createClient } from '@supabase/supabase-js';
+
 // ASGF (Association of Scottish Games and Festivals) member events.
 // Phase 1: this static list is the seed data for the public /feisean page.
-// Phase 2 will overlay dynamic cards pulled from sruth_admin's Morning Brief.
+// Phase 2 overlays dynamic cards pulled from sruth_admin's Morning Brief
+// via getPublishedFromSruth() below.
 //
 // Date fields:
 //   date_display — human-readable string for the card UI
@@ -499,6 +502,54 @@ export const FESTIVALS = [
     is_tbd: false,
   },
 ];
+
+// ── Dynamic Sruth-pipeline festivals ─────────────────────────────────────────
+//
+// Reads sruth_festivals rows where review_status='published' and the row
+// has not been auto-expired. Same service-role pattern as the Sruth archive
+// (server-only fetch; never bundles the SUPABASE_SERVICE_ROLE_KEY into the
+// client). Failures degrade to an empty list so the public page keeps
+// serving the static ASGF cards even when Supabase is unreachable.
+
+function sb() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false } },
+  );
+}
+
+export async function getPublishedFromSruth() {
+  try {
+    const { data, error } = await sb()
+      .from('sruth_festivals')
+      .select(
+        'id, name, city, state_code, address, date_display, date_start, date_end, is_tbd, website, hero_image_url, description',
+      )
+      .eq('review_status', 'published')
+      .is('expired_at', null)
+      .order('date_start', { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return (data || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      city: row.city || '',
+      state: row.state_code || '',
+      address: row.address || '',
+      website: row.website || '',
+      date_display: row.date_display || (row.is_tbd ? 'Date TBD' : ''),
+      date_start: row.date_start || null,
+      date_end: row.date_end || null,
+      is_tbd: !!row.is_tbd,
+      hero_image_url: row.hero_image_url || null,
+      description: row.description || '',
+      _source: 'sruth',
+    }));
+  } catch (e) {
+    console.error('getPublishedFromSruth failed:', e?.message || e);
+    return [];
+  }
+}
 
 // Group helpers used by the page renderer.
 
