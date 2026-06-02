@@ -8,7 +8,8 @@ export const translations = {
   nav: {
     learn: { en: 'Learn', gd: 'Ionnsaich' },
     news: { en: 'News', gd: 'Naidheachd' },
-    events: { en: 'Events', gd: 'Tachartasan' },
+    events: { en: 'Featured Events', gd: 'Tachartasan Comharraichte' },
+    feisean: { en: 'Festivals & Games', gd: 'Fèisean' },
     community: { en: 'Community', gd: 'Coimhearsnachd' },
     media: { en: 'Media', gd: 'Meadhanan' },
     about: { en: 'About', gd: 'Mu Dheidhinn' },
@@ -49,10 +50,11 @@ export const translations = {
     level_mid: { en: 'Intermediate', gd: 'Meadhanach' },
     level_adv: { en: 'Advanced', gd: 'Adhartach' },
   },
-  // Events page
+  // Featured Events page (paid: sponsors, partners, advertisers).
+  // The Festivals & Games page (free ASGF + Sruth pipeline) is at /feisean.
   events: {
-    title: { en: 'Events', gd: 'Tachartasan' },
-    subtitle: { en: 'Gaelic events worldwide — find them here first', gd: 'Tachartasan Gàidhlig air feadh an t-saoghail — lorg an seo iad an toiseach' },
+    title: { en: 'Featured Events', gd: 'Tachartasan Comharraichte' },
+    subtitle: { en: 'Sponsored and partner Gaelic events from across the GlobalCeilidh network', gd: 'Tachartasan Gàidhlig le luchd-taic agus com-pàirtichean bho lìonra GlobalCeilidh' },
     submit_title: { en: 'Submit Your Event', gd: 'Cuir a-steach Do Thachartas' },
     submit_body: { en: 'Post once — reach every Gaelic community platform worldwide.', gd: 'Post aon uair — ruig gach àrd-ùrlar coimhearsnachd Gàidhlig air feadh an t-saoghail.' },
     name: { en: 'Event Name', gd: 'Ainm an Tachartais' },

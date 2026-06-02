@@ -20,6 +20,7 @@ export default function Navigation() {
     { href: '/ionnsaich', label: t('nav.learn') },
     { href: '/naidheachd', label: t('nav.news') },
     { href: '/tachartasan', label: t('nav.events') },
+    { href: '/feisean', label: t('nav.feisean') },
     { href: '/coimhearsnachd', label: t('nav.community') },
     { href: '/meadhanan', label: t('nav.media') },
   ];
