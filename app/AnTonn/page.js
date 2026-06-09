@@ -43,6 +43,12 @@ const MONO = "'IBM Plex Mono', Menlo, Consolas, monospace";
 const SRUTH_WORDMARK_URL =
   "https://gakdrndravhtvaaimnhl.supabase.co/storage/v1/object/public/assets/wordmark.png";
 
+// An Tonn masthead — full lockup (title + wavy underline + tagline) as
+// one asset. Same Supabase storage as the sruth wordmark so future
+// updates flow through automatically.
+const ANTONN_MASTHEAD_URL =
+  "https://gakdrndravhtvaaimnhl.supabase.co/storage/v1/object/public/assets/antonn_masthead.png";
+
 // ── Atom helpers ───────────────────────────────────────────────────────
 
 function Eyebrow({ children, color = ACCENT, size = 11, style }) {
@@ -147,43 +153,20 @@ function Masthead() {
             </Link>
           </div>
           <div style={{ textAlign: "center" }}>
-            <h1
-              style={{
-                fontFamily: SERIF,
-                fontWeight: 900,
-                fontSize: "clamp(48px, 9vw, 96px)",
-                letterSpacing: 2,
-                lineHeight: 1,
-                margin: 0,
-                color: INK,
-              }}
-            >
-              AN TONN
+            <h1 style={{ margin: 0, lineHeight: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={ANTONN_MASTHEAD_URL}
+                alt="An Tonn — The Chronicle of the Gaelic Current"
+                style={{
+                  width: "100%",
+                  maxWidth: 640,
+                  height: "auto",
+                  display: "block",
+                  margin: "0 auto",
+                }}
+              />
             </h1>
-            <div
-              style={{
-                margin: "6px auto 0",
-                width: "60%",
-                height: 6,
-                background:
-                  `repeating-linear-gradient(90deg, ${ACCENT}, ${ACCENT} 8px, transparent 8px, transparent 14px)`,
-                borderRadius: 2,
-                opacity: 0.7,
-              }}
-            />
-            <p
-              style={{
-                fontFamily: SERIF,
-                fontStyle: "italic",
-                fontSize: 14,
-                letterSpacing: 4,
-                textTransform: "uppercase",
-                color: ACCENT,
-                margin: "10px 0 0",
-              }}
-            >
-              The Chronicle of the Gaelic Current
-            </p>
           </div>
           <div style={{ textAlign: "right" }}>
             <Eyebrow size={9}>Issue {String(issue.number).padStart(3, "0")}</Eyebrow>
