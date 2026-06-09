@@ -120,12 +120,17 @@ function Masthead() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "auto 1fr auto",
+            // Equal-width flanks so AN TONN sits true-centred to the page,
+            // regardless of how long the date block runs. The middle column
+            // is auto-width and stays page-centred between the two 1fr
+            // flanks. minmax(0,1fr) prevents the center column from being
+            // squeezed by long content in the flanks on narrow widths.
+            gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
             gap: 24,
             alignItems: "center",
           }}
         >
-          <div>
+          <div style={{ textAlign: "left" }}>
             <Link
               href="/sruth"
               style={{
