@@ -1,4 +1,11 @@
+// /AnTonn/archive — past-issue list.
+//
+// One row per past issue. Issue 001 is the current cover (links into
+// /AnTonn). As the archive grows, finished issues get permanent slugs
+// like /AnTonn/issue/001 and the most recent one stops being "Current".
+
 import Link from "next/link";
+import AnTonnNav from "../_components/AnTonnNav";
 
 export const metadata = {
   title: "An Tonn — Archive",
@@ -14,17 +21,13 @@ const MUTED = "#8A8074";
 const SERIF = "'Fraunces', Georgia, serif";
 const MONO = "'IBM Plex Mono', Menlo, Consolas, monospace";
 
-// The current issue. As the archive grows, append finished issues here
-// with a permanent slug like "issue-001-2026-06-09". For now Issue 001 IS
-// the live hub at /AnTonn; we link there rather than duplicate the page.
 const PAST_ISSUES = [
   {
     number: 1,
-    date_iso: "2026-06-09",
     date_gd: "Dimàirt 9 Ògmhios 2026",
     date_en: "Tuesday 9 June 2026",
     headline: "The Pilot Issue — Tide Lines holds, Valtos surges, Sian arrives.",
-    href: "/AnTonn",
+    href: "/AnTonn/this-week",
     is_current: true,
   },
 ];
@@ -32,56 +35,9 @@ const PAST_ISSUES = [
 export default function AnTonnArchive() {
   return (
     <main style={{ background: PARCHMENT, minHeight: "100vh" }}>
-      <header
-        style={{
-          background: PAPER,
-          borderBottom: `2px solid ${ACCENT}`,
-          padding: "28px 24px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 900,
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <Link
-            href="/AnTonn"
-            style={{
-              fontFamily: SERIF,
-              fontWeight: 900,
-              fontSize: 28,
-              letterSpacing: 2,
-              color: INK,
-              textDecoration: "none",
-            }}
-          >
-            AN TONN
-          </Link>
-          <Link
-            href="/AnTonn"
-            style={{
-              fontFamily: MONO,
-              fontSize: 10,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: ACCENT,
-              textDecoration: "none",
-              borderBottom: `1px solid ${ACCENT}`,
-              paddingBottom: 1,
-            }}
-          >
-            ← this week's issue
-          </Link>
-        </div>
-      </header>
+      <AnTonnNav activeSlug="Archive" />
 
-      <section style={{ padding: "48px 24px" }}>
+      <section style={{ padding: "32px 24px 60px" }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
           <p
             style={{
@@ -99,7 +55,7 @@ export default function AnTonnArchive() {
             style={{
               fontFamily: SERIF,
               fontWeight: 900,
-              fontSize: 40,
+              fontSize: "clamp(32px, 5vw, 44px)",
               color: INK,
               margin: "0 0 14px",
               lineHeight: 1.1,
@@ -194,20 +150,8 @@ export default function AnTonnArchive() {
         </div>
       </section>
 
-      <footer
-        style={{
-          background: PAPER,
-          borderTop: `2px solid ${ACCENT}`,
-          padding: "20px 24px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            textAlign: "center",
-          }}
-        >
+      <footer style={{ borderTop: `1px solid ${DIVIDER}`, padding: "20px 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
           <p
             style={{
               fontFamily: MONO,
@@ -218,7 +162,7 @@ export default function AnTonnArchive() {
               margin: 0,
             }}
           >
-            Daily · From Global Ceilidh · Since 2026 · Tìr Nan Gàidheal · Everywhere
+            An Tonn &nbsp;·&nbsp; From Global Ceilidh &nbsp;·&nbsp; Tìr Nan Gàidheal &nbsp;·&nbsp; Everywhere
           </p>
         </div>
       </footer>

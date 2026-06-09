@@ -8,6 +8,7 @@ export const metadata = {
 export default function AnTonnBooks() {
   return (
     <ComingSoon
+      activeSlug="Books"
       eta="Week 3 · Opening 23 June 2026"
       title="Leabhraichean Air An Tonn"
       subtitle="Books Riding The Wave — the full literary current"

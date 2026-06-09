@@ -1,4 +1,7 @@
+// /AnTonn/methodology — the long-form essay.
+
 import Link from "next/link";
+import AnTonnNav from "../_components/AnTonnNav";
 
 export const metadata = {
   title: "An Tonn — Methodology",
@@ -17,60 +20,13 @@ const MONO = "'IBM Plex Mono', Menlo, Consolas, monospace";
 export default function AnTonnMethodology() {
   return (
     <main style={{ background: PARCHMENT, minHeight: "100vh" }}>
-      <header
-        style={{
-          background: PAPER,
-          borderBottom: `2px solid ${ACCENT}`,
-          padding: "28px 24px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 800,
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <Link
-            href="/AnTonn"
-            style={{
-              fontFamily: SERIF,
-              fontWeight: 900,
-              fontSize: 28,
-              letterSpacing: 2,
-              color: INK,
-              textDecoration: "none",
-            }}
-          >
-            AN TONN
-          </Link>
-          <Link
-            href="/AnTonn"
-            style={{
-              fontFamily: MONO,
-              fontSize: 10,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: ACCENT,
-              textDecoration: "none",
-              borderBottom: `1px solid ${ACCENT}`,
-              paddingBottom: 1,
-            }}
-          >
-            ← back to the hub
-          </Link>
-        </div>
-      </header>
+      <AnTonnNav activeSlug="Methodology" />
 
       <article
         style={{
           maxWidth: 720,
           margin: "0 auto",
-          padding: "48px 24px",
+          padding: "32px 24px 60px",
           fontFamily: SERIF,
           fontSize: 17,
           lineHeight: 1.75,
@@ -216,10 +172,27 @@ export default function AnTonnMethodology() {
         <p style={{ marginTop: 40, fontFamily: MONO, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: MUTED }}>
           Compiled by the editorial team · Sruth & Global Ceilidh ·{" "}
           <Link href="/AnTonn" style={{ color: ACCENT }}>
-            ← back to this week's issue
+            ← back to the cover
           </Link>
         </p>
       </article>
+
+      <footer style={{ borderTop: `1px solid ${DIVIDER}`, padding: "20px 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
+          <p
+            style={{
+              fontFamily: MONO,
+              fontSize: 9,
+              letterSpacing: 3,
+              textTransform: "uppercase",
+              color: MUTED,
+              margin: 0,
+            }}
+          >
+            An Tonn &nbsp;·&nbsp; From Global Ceilidh &nbsp;·&nbsp; Tìr Nan Gàidheal &nbsp;·&nbsp; Everywhere
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

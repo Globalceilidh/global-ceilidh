@@ -8,6 +8,7 @@ export const metadata = {
 export default function AnTonnRadio() {
   return (
     <ComingSoon
+      activeSlug="An Tonn"
       eta="In planning — later in 2026"
       title="An Tonn Radio"
       subtitle="A 24/7 streaming current for Gaelic and Scottish music"

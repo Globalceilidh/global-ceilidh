@@ -8,6 +8,7 @@ export const metadata = {
 export default function AnTonnPodcasts() {
   return (
     <ComingSoon
+      activeSlug="Podcasts"
       eta="Week 4 · Opening 30 June 2026"
       title="Podcasts"
       subtitle="The listen list — what's worth your ears this week"

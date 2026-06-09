@@ -8,6 +8,7 @@ export const metadata = {
 export default function AnTonnMusic() {
   return (
     <ComingSoon
+      activeSlug="Music"
       eta="Week 2 · Opening 16 June 2026"
       title="Music"
       subtitle="The full vertical — Spotify links, tour calendars, releases, full Top 50"

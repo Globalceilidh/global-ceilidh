@@ -8,6 +8,7 @@ export const metadata = {
 export default function AnTonnFilm() {
   return (
     <ComingSoon
+      activeSlug="An Tonn"
       eta="Later in 2026"
       title="Film & TV"
       subtitle="The screen current — coming later this year"
