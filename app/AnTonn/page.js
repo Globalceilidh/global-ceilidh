@@ -8,7 +8,19 @@
 // will hold the full per-item Spotify/buy/listen links.
 
 import Link from "next/link";
-import { issue, spotlights, top10, currents, books, methodology } from "./data/week-2026-06-09";
+import {
+  issue,
+  spotlights,
+  top10,
+  currents,
+  books,
+  methodology,
+  beyond_charts,
+  tours,
+  podcasts,
+  featured_book,
+  next_week,
+} from "./data/week-2026-06-09";
 
 export const metadata = {
   title: "An Tonn — The Chronicle of the Gaelic Current",
@@ -509,7 +521,337 @@ function SevenCurrents() {
   );
 }
 
+// ── PAGE 2 — Beyond the Charts ─────────────────────────────────────────
+
+function BeyondChartsDivider() {
+  return (
+    <section style={{ background: PAPER, padding: "32px 24px 4px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
+        <div
+          style={{
+            display: "inline-block",
+            padding: "2px 0",
+            borderTop: `2px solid ${ACCENT}`,
+            borderBottom: `2px solid ${ACCENT}`,
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 900,
+              fontSize: 28,
+              letterSpacing: 4,
+              textTransform: "uppercase",
+              color: INK,
+              margin: "8px 24px",
+            }}
+          >
+            {beyond_charts.tagline_en}
+          </h2>
+        </div>
+        <p
+          style={{
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            fontSize: 16,
+            color: ACCENT,
+            margin: "10px 0 0",
+          }}
+        >
+          {beyond_charts.tagline_gd}{" "}
+          <span style={{ color: MUTED }}>({beyond_charts.tagline_gd_en})</span>
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function TourWatch() {
+  return (
+    <section style={{ background: PAPER, padding: "32px 24px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 22 }}>
+          <span style={{ fontSize: 22, color: ACCENT }}>📍</span>
+          <h3
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 900,
+              fontSize: 22,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              color: INK,
+              margin: 0,
+            }}
+          >
+            On The Road:
+          </h3>
+          <Eyebrow>Global Diaspora Tour Watch</Eyebrow>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {tours.map((t, i) => (
+            <article
+              key={i}
+              style={{
+                background: PARCHMENT,
+                border: `1px solid ${DIVIDER}`,
+                borderRadius: 6,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div
+                style={{
+                  aspectRatio: "4/3",
+                  background: DIVIDER,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: MONO,
+                  fontSize: 10,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: MUTED,
+                }}
+              >
+                {t.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={t.image_url} alt={t.artist} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span>Press photo · TBA</span>
+                )}
+              </div>
+              <div style={{ padding: "14px 16px 16px", display: "flex", flexDirection: "column", flex: 1 }}>
+                <h4
+                  style={{
+                    fontFamily: SERIF,
+                    fontWeight: 900,
+                    fontSize: 18,
+                    letterSpacing: 1,
+                    textTransform: "uppercase",
+                    color: t.accent,
+                    margin: 0,
+                  }}
+                >
+                  {t.artist}
+                </h4>
+                <p
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 10,
+                    letterSpacing: 2,
+                    textTransform: "uppercase",
+                    color: INK,
+                    margin: "4px 0 10px",
+                    fontWeight: 600,
+                  }}
+                >
+                  {t.tour}
+                </p>
+                <p
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                    color: INK,
+                    margin: 0,
+                    flex: 1,
+                  }}
+                >
+                  {t.body}
+                </p>
+                <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: t.accent, fontSize: 14 }}>🌐</span>
+                  <a
+                    href={t.dates_url}
+                    style={{
+                      fontFamily: MONO,
+                      fontSize: 9,
+                      letterSpacing: 2,
+                      textTransform: "uppercase",
+                      color: t.accent,
+                      textDecoration: "none",
+                      borderBottom: `1px solid ${t.accent}`,
+                      paddingBottom: 1,
+                    }}
+                  >
+                    Follow tour dates online
+                  </a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PodcastsOfMonth() {
+  function ListenChip({ label, href, icon }) {
+    if (!href || href === "#" || href === "") return null;
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          fontFamily: MONO,
+          fontSize: 9,
+          letterSpacing: 1,
+          textTransform: "uppercase",
+          color: INK,
+          textDecoration: "none",
+          padding: "3px 8px",
+          background: PARCHMENT,
+          border: `1px solid ${DIVIDER}`,
+          borderRadius: 3,
+        }}
+      >
+        <span>{icon}</span> {label}
+      </a>
+    );
+  }
+  return (
+    <section style={{ background: PARCHMENT, padding: "32px 24px", borderTop: `1px solid ${DIVIDER}` }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 22 }}>
+          <span style={{ fontSize: 22, color: ACCENT }}>🎙</span>
+          <h3
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 900,
+              fontSize: 22,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              color: INK,
+              margin: 0,
+            }}
+          >
+            In Your Ears:
+          </h3>
+          <Eyebrow>Podcasts of the Month</Eyebrow>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {podcasts.map((p, i) => (
+            <article
+              key={i}
+              style={{
+                background: PAPER,
+                border: `1px solid ${DIVIDER}`,
+                borderRadius: 6,
+                padding: "16px 18px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 12 }}>
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    background: p.accent,
+                    borderRadius: 6,
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#FCFCFC",
+                    fontFamily: SERIF,
+                    fontWeight: 900,
+                    fontSize: 11,
+                    textAlign: "center",
+                    padding: 4,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {p.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.image_url}
+                      alt={p.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 4 }}
+                    />
+                  ) : (
+                    <span>{p.title}</span>
+                  )}
+                </div>
+                <div>
+                  <h4
+                    style={{
+                      fontFamily: SERIF,
+                      fontWeight: 900,
+                      fontSize: 15,
+                      letterSpacing: 1,
+                      textTransform: "uppercase",
+                      color: p.accent,
+                      margin: 0,
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    {p.title}
+                  </h4>
+                </div>
+              </div>
+              <p
+                style={{
+                  fontFamily: SERIF,
+                  fontSize: 13,
+                  lineHeight: 1.55,
+                  color: INK,
+                  margin: "0 0 14px",
+                  flex: 1,
+                }}
+              >
+                {p.body}
+              </p>
+              <div>
+                <div
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 9,
+                    letterSpacing: 2,
+                    textTransform: "uppercase",
+                    color: MUTED,
+                    marginBottom: 6,
+                  }}
+                >
+                  Listen on:
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <ListenChip label="Spotify" href={p.spotify_url} icon="🟢" />
+                  <ListenChip label="Apple" href={p.apple_url} icon="🟣" />
+                  <ListenChip label="BBC Sounds" href={p.bbc_sounds_url} icon="🟠" />
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function BooksRiding() {
+  // The "Also Coming This Summer" rail excludes the featured book if it's
+  // present in the regular books list (it usually is).
+  const featuredKey = (featured_book.title || "").toLowerCase();
+  const alsoBooks = books.filter((b) => (b.title || "").toLowerCase() !== featuredKey);
   return (
     <section style={{ background: PAPER, padding: "40px 24px", borderTop: `1px solid ${DIVIDER}` }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -530,6 +872,129 @@ function BooksRiding() {
           </h2>
         </div>
         <Eyebrow style={{ marginBottom: 24 }}>Books Riding The Wave</Eyebrow>
+
+        {/* Featured Read panel */}
+        <article
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(180px, 1fr) 2fr",
+            gap: 24,
+            padding: "20px 22px",
+            background: PARCHMENT,
+            border: `2px solid ${ACCENT}`,
+            borderRadius: 6,
+            marginBottom: 28,
+            alignItems: "start",
+          }}
+        >
+          <div
+            style={{
+              aspectRatio: "2/3",
+              background: PAPER,
+              border: `1px solid ${DIVIDER}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              padding: 14,
+              fontFamily: SERIF,
+              fontWeight: 700,
+              fontSize: 14,
+              color: ACCENT,
+              lineHeight: 1.25,
+            }}
+          >
+            {featured_book.cover_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={featured_book.cover_url}
+                alt={featured_book.title}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <div>
+                {featured_book.title}
+                <div
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 9,
+                    letterSpacing: 2,
+                    color: MUTED,
+                    marginTop: 10,
+                  }}
+                >
+                  Cover · TBA
+                </div>
+              </div>
+            )}
+          </div>
+          <div>
+            <Eyebrow color={ACCENT} style={{ marginBottom: 8 }}>
+              Featured Read of the Week
+            </Eyebrow>
+            <h3
+              style={{
+                fontFamily: SERIF,
+                fontStyle: "italic",
+                fontWeight: 900,
+                fontSize: 30,
+                color: INK,
+                margin: "0 0 6px",
+                lineHeight: 1.1,
+              }}
+            >
+              {featured_book.title}
+            </h3>
+            {featured_book.subtitle && (
+              <p style={{ fontFamily: SERIF, fontSize: 15, color: MUTED, margin: "0 0 8px" }}>
+                {featured_book.subtitle}
+              </p>
+            )}
+            <p
+              style={{
+                fontFamily: SERIF,
+                fontSize: 15,
+                color: INK,
+                margin: "0 0 10px",
+              }}
+            >
+              {featured_book.author}
+            </p>
+            {featured_book.release_date && (
+              <p
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 10,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: ACCENT,
+                  margin: "0 0 14px",
+                }}
+              >
+                Release: {featured_book.release_date}
+              </p>
+            )}
+            <p
+              style={{
+                fontFamily: SERIF,
+                fontSize: 14,
+                lineHeight: 1.65,
+                color: INK,
+                margin: "0 0 14px",
+              }}
+            >
+              {featured_book.body}
+            </p>
+            {featured_book.buy_url !== "#" && (
+              <SpotifyLink href={featured_book.buy_url} label="Find a copy →" />
+            )}
+          </div>
+        </article>
+
+        <Eyebrow color={ACCENT} style={{ marginBottom: 14, textAlign: "center" }}>
+          Also Coming This Summer
+        </Eyebrow>
+
         <div
           style={{
             display: "grid",
@@ -537,7 +1002,7 @@ function BooksRiding() {
             gap: 20,
           }}
         >
-          {books.map((b, i) => (
+          {alsoBooks.map((b, i) => (
             <article key={i}>
               <div
                 style={{
@@ -654,6 +1119,270 @@ function BooksRiding() {
             Open the books vertical →
           </Link>
         </p>
+      </div>
+    </section>
+  );
+}
+
+function ContinueTheWave() {
+  return (
+    <section style={{ background: PARCHMENT, padding: "40px 24px", borderTop: `1px solid ${DIVIDER}` }}>
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          background: PAPER,
+          border: `2px solid ${ACCENT}`,
+          borderRadius: 6,
+          padding: "36px 32px",
+          display: "grid",
+          gridTemplateColumns: "1.4fr 1fr",
+          gap: 32,
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
+            <span style={{ fontSize: 18, color: ACCENT }}>👥</span>
+            <Eyebrow>Online At Global Ceilidh</Eyebrow>
+          </div>
+          <h2
+            style={{
+              fontFamily: SERIF,
+              fontStyle: "italic",
+              fontWeight: 900,
+              fontSize: 38,
+              color: INK,
+              margin: "0 0 12px",
+              lineHeight: 1.05,
+            }}
+          >
+            Continue the Wave
+          </h2>
+          <div
+            style={{
+              width: 80,
+              height: 4,
+              background:
+                `repeating-linear-gradient(90deg, ${ACCENT}, ${ACCENT} 6px, transparent 6px, transparent 12px)`,
+              marginBottom: 18,
+              opacity: 0.7,
+            }}
+          />
+          <p
+            style={{
+              fontFamily: SERIF,
+              fontSize: 16,
+              lineHeight: 1.65,
+              color: INK,
+              margin: "0 0 10px",
+              fontWeight: 600,
+            }}
+          >
+            The charts are only the beginning.
+          </p>
+          <p
+            style={{
+              fontFamily: SERIF,
+              fontSize: 14,
+              lineHeight: 1.65,
+              color: INK,
+              margin: "0 0 16px",
+            }}
+          >
+            Explore expanded rankings, artist profiles, podcast recommendations, book reviews,
+            future archives, and upcoming additions to the An Tonn project across the verticals
+            below.
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Link
+              href="/AnTonn/music"
+              style={{
+                fontFamily: MONO,
+                fontSize: 10,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: PAPER,
+                background: ACCENT,
+                padding: "10px 14px",
+                borderRadius: 4,
+                textDecoration: "none",
+              }}
+            >
+              Music vertical →
+            </Link>
+            <Link
+              href="/AnTonn/archive"
+              style={{
+                fontFamily: MONO,
+                fontSize: 10,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: ACCENT,
+                border: `1px solid ${ACCENT}`,
+                padding: "10px 14px",
+                borderRadius: 4,
+                textDecoration: "none",
+              }}
+            >
+              Archive →
+            </Link>
+          </div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 220,
+              aspectRatio: "1/1",
+              margin: "0 auto",
+              background: PARCHMENT,
+              border: `1px solid ${DIVIDER}`,
+              borderRadius: 6,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: SERIF,
+                fontWeight: 900,
+                fontSize: 40,
+                color: ACCENT,
+                lineHeight: 1,
+              }}
+            >
+              AT
+            </div>
+            <div
+              style={{
+                fontFamily: MONO,
+                fontSize: 9,
+                letterSpacing: 2,
+                color: MUTED,
+                marginTop: 8,
+                textAlign: "center",
+              }}
+            >
+              QR coming soon · share the URL for now
+            </div>
+          </div>
+          <p
+            style={{
+              fontFamily: MONO,
+              fontSize: 10,
+              letterSpacing: 3,
+              textTransform: "uppercase",
+              color: ACCENT,
+              margin: "14px 0 4px",
+              fontWeight: 700,
+            }}
+          >
+            Scan to explore An Tonn
+          </p>
+          <p
+            style={{
+              fontFamily: SERIF,
+              fontSize: 14,
+              color: INK,
+              margin: 0,
+            }}
+          >
+            globalceilidh.com/AnTonn
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ComingNextWeek() {
+  return (
+    <section style={{ background: PAPER, padding: "36px 24px", borderTop: `1px solid ${DIVIDER}` }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 18 }}>
+          <span style={{ fontSize: 20, color: ACCENT }}>📅</span>
+          <h3
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 900,
+              fontSize: 22,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              color: INK,
+              margin: 0,
+            }}
+          >
+            Coming Next Week
+          </h3>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {next_week.map((nw, i) => (
+            <article
+              key={i}
+              style={{
+                background: PARCHMENT,
+                border: `1px solid ${DIVIDER}`,
+                borderRadius: 6,
+                padding: "14px 16px",
+                display: "flex",
+                gap: 12,
+                alignItems: "flex-start",
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  background: nw.accent,
+                  borderRadius: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  color: "#FCFCFC",
+                  flexShrink: 0,
+                }}
+              >
+                {nw.icon}
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 10,
+                    letterSpacing: 2,
+                    textTransform: "uppercase",
+                    color: nw.accent,
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  {nw.label}
+                </div>
+                <div
+                  style={{
+                    fontFamily: SERIF,
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                    color: INK,
+                  }}
+                >
+                  {nw.note}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -935,7 +1664,15 @@ export default function AnTonnHub() {
       <SpotlightStrip />
       <Top10 />
       <SevenCurrents />
+
+      {/* ── PAGE 2 — Beyond the Charts ── */}
+      <BeyondChartsDivider />
+      <TourWatch />
+      <PodcastsOfMonth />
       <BooksRiding />
+      <ContinueTheWave />
+      <ComingNextWeek />
+
       <MethodologyAndVote />
       <SubsectionNav />
       <Footer />

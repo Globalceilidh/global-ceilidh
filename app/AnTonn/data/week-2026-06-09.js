@@ -267,3 +267,145 @@ export const methodology = [
   { name: "Cultural Relevance", note: "Linguistic, heritage & diaspora impact" },
   { name: "Editorial Assessment", note: "Expert knowledge & scene insight" },
 ];
+
+// The "Page 2" of the print poster — Beyond the Charts. Tour watch,
+// podcasts, the featured book, coming-next-week preview.
+
+export const beyond_charts = {
+  tagline_en: "Beyond the Charts",
+  tagline_gd: "Far a bheil a' cheòl gar toirt…",
+  tagline_gd_en: "Where the music is taking us.",
+};
+
+// ON THE ROAD — Global Diaspora Tour Watch.
+export const tours = [
+  {
+    artist: "Skerryvore",
+    tour: "20th Anniversary Tour",
+    accent: "#1A4FA0",
+    body:
+      "Currently headlining a major UK summer run celebrating their twentieth anniversary year before crossing the Atlantic for North American festival appearances later this summer.",
+    image_url: "",
+    dates_url: "https://www.globalceilidh.com/AnTonn/music",
+  },
+  {
+    artist: "Gaelic Storm",
+    tour: "Summer Amphitheater Run",
+    accent: "#3E7B3E",
+    body:
+      "Maintaining one of the busiest touring schedules in the diaspora world with continuous North American outdoor festival and theatre appearances.",
+    image_url: "",
+    dates_url: "https://www.globalceilidh.com/AnTonn/music",
+  },
+  {
+    artist: "Valtos",
+    tour: "HebCelt + Summer Festivals",
+    accent: "#0E8079",
+    body:
+      "Actively appearing across Scotland's major summer festival circuit and continuing their rapid rise as the leading electronic-Gaelic crossover act.",
+    image_url: "",
+    dates_url: "https://www.globalceilidh.com/AnTonn/music",
+  },
+  {
+    artist: "Enter the Haggis",
+    tour: "Northeast US Tour",
+    accent: "#B83232",
+    body:
+      "Returning to key Northeastern US and Canadian markets with an expanding summer touring schedule.",
+    image_url: "",
+    dates_url: "https://www.globalceilidh.com/AnTonn/music",
+  },
+];
+
+// IN YOUR EARS — Podcasts of the Month.
+export const podcasts = [
+  {
+    title: "SpeakGaelic Podcast",
+    accent: "#3E7B3E",
+    body:
+      "The premier multimedia Gaelic-learning podcast featuring lessons, conversation, and contemporary language usage.",
+    spotify_url: "#",
+    apple_url: "#",
+    bbc_sounds_url: "#",
+    image_url: "",
+  },
+  {
+    title: "A' Phiseag",
+    accent: "#5E3A91",
+    body:
+      "Independent Gaelic conversation covering culture, music, creativity, and modern life.",
+    spotify_url: "#",
+    apple_url: "#",
+    bbc_sounds_url: "",
+    image_url: "",
+  },
+  {
+    title: "Pipeline",
+    accent: "#1A4FA0",
+    body:
+      "BBC Radio Scotland's long-running home for piping, pipe bands, and traditional music excellence.",
+    spotify_url: "",
+    apple_url: "",
+    bbc_sounds_url: "#",
+    image_url: "",
+  },
+  {
+    title: "Rapal / Caithris Na H-Oidhche",
+    accent: "#B83232",
+    body:
+      "BBC Radio nan Gàidheal's essential destination for new Gaelic music, alternative sounds, folk, electronic crossover, and emerging artists.",
+    spotify_url: "",
+    apple_url: "",
+    bbc_sounds_url: "#",
+    image_url: "",
+  },
+];
+
+// FEATURED READ OF THE WEEK — promoted version of one book with full
+// editorial copy. The remaining books in `books` (above) render as
+// "Also Coming This Summer" beneath it.
+export const featured_book = {
+  title: "The Caledoniad",
+  subtitle: "The Making of Scottish History",
+  author: "Catriona M.M. Macdonald",
+  publisher: "John Donald / Birlinn Ltd",
+  release_date: "2026-06-18",
+  cover_url: "",
+  buy_url: "#",
+  body:
+    "The Frank Watson Book Prize-winning exploration of how Scots at home and abroad helped construct, preserve, and reinterpret Scottish history across generations. Essential reading for anyone who wants to understand the story we all carry.",
+};
+
+// COMING NEXT WEEK — preview strip at the bottom of the hub.
+export const next_week = [
+  {
+    label: "New Releases",
+    icon: "♪",
+    accent: "#1A4FA0",
+    note: "The freshest Gaelic and Scottish music drops you need to hear.",
+  },
+  {
+    label: "Festival Watch",
+    icon: "⛺",
+    accent: "#3E7B3E",
+    note: "What's happening on the festival circuit at home and abroad.",
+  },
+  {
+    label: "Books Current",
+    icon: "📖",
+    accent: "#C49100",
+    note: "The latest releases, reviews, and author spotlights.",
+  },
+  {
+    label: "Podcast Current",
+    icon: "🎙",
+    accent: "#5E3A91",
+    note: "New episodes and audio you won't want to miss.",
+  },
+  {
+    label: "Heatseekers Update",
+    icon: "★",
+    accent: "#B83232",
+    note: "Who's rising fast: new momentum and breakout artists.",
+  },
+];
