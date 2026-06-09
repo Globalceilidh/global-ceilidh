@@ -26,8 +26,8 @@ export const spotlights = [
     title: "Tide Lines",
     accent: "#1A4FA0",                 // deep blue
     icon: "★",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/47WvBuryaMeInhqbcoi0uN",
+    youtube_url: "https://www.youtube.com/channel/UCSX39m6HKC8pSzNrUkedNDQ",
     note: "",
   },
   {
@@ -36,8 +36,12 @@ export const spotlights = [
     subtitle: "VALTOS ft. EILIDH CORMACK",
     accent: "#6B4E1F",                 // sruth brown
     icon: "✺",                         // triskele-ish
-    spotify_url: "#",
-    youtube_url: "#",
+    // Specific track URL pending — the title doesn't appear on Valtos's
+    // two confirmed albums (2022 self-titled, 2025 Valtos & Friends).
+    // Pointing at Eilidh Cormack's artist page until the editor confirms
+    // a release.
+    spotify_url: "https://open.spotify.com/artist/2c6jW5KHxnQ4Q4kaSE1LyO",
+    youtube_url: "https://www.youtube.com/@valtosband",
     note: "",
   },
   {
@@ -46,6 +50,10 @@ export const spotlights = [
     subtitle: "HEATSEEKERS",
     accent: "#D9700E",                 // orange
     icon: "↗",
+    // Bradley Parker doesn't surface as a Scottish/Gàidhlig artist in
+    // streaming-platform searches. Either a placeholder name in the
+    // pilot data or a very small new act — editor to confirm canonical
+    // artist URL.
     spotify_url: "#",
     youtube_url: "#",
     note: "",
@@ -56,8 +64,8 @@ export const spotlights = [
     subtitle: "PURE GAELIC METALCORE",
     accent: "#B83232",                 // red
     icon: "⚡",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/1Wx6yzsgdgwB65T3uvEXux",
+    youtube_url: "https://www.youtube.com/@GunGhaol",
     note: "",
   },
 ];
@@ -69,80 +77,81 @@ export const top10 = [
     artist: "Tide Lines",
     movement: { type: "up", amount: 1 },
     current: "Holding massive overall influence as they continue to dominate independent Scottish album sales and main-stage festival billing with their anthemic Highland-pop sound.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/47WvBuryaMeInhqbcoi0uN",
+    youtube_url: "https://www.youtube.com/channel/UCSX39m6HKC8pSzNrUkedNDQ",
   },
   {
     rank: 2,
     artist: "Skerryvore",
     movement: { type: "down", amount: 1 },
     current: "Backed by their verified multi-time Live Act of the Year status on BBC Alba, they remain a premier touring and streaming force across both sides of the Atlantic.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/0rvuzsIPX7eql9Iq8e8AUA",
+    youtube_url: "https://www.youtube.com/channel/UCWgOjWlM28iTe3QW0rs5zhw",
   },
   {
     rank: 3,
     artist: "Julie Fowlis",
     movement: { type: "hold" },
     current: "The unassailable global standard-bearer for traditional Gaelic vocal music, maintaining massive, steady back-catalog metrics and high-tier cinematic placement.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/3IqWMVFksTbtL2EaFi5o8k",
+    youtube_url: "https://www.youtube.com/channel/UC0AgLcvtuLDXgU6-5yZhEqQ",
   },
   {
     rank: 4,
     artist: "Valtos",
     movement: { type: "up", amount: 2 },
     current: "Driving the fastest-growing digital movement in the language by flawlessly blending modern house production with traditional Gaelic vocal samples.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/6gh1HzdxwTgfznOANixjNQ",
+    youtube_url: "https://www.youtube.com/@valtosband",
   },
   {
     rank: 5,
     artist: "Peat & Diesel",
     movement: { type: "up", amount: 3 },
     current: "Their raw, high-impact \"Stornoway Punk-Trad\" style continues to command massive Hebridean and mainland live engagement, pushing them up into the top tier.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/6RyuUqLnAvBHgSebptuPXu",
+    youtube_url: "https://www.youtube.com/channel/UCRnbAaWZBsr9UMSF4r8rctQ",
   },
   {
     rank: 6,
     artist: "Talisk",
     movement: { type: "down", amount: 2 },
     current: "Virtuoso concertina-led acoustic trio commanding elite, high-velocity streaming numbers across premium global folk circles.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/1khU7sW2d95qMTDnyDfzBT",
+    youtube_url: "https://www.youtube.com/channel/UCG-AsgBzENpt8BVio-MXmKw",
   },
   {
     rank: 7,
     artist: "Mànran",
     movement: { type: "hold" },
     current: "A long-standing multi-instrumental powerhouse whose dual-lead pipe and fiddle rock serves as a permanent fixture on international festival rosters.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/0okPaVyeEjh0VJtfBdNPho",
+    youtube_url: "https://www.youtube.com/channel/UCKDV-fFZh-J-oVbh8KcBdZQ",
   },
   {
     rank: 8,
     artist: "Gaelic Storm",
     movement: { type: "hold" },
     current: "Anchoring the massive North American diaspora market with continuous heavy touring cycles and top-tier folk festival billing.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/5dlzTgw97q5k5ws89Ww1UK",
+    youtube_url: "https://www.youtube.com/channel/UCa8cU1g6Qj_LmiPyETlXU-g",
   },
   {
     rank: 9,
     artist: "Sian",
     movement: { type: "new" },
     current: "Holding immense industry clout following their recent Album of the Year victory for Aroan, anchoring their pure acoustic space with critical and peer relevance.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/6W0gi7s1caVyE37MWG8fWg",
+    // No official YouTube channel surfaced — Sian distributes via Bandcamp.
+    youtube_url: "",
   },
   {
     rank: 10,
     artist: "Niteworks",
     movement: { type: "down", amount: 1 },
     current: "Their monumental electronic-trad studio catalog remains the undisputed gold standard for algorithmic crossover engagement.",
-    spotify_url: "#",
-    youtube_url: "#",
+    spotify_url: "https://open.spotify.com/artist/0ZPK5uOCt6b4DQL7dEgnTq",
+    youtube_url: "https://www.youtube.com/niteworksband",
   },
 ];
 
@@ -227,7 +236,7 @@ export const books = [
     publisher: "John Donald / Birlinn Ltd",
     release_date: "2026-06-18",
     cover_url: "",      // placeholder; drop a URL or local upload path
-    buy_url: "#",
+    buy_url: "https://birlinn.co.uk/product/the-caledoniad-2/",
   },
   {
     title: "Máel Coluim III, 'Canmore'",
@@ -236,25 +245,28 @@ export const books = [
     publisher: "John Donald / Birlinn Ltd",
     release_date: "2026-06-18",
     cover_url: "",
-    buy_url: "#",
+    buy_url: "https://birlinn.co.uk/product/mael-coluim-iii-canmore-2/",
   },
   {
     title: "The Sound of Many Waters",
-    subtitle: "",
+    subtitle: "A Journey Along the River Tay",
     author: "Robin Crawford",
     publisher: "Birlinn Ltd",
     release_date: "2026-07-02",
     cover_url: "",
-    buy_url: "#",
+    buy_url: "https://birlinn.co.uk/product/the-sound-of-many-waters/",
   },
   {
     title: "Air Cuan Dubh Drilseach",
-    subtitle: "",
+    subtitle: "On a Glittering Black Sea",
     author: "Tim Armstrong",
-    publisher: "Gaelic Books Council — Leabhar na Bliadhna",
+    // Published by CLÀR in 2013. Won the Saltire Society First Book of
+    // the Year Award 2013; selected by Scot Lit Fest in 2016 as one of
+    // the five most important Gaelic novels of all time.
+    publisher: "CLÀR · Saltire Society First Book of the Year 2013",
     release_date: "",
     cover_url: "",
-    buy_url: "#",
+    buy_url: "https://www.amazon.com/Air-Cuan-Dubh-Drilseach-Scots_gaelic-ebook/dp/B071R28Z2P",
   },
 ];
 
@@ -324,9 +336,12 @@ export const podcasts = [
     accent: "#3E7B3E",
     body:
       "The premier multimedia Gaelic-learning podcast featuring lessons, conversation, and contemporary language usage.",
-    spotify_url: "#",
-    apple_url: "#",
-    bbc_sounds_url: "#",
+    spotify_url: "https://open.spotify.com/show/0KrHv2TEK05wIk8Oi9Laz8",
+    apple_url: "https://podcasts.apple.com/gb/podcast/speakgaelic/id1589431251",
+    // BBC Sounds carries SpeakGaelic but doesn't expose a stable per-
+    // series link the same way Apple/Spotify do; speakgaelic.scot is the
+    // canonical destination that links onward to BBC Sounds and iPlayer.
+    bbc_sounds_url: "https://speakgaelic.scot/",
     image_url: "",
   },
   {
@@ -334,6 +349,9 @@ export const podcasts = [
     accent: "#5E3A91",
     body:
       "Independent Gaelic conversation covering culture, music, creativity, and modern life.",
+    // Direct URLs pending — A' Phiseag doesn't surface in Spotify / Apple
+    // Podcasts / Buzzsprout searches. Either a forthcoming or very small
+    // independent show; editor to confirm canonical URL.
     spotify_url: "#",
     apple_url: "#",
     bbc_sounds_url: "",
@@ -346,7 +364,10 @@ export const podcasts = [
       "BBC Radio Scotland's long-running home for piping, pipe bands, and traditional music excellence.",
     spotify_url: "",
     apple_url: "",
-    bbc_sounds_url: "#",
+    // Pipeline's BBC Sounds page didn't surface in a direct search. The
+    // BBC Sounds catalog page is the canonical fallback; the editor can
+    // swap in the exact /sounds/series URL once we confirm it.
+    bbc_sounds_url: "https://www.bbc.co.uk/sounds/category/genre-music-musicgenresfolk",
     image_url: "",
   },
   {
@@ -356,7 +377,10 @@ export const podcasts = [
       "BBC Radio nan Gàidheal's essential destination for new Gaelic music, alternative sounds, folk, electronic crossover, and emerging artists.",
     spotify_url: "",
     apple_url: "",
-    bbc_sounds_url: "#",
+    // Same situation as Pipeline — Rapal exists on BBC Sounds but the
+    // direct series URL didn't surface. BBC Radio nan Gàidheal landing
+    // page as the fallback.
+    bbc_sounds_url: "https://www.bbc.co.uk/sounds/station/bbc_radio_nan_gaidheal",
     image_url: "",
   },
 ];
@@ -371,7 +395,7 @@ export const featured_book = {
   publisher: "John Donald / Birlinn Ltd",
   release_date: "2026-06-18",
   cover_url: "",
-  buy_url: "#",
+  buy_url: "https://birlinn.co.uk/product/the-caledoniad-2/",
   body:
     "The Frank Watson Book Prize-winning exploration of how Scots at home and abroad helped construct, preserve, and reinterpret Scottish history across generations. Essential reading for anyone who wants to understand the story we all carry.",
 };
