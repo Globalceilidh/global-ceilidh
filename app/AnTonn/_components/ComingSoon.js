@@ -13,6 +13,9 @@ const MUTED = "#8A8074";
 const SERIF = "'Fraunces', Georgia, serif";
 const MONO = "'IBM Plex Mono', Menlo, Consolas, monospace";
 
+const SRUTH_WORDMARK_URL =
+  "https://gakdrndravhtvaaimnhl.supabase.co/storage/v1/object/public/assets/wordmark.png";
+
 export default function ComingSoon({ title, subtitle, eta, body }) {
   return (
     <main style={{ background: PARCHMENT, minHeight: "100vh" }}>
@@ -173,18 +176,13 @@ export default function ComingSoon({ title, subtitle, eta, body }) {
             gap: 12,
           }}
         >
-          <Link
-            href="/sruth"
-            style={{
-              fontFamily: SERIF,
-              fontStyle: "italic",
-              fontSize: 18,
-              color: INK,
-              textDecoration: "none",
-              borderBottom: `2px solid ${INK}`,
-            }}
-          >
-            sruth.
+          <Link href="/sruth" style={{ display: "inline-block", lineHeight: 0 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={SRUTH_WORDMARK_URL}
+              alt="sruth."
+              style={{ height: 28, width: "auto", display: "block" }}
+            />
           </Link>
           <p
             style={{

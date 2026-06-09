@@ -37,6 +37,12 @@ const MUTED = "#8A8074";
 const SERIF = "'Fraunces', Georgia, serif";
 const MONO = "'IBM Plex Mono', Menlo, Consolas, monospace";
 
+// Real sruth. wordmark — same image used in the newsletter masthead and
+// the admin lockup. Hot-linked from Supabase storage so the web pages,
+// the email template, and any future use share one source of truth.
+const SRUTH_WORDMARK_URL =
+  "https://gakdrndravhtvaaimnhl.supabase.co/storage/v1/object/public/assets/wordmark.png";
+
 // ── Atom helpers ───────────────────────────────────────────────────────
 
 function Eyebrow({ children, color = ACCENT, size = 11, style }) {
@@ -131,19 +137,13 @@ function Masthead() {
           }}
         >
           <div style={{ textAlign: "left" }}>
-            <Link
-              href="/sruth"
-              style={{
-                fontFamily: SERIF,
-                fontStyle: "italic",
-                fontSize: 22,
-                color: INK,
-                textDecoration: "none",
-                borderBottom: `2px solid ${INK}`,
-                paddingBottom: 2,
-              }}
-            >
-              sruth.
+            <Link href="/sruth" style={{ display: "inline-block", lineHeight: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={SRUTH_WORDMARK_URL}
+                alt="sruth."
+                style={{ height: 38, width: "auto", display: "block" }}
+              />
             </Link>
           </div>
           <div style={{ textAlign: "center" }}>
@@ -1620,18 +1620,13 @@ function Footer() {
           gap: 12,
         }}
       >
-        <Link
-          href="/sruth"
-          style={{
-            fontFamily: SERIF,
-            fontStyle: "italic",
-            fontSize: 18,
-            color: INK,
-            textDecoration: "none",
-            borderBottom: `2px solid ${INK}`,
-          }}
-        >
-          sruth.
+        <Link href="/sruth" style={{ display: "inline-block", lineHeight: 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={SRUTH_WORDMARK_URL}
+            alt="sruth."
+            style={{ height: 28, width: "auto", display: "block" }}
+          />
         </Link>
         <p
           style={{
