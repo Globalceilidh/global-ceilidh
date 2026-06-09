@@ -1,8 +1,9 @@
 // Shared "coming soon" layout used by /AnTonn subsections that aren't
-// content-ready yet. Same masthead and footer as the hub so it feels
-// continuous, not like a 404 dressed up.
+// content-ready yet. Wraps the global AnTonn nav at the top so the chrome
+// is consistent with the cover and chart pages.
 
 import Link from "next/link";
+import AnTonnNav from "./AnTonnNav";
 
 const ACCENT = "#6B4E1F";
 const INK = "#1A1A1A";
@@ -13,43 +14,12 @@ const MUTED = "#8A8074";
 const SERIF = "'Fraunces', Georgia, serif";
 const MONO = "'IBM Plex Mono', Menlo, Consolas, monospace";
 
-const SRUTH_WORDMARK_URL =
-  "https://gakdrndravhtvaaimnhl.supabase.co/storage/v1/object/public/assets/wordmark.png";
-
-export default function ComingSoon({ title, subtitle, eta, body }) {
+export default function ComingSoon({ title, subtitle, eta, body, activeSlug }) {
   return (
     <main style={{ background: PARCHMENT, minHeight: "100vh" }}>
-      <header
-        style={{
-          background: PAPER,
-          borderBottom: `2px solid ${ACCENT}`,
-          padding: "28px 24px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <Link
-            href="/AnTonn"
-            style={{
-              fontFamily: SERIF,
-              fontWeight: 900,
-              fontSize: 28,
-              letterSpacing: 2,
-              color: INK,
-              textDecoration: "none",
-            }}
-          >
-            AN TONN
-          </Link>
+      <AnTonnNav activeSlug={activeSlug} />
+      <header style={{ padding: "8px 24px 28px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
           <Link
             href="/AnTonn"
             style={{
@@ -63,7 +33,7 @@ export default function ComingSoon({ title, subtitle, eta, body }) {
               paddingBottom: 1,
             }}
           >
-            ← back to the hub
+            ← back to the cover
           </Link>
         </div>
       </header>
@@ -159,31 +129,8 @@ export default function ComingSoon({ title, subtitle, eta, body }) {
         </div>
       </section>
 
-      <footer
-        style={{
-          background: PAPER,
-          borderTop: `2px solid ${ACCENT}`,
-          padding: "20px 24px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
-          <Link href="/sruth" style={{ display: "inline-block", lineHeight: 0 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={SRUTH_WORDMARK_URL}
-              alt="sruth."
-              style={{ height: 28, width: "auto", display: "block" }}
-            />
-          </Link>
+      <footer style={{ borderTop: `1px solid ${DIVIDER}`, padding: "20px 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
           <p
             style={{
               fontFamily: MONO,
@@ -194,7 +141,7 @@ export default function ComingSoon({ title, subtitle, eta, body }) {
               margin: 0,
             }}
           >
-            Daily · From Global Ceilidh · Since 2026
+            An Tonn &nbsp;·&nbsp; From Global Ceilidh &nbsp;·&nbsp; Tìr Nan Gàidheal &nbsp;·&nbsp; Everywhere
           </p>
         </div>
       </footer>
