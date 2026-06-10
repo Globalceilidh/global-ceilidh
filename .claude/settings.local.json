@@ -38,7 +38,9 @@
       "Bash(ls app/sruth)",
       "Bash(npx next *)",
       "Bash(kill %1)",
-      "Bash(identify \"C:/Dev/global-ceilidh/public/sruth_sign_up.png\")"
+      "Bash(identify \"C:/Dev/global-ceilidh/public/sruth_sign_up.png\")",
+      "Bash(winget *)",
+      "Bash(cmd.exe *)"
     ]
   }
 }
