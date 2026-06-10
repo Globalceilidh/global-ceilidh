@@ -26,33 +26,33 @@ export const metadata = {
 const HOTSPOTS = [
   // ── Top bar ─────────────────────────────────────────────
   // sruth. wordmark (top-left)
-  { top: "1.2%",  left: "2%",   width: "9%",  height: "4%", href: "/",                   label: "sruth — home" },
+  { top: "2.5%",  left: "2%",   width: "9%",  height: "4%", href: "/",                   label: "sruth — home" },
 
   // Top nav (centred run of links)
-  { top: "1.2%",  left: "24.5%", width: "7%",  height: "4%", href: "/AnTonn",            label: "An Tonn" },
-  { top: "1.2%",  left: "32%",  width: "5%",  height: "4%", href: "/AnTonn/music",       label: "Music" },
-  { top: "1.2%",  left: "38%",  width: "5%",  height: "4%", href: "/AnTonn/books",       label: "Books" },
-  { top: "1.2%",  left: "44%",  width: "7%",  height: "4%", href: "/AnTonn/podcasts",    label: "Podcasts" },
-  { top: "1.2%",  left: "52%",  width: "6%",  height: "4%", href: "/AnTonn/archive",     label: "Archive" },
-  { top: "1.2%",  left: "59%",  width: "9%",  height: "4%", href: "/AnTonn/methodology", label: "Methodology" },
-  { top: "1.2%",  left: "69%",  width: "4%",  height: "4%", href: "/AnTonn/vote",        label: "Vote" },
+  { top: "2.5%",  left: "24.5%", width: "7%",  height: "4%", href: "/AnTonn",            label: "An Tonn" },
+  { top: "2.5%",  left: "32%",  width: "5%",  height: "4%", href: "/AnTonn/music",       label: "Music" },
+  { top: "2.5%",  left: "38%",  width: "5%",  height: "4%", href: "/AnTonn/books",       label: "Books" },
+  { top: "2.5%",  left: "44%",  width: "7%",  height: "4%", href: "/AnTonn/podcasts",    label: "Podcasts" },
+  { top: "2.5%",  left: "52%",  width: "6%",  height: "4%", href: "/AnTonn/archive",     label: "Archive" },
+  { top: "2.5%",  left: "59%",  width: "9%",  height: "4%", href: "/AnTonn/methodology", label: "Methodology" },
+  { top: "2.5%",  left: "69%",  width: "4%",  height: "4%", href: "/AnTonn/vote",        label: "Vote" },
 
   // Social icons (top-right)
-  { top: "1.2%",  left: "87%",  width: "4%",  height: "4%", href: "https://www.facebook.com/globalceilidh",  label: "Facebook",  external: true },
-  { top: "1.2%",  left: "91%",  width: "4%",  height: "4%", href: "https://www.instagram.com/globalceilidh", label: "Instagram", external: true },
-  { top: "1.2%",  left: "95%",  width: "4%",  height: "4%", href: "mailto:hello@globalceilidh.com",          label: "Email",     external: true },
+  { top: "2.5%",  left: "87%",  width: "4%",  height: "4%", href: "https://www.facebook.com/globalceilidh",  label: "Facebook",  external: true },
+  { top: "2.5%",  left: "91%",  width: "4%",  height: "4%", href: "https://www.instagram.com/globalceilidh", label: "Instagram", external: true },
+  { top: "2.5%",  left: "95%",  width: "4%",  height: "4%", href: "mailto:hello@globalceilidh.com",          label: "Email",     external: true },
 
   // ── The Gaelic Current This Week callout strip ──────────
-  { top: "59%",  left: "3%",   width: "94%", height: "10%", href: "/AnTonn/this-week", label: "View this week's charts" },
+  { top: "62%",  left: "3%",   width: "94%", height: "10%", href: "/AnTonn/this-week", label: "View this week's charts" },
 
   // ── The seven explore cards (bottom row) ────────────────
-  { top: "71%",  left: "3%",   width: "12.7%", height: "23%", href: "/AnTonn/music",     label: "Music Current" },
-  { top: "71%",  left: "16.5%", width: "12.7%", height: "23%", href: "/AnTonn/books",    label: "Books Current" },
-  { top: "71%",  left: "30%",  width: "12.7%", height: "23%", href: "/AnTonn/podcasts",  label: "Podcast Current" },
-  { top: "71%",  left: "43.5%", width: "12.7%", height: "23%", href: "/AnTonn/film",     label: "Film & TV Current" },
-  { top: "71%",  left: "57%",  width: "12.7%", height: "23%", href: "/AnTonn/radio",     label: "Radio (Coming Soon)" },
-  { top: "71%",  left: "70.5%", width: "12.7%", height: "23%", href: "/AnTonn/archive",  label: "Archive" },
-  { top: "71%",  left: "84%",  width: "12.7%", height: "23%", href: "/AnTonn/vote",     label: "Vote & Suggest" },
+  { top: "74%",  left: "3%",   width: "12.7%", height: "21%", href: "/AnTonn/music",     label: "Music Current" },
+  { top: "74%",  left: "16.5%", width: "12.7%", height: "21%", href: "/AnTonn/books",    label: "Books Current" },
+  { top: "74%",  left: "30%",  width: "12.7%", height: "21%", href: "/AnTonn/podcasts",  label: "Podcast Current" },
+  { top: "74%",  left: "43.5%", width: "12.7%", height: "21%", href: "/AnTonn/film",     label: "Film & TV Current" },
+  { top: "74%",  left: "57%",  width: "12.7%", height: "21%", href: "/AnTonn/radio",     label: "Radio (Coming Soon)" },
+  { top: "74%",  left: "70.5%", width: "12.7%", height: "21%", href: "/AnTonn/archive",  label: "Archive" },
+  { top: "74%",  left: "84%",  width: "12.7%", height: "21%", href: "/AnTonn/vote",     label: "Vote & Suggest" },
 ];
 
 export default function AnTonnCover() {
@@ -61,8 +61,8 @@ export default function AnTonnCover() {
       <div
         style={{
           position: "relative",
-          maxWidth: 1320,
-          margin: "0 auto",
+          width: "100%",
+          margin: 0,
           lineHeight: 0, // strip the inline-block baseline gap under the image
         }}
       >
