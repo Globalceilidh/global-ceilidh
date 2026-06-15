@@ -61,4 +61,30 @@ export const HEAT_POINTS = [
 
   // Patagonia
   { name: 'Patagonia',     lng: -71.32, lat: -42.91, weight: 0.25 },
+
+  // Western Canada — the Red River (Selkirk) settlement is the heaviest
+  // pure-Gàidhlig settlement in the prairies: Lord Selkirk shipped Highlanders
+  // out of Sutherland during the clearances in 1813. Calgary/Edmonton inherit
+  // the broader Highland-society activity that followed the railway era.
+  { name: 'Red River / Selkirk MB', lng: -97.14, lat: 49.90, weight: 0.6 },
+  { name: 'Saskatoon',     lng: -106.67, lat: 52.13, weight: 0.3 },
+  { name: 'Calgary',       lng: -114.07, lat: 51.05, weight: 0.35 },
+  { name: 'Edmonton',      lng: -113.49, lat: 53.55, weight: 0.3 },
+
+  // Pacific Northwest — Hudson's Bay Company was Highland-led, and BC
+  // absorbed a steady stream of Scots from the late 19th century onward.
+  // Vancouver and Victoria carry active Gaelic societies and classes today.
+  { name: 'Vancouver',     lng: -123.12, lat: 49.28, weight: 0.4 },
+  { name: 'Victoria BC',   lng: -123.37, lat: 48.43, weight: 0.35 },
+  { name: 'Seattle',       lng: -122.33, lat: 47.61, weight: 0.3 },
+  { name: 'Portland OR',   lng: -122.68, lat: 45.52, weight: 0.25 },
+
+  // US Midwest — Highland Games circuits and active Scottish societies in
+  // Detroit, Chicago, the Twin Cities, and the Wisconsin Caledonia/Argyle
+  // belt; Cleveland and Indianapolis carry smaller pockets.
+  { name: 'Detroit',       lng: -83.05, lat: 42.33, weight: 0.3 },
+  { name: 'Chicago',       lng: -87.63, lat: 41.88, weight: 0.3 },
+  { name: 'Twin Cities',   lng: -93.27, lat: 44.98, weight: 0.35 },
+  { name: 'Wisconsin Scots belt', lng: -87.95, lat: 42.83, weight: 0.3 },
+  { name: 'Cleveland',     lng: -81.69, lat: 41.50, weight: 0.25 },
 ];
