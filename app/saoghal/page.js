@@ -127,25 +127,35 @@ export default function SaoghalPage() {
   useEffect(() => {
     if (!mapReady) return;
     const map = mapRef.current;
-    const elements = [];
+    const pairs = [];                // { outer, inner } pairs for visibility/scale updates
     const markers = PLACES.map((p) => {
-      const el = buildMarkerElement(p, () => {
+      const { outer, inner } = buildMarkerElement(p, () => {
         setSelected(p);
-        map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), 5.5), duration: 900 });
+        map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), 6.5), duration: 900 });
       });
-      elements.push(el);
-      return new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
+      pairs.push({ outer, inner });
+      return new maplibregl.Marker({ element: outer }).setLngLat([p.lng, p.lat]).addTo(map);
     });
 
+    // Pins only earn screen real estate once the basemap is showing cities
+    // and towns. CARTO dark-matter labels major cities around zoom 5–6, so
+    // we hide until 5.5, fade in 5.5 → 6.5, full at 6.5+. They also grow
+    // slightly with zoom so they feel proportional to the closer-in detail
+    // (HTML markers stay the same pixel size by default, which makes them
+    // feel huge over a continent and tiny over a town — this re-balances).
     function updatePinVisibility() {
       const z = map.getZoom();
-      let opacity;
-      if (z < 3.4) opacity = 0;
-      else if (z > 4.8) opacity = 1;
-      else opacity = (z - 3.4) / 1.4;
-      for (const el of elements) {
-        el.style.opacity = String(opacity);
-        el.style.pointerEvents = opacity > 0.05 ? 'auto' : 'none';
+      let opacity, scale;
+      if (z < 5.5) opacity = 0;
+      else if (z > 6.5) opacity = 1;
+      else opacity = (z - 5.5) / 1.0;
+      if (z < 5.5) scale = 0.7;
+      else if (z > 10) scale = 1.3;
+      else scale = 0.7 + ((z - 5.5) / 4.5) * 0.6;
+      for (const { outer, inner } of pairs) {
+        outer.style.opacity = String(opacity);
+        outer.style.pointerEvents = opacity > 0.05 ? 'auto' : 'none';
+        inner.style.setProperty('--zoom-scale', String(scale));
       }
     }
     updatePinVisibility();
@@ -348,19 +358,22 @@ function addHeatLayer(map) {
   );
 }
 
-// Build the DOM element for one map pin. The OUTER button is what MapLibre
-// positions (so its `transform` style is left alone). All hover animation
-// happens on the INNER span. This is the fix for the "pins fly to (0,0) on
-// hover" bug — see file header.
+// Build the DOM element for one map pin.
+//
+// MapLibre owns the OUTER button's `transform` style for positioning (that's
+// the lesson from the original teleport bug). So we only set opacity on the
+// outer element, and do all scale/hover animation on an INNER span via CSS
+// custom properties: --zoom-scale composes with --hover-scale so the two
+// effects multiply cleanly instead of clobbering each other.
 function buildMarkerElement(place, onClick) {
-  const el = document.createElement('button');
-  el.type = 'button';
-  el.setAttribute('aria-label', place.name);
-  el.style.cssText = `
+  const outer = document.createElement('button');
+  outer.type = 'button';
+  outer.setAttribute('aria-label', place.name);
+  outer.style.cssText = `
     width: 14px; height: 14px; padding: 0;
     background: transparent; border: 0; cursor: pointer;
     display: block;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.25s ease;
   `;
 
   const inner = document.createElement('span');
@@ -370,25 +383,28 @@ function buildMarkerElement(place, onClick) {
     background: ${COLORS.pin};
     border: 1px solid ${COLORS.pinRing};
     box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.10), 0 1px 3px ${COLORS.pinShadow};
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    --zoom-scale: 1;
+    --hover-scale: 1;
+    transform: scale(calc(var(--zoom-scale) * var(--hover-scale)));
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
     transform-origin: center;
   `;
-  el.appendChild(inner);
+  outer.appendChild(inner);
 
-  el.addEventListener('mouseenter', () => {
-    inner.style.transform = 'scale(1.5)';
+  outer.addEventListener('mouseenter', () => {
+    inner.style.setProperty('--hover-scale', '1.5');
     inner.style.boxShadow = `0 0 0 3px rgba(255, 255, 255, 0.22), 0 2px 5px ${COLORS.pinShadow}`;
   });
-  el.addEventListener('mouseleave', () => {
-    inner.style.transform = 'scale(1)';
+  outer.addEventListener('mouseleave', () => {
+    inner.style.setProperty('--hover-scale', '1');
     inner.style.boxShadow = `0 0 0 1.5px rgba(255, 255, 255, 0.10), 0 1px 3px ${COLORS.pinShadow}`;
   });
-  el.addEventListener('click', (e) => {
+  outer.addEventListener('click', (e) => {
     e.stopPropagation();
     onClick();
   });
 
-  return el;
+  return { outer, inner };
 }
 
 function Section({ label, body }) {
