@@ -23,6 +23,10 @@ import { HEAT_POINTS } from './heat';
 
 const BASEMAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
+// Initial camera — also the target of the Reset button.
+const HOME_CENTER = [-40, 45];
+const HOME_ZOOM = 1.5;
+
 const COLORS = {
   bg: '#0A0807',
   panelBg: '#16110C',
@@ -56,8 +60,8 @@ export default function SaoghalPage() {
       // automatically transitions to flat Mercator around zoom 6, so the
       // place-name pins still work at town scale.
       projection: 'globe',
-      center: [-40, 45],          // North Atlantic — Scotland + Cape Breton + diaspora arc all visible
-      zoom: 1.5,
+      center: HOME_CENTER,        // North Atlantic — Scotland + Cape Breton + diaspora arc all visible
+      zoom: HOME_ZOOM,
       attributionControl: { compact: true },
     });
     mapRef.current = map;
@@ -154,6 +158,40 @@ export default function SaoghalPage() {
           name.
         </p>
       </header>
+
+      <button
+        type="button"
+        onClick={() => {
+          const map = mapRef.current;
+          if (!map) return;
+          setSelected(null);
+          map.flyTo({
+            center: HOME_CENTER,
+            zoom: HOME_ZOOM,
+            bearing: 0,
+            pitch: 0,
+            duration: 1200,
+            essential: true,
+          });
+        }}
+        aria-label="Reset view"
+        title="Reset view"
+        style={{
+          position: 'absolute', top: 20, right: 20, zIndex: 5,
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '10px 14px',
+          background: 'rgba(10, 8, 7, 0.72)',
+          color: COLORS.text,
+          border: `1px solid ${COLORS.border}`,
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          fontFamily: mono, fontSize: 10, letterSpacing: '2px',
+          textTransform: 'uppercase', cursor: 'pointer',
+        }}
+      >
+        <span aria-hidden="true" style={{ fontSize: 14, lineHeight: 1, color: COLORS.goldLight }}>◎</span>
+        Reset view
+      </button>
 
       {selected && (
         <aside style={{
