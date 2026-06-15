@@ -81,17 +81,42 @@ export default function SaoghalPage() {
   // Add markers once the map is ready. Each marker is a plain button that we
   // hand to MapLibre untouched (it owns the outer element's transform); the
   // animated bit is a child <span> inside.
+  //
+  // Pins are zoom-gated: invisible at world view (where the heat layer tells
+  // the story), fading in around zoom 4 (when admin-1 boundaries become
+  // legible), fully visible by zoom 5 — and still under the basemap's own
+  // place-name labels which start appearing at zoom 5–6.
   useEffect(() => {
     if (!mapReady) return;
     const map = mapRef.current;
+    const elements = [];
     const markers = PLACES.map((p) => {
       const el = buildMarkerElement(p, () => {
         setSelected(p);
-        map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), 5), duration: 900 });
+        map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), 5.5), duration: 900 });
       });
+      elements.push(el);
       return new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
     });
-    return () => markers.forEach((m) => m.remove());
+
+    function updatePinVisibility() {
+      const z = map.getZoom();
+      let opacity;
+      if (z < 3.4) opacity = 0;
+      else if (z > 4.8) opacity = 1;
+      else opacity = (z - 3.4) / 1.4;
+      for (const el of elements) {
+        el.style.opacity = String(opacity);
+        el.style.pointerEvents = opacity > 0.05 ? 'auto' : 'none';
+      }
+    }
+    updatePinVisibility();
+    map.on('zoom', updatePinVisibility);
+
+    return () => {
+      map.off('zoom', updatePinVisibility);
+      markers.forEach((m) => m.remove());
+    };
   }, [mapReady]);
 
   return (
@@ -272,30 +297,31 @@ function buildMarkerElement(place, onClick) {
   el.type = 'button';
   el.setAttribute('aria-label', place.name);
   el.style.cssText = `
-    width: 18px; height: 18px; padding: 0;
+    width: 14px; height: 14px; padding: 0;
     background: transparent; border: 0; cursor: pointer;
     display: block;
+    transition: opacity 0.2s ease;
   `;
 
   const inner = document.createElement('span');
   inner.style.cssText = `
-    display: block; width: 14px; height: 14px; margin: 2px;
+    display: block; width: 9px; height: 9px; margin: 2.5px;
     border-radius: 50%;
     background: ${COLORS.pin};
-    border: 2px solid ${COLORS.pinRing};
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), 0 1px 4px ${COLORS.pinShadow};
+    border: 1px solid ${COLORS.pinRing};
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.10), 0 1px 3px ${COLORS.pinShadow};
     transition: transform 0.12s ease, box-shadow 0.12s ease;
     transform-origin: center;
   `;
   el.appendChild(inner);
 
   el.addEventListener('mouseenter', () => {
-    inner.style.transform = 'scale(1.4)';
-    inner.style.boxShadow = `0 0 0 5px rgba(255, 255, 255, 0.28), 0 2px 6px ${COLORS.pinShadow}`;
+    inner.style.transform = 'scale(1.5)';
+    inner.style.boxShadow = `0 0 0 3px rgba(255, 255, 255, 0.22), 0 2px 5px ${COLORS.pinShadow}`;
   });
   el.addEventListener('mouseleave', () => {
     inner.style.transform = 'scale(1)';
-    inner.style.boxShadow = `0 0 0 3px rgba(255, 255, 255, 0.18), 0 1px 4px ${COLORS.pinShadow}`;
+    inner.style.boxShadow = `0 0 0 1.5px rgba(255, 255, 255, 0.10), 0 1px 3px ${COLORS.pinShadow}`;
   });
   el.addEventListener('click', (e) => {
     e.stopPropagation();
