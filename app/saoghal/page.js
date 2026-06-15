@@ -52,8 +52,12 @@ export default function SaoghalPage() {
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: BASEMAP_STYLE,
-      center: [-30, 50],          // North Atlantic — Scotland + Cape Breton in view
-      zoom: 2.3,
+      // Globe projection — renders the world as a 3D sphere at low zoom and
+      // automatically transitions to flat Mercator around zoom 6, so the
+      // place-name pins still work at town scale.
+      projection: 'globe',
+      center: [-40, 45],          // North Atlantic — Scotland + Cape Breton + diaspora arc all visible
+      zoom: 1.5,
       attributionControl: { compact: true },
     });
     mapRef.current = map;
