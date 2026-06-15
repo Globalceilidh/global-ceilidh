@@ -87,4 +87,14 @@ export const HEAT_POINTS = [
   { name: 'Twin Cities',   lng: -93.27, lat: 44.98, weight: 0.35 },
   { name: 'Wisconsin Scots belt', lng: -87.95, lat: 42.83, weight: 0.3 },
   { name: 'Cleveland',     lng: -81.69, lat: 41.50, weight: 0.25 },
+
+  // Carolina backcountry — the Waxhaws and the NC/SC Piedmont absorbed huge
+  // numbers of Highland Scots (post-1746 Jacobite refugees, then steady
+  // emigration up to the Revolution) and Ulster Scots arriving overland from
+  // Pennsylvania. Densest along the NC/SC line east of Charlotte: Union
+  // County, Anson County, and over the border at Fort Mill. Companion to
+  // the Cape Fear point already on the coast.
+  { name: 'Waxhaw / Union Co NC',   lng: -80.74, lat: 34.92, weight: 0.5 },
+  { name: 'Anson County NC',        lng: -80.08, lat: 34.97, weight: 0.45 },
+  { name: 'Fort Mill SC',           lng: -80.94, lat: 35.01, weight: 0.4 },
 ];
