@@ -61,6 +61,13 @@ export default function SaoghalPage() {
       attributionControl: { compact: true },
     });
     mapRef.current = map;
+    // Force globe projection on style.load — passing `projection: 'globe'` to
+    // the constructor isn't reliable because the basemap style.json can
+    // declare its own projection that wins. setProjection() after load
+    // overrides anything the style says.
+    map.on('style.load', () => {
+      try { map.setProjection({ type: 'globe' }); } catch (e) { console.warn('globe projection unsupported:', e); }
+    });
     map.on('load', () => {
       addHeatLayer(map);
       setMapReady(true);
