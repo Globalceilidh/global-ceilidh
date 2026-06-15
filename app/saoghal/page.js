@@ -15,7 +15,7 @@
 // `transform` style to anchor the marker to its lng/lat. Animating
 // transform on the outer element makes the pins teleport to (0,0).
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { PLACES } from './places';
@@ -50,6 +50,36 @@ export default function SaoghalPage() {
   const [selected, setSelected] = useState(null);
   const [mapReady, setMapReady] = useState(false);
 
+  const flyHome = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    setSelected(null);
+    map.flyTo({
+      center: HOME_CENTER, zoom: HOME_ZOOM,
+      bearing: 0, pitch: 0,
+      duration: 1200, essential: true,
+    });
+  }, []);
+
+  // Keyboard shortcuts. `R` or `Home` resets the view. Skipped when the
+  // user is typing in a form control (defensive — we don't have inputs on
+  // this page today but adding the guard now avoids a future surprise).
+  useEffect(() => {
+    function onKey(e) {
+      const tag = (e.target?.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
+        e.preventDefault();
+        flyHome();
+      } else if (e.key === 'Escape') {
+        setSelected(null);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [flyHome]);
+
   // Initialise the map once on mount.
   useEffect(() => {
     if (mapRef.current) return;
@@ -76,6 +106,10 @@ export default function SaoghalPage() {
       addHeatLayer(map);
       setMapReady(true);
     });
+
+    // Built-in zoom +/- and compass control. Bottom-right keeps the top
+    // corners free for the masthead and the Reset button.
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
     return () => {
       map.remove();
       mapRef.current = null;
@@ -161,21 +195,9 @@ export default function SaoghalPage() {
 
       <button
         type="button"
-        onClick={() => {
-          const map = mapRef.current;
-          if (!map) return;
-          setSelected(null);
-          map.flyTo({
-            center: HOME_CENTER,
-            zoom: HOME_ZOOM,
-            bearing: 0,
-            pitch: 0,
-            duration: 1200,
-            essential: true,
-          });
-        }}
-        aria-label="Reset view"
-        title="Reset view"
+        onClick={flyHome}
+        aria-label="Reset view (R)"
+        title="Reset view (R)"
         style={{
           position: 'absolute', top: 20, right: 20, zIndex: 5,
           display: 'flex', alignItems: 'center', gap: 8,
