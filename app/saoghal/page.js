@@ -399,9 +399,9 @@ function addPlacesLayer(map) {
       minzoom: 5,
       paint: {
         'circle-radius': 8,
-        'circle-color': '#FF3B30',
-        'circle-stroke-color': '#FFFFFF',
-        'circle-stroke-width': 2,
+        'circle-color': '#F2ECDC',
+        'circle-stroke-color': '#1A1A1A',
+        'circle-stroke-width': 1.5,
         'circle-opacity': [
           'interpolate', ['linear'], ['zoom'],
           5, 0,
