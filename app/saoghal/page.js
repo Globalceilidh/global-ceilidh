@@ -104,6 +104,7 @@ export default function SaoghalPage() {
     });
     map.on('load', () => {
       addHeatLayer(map);
+      addPlacesLayer(map);
       setMapReady(true);
     });
 
@@ -116,54 +117,38 @@ export default function SaoghalPage() {
     };
   }, []);
 
-  // Add markers once the map is ready. Each marker is a plain button that we
-  // hand to MapLibre untouched (it owns the outer element's transform); the
-  // animated bit is a child <span> inside.
-  //
-  // Pins are zoom-gated: invisible at world view (where the heat layer tells
-  // the story), fading in around zoom 4 (when admin-1 boundaries become
-  // legible), fully visible by zoom 5 — and still under the basemap's own
-  // place-name labels which start appearing at zoom 5–6.
+  // Click / hover handlers for the GL circle layer. The layer itself is
+  // added on map load (see addPlacesLayer); here we only attach the events.
+  // Native MapLibre handlers — they only fire when the layer is visible
+  // (i.e. above minzoom), so the "hidden at world view" behaviour is
+  // automatic, same as the basemap's own labels.
   useEffect(() => {
     if (!mapReady) return;
     const map = mapRef.current;
-    const pairs = [];                // { outer, inner } pairs for visibility/scale updates
-    const markers = PLACES.map((p) => {
-      const { outer, inner } = buildMarkerElement(p, () => {
-        setSelected(p);
-        map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), 6.5), duration: 900 });
-      });
-      pairs.push({ outer, inner });
-      return new maplibregl.Marker({ element: outer }).setLngLat([p.lng, p.lat]).addTo(map);
-    });
 
-    // Pins only earn screen real estate once the basemap is showing cities
-    // and towns. CARTO dark-matter labels major cities around zoom 5–6, so
-    // we hide until 5.5, fade in 5.5 → 6.5, full at 6.5+. They also grow
-    // slightly with zoom so they feel proportional to the closer-in detail
-    // (HTML markers stay the same pixel size by default, which makes them
-    // feel huge over a continent and tiny over a town — this re-balances).
-    function updatePinVisibility() {
-      const z = map.getZoom();
-      let opacity, scale;
-      if (z < 5.5) opacity = 0;
-      else if (z > 6.5) opacity = 1;
-      else opacity = (z - 5.5) / 1.0;
-      if (z < 5.5) scale = 0.7;
-      else if (z > 10) scale = 1.3;
-      else scale = 0.7 + ((z - 5.5) / 4.5) * 0.6;
-      for (const { outer, inner } of pairs) {
-        outer.style.opacity = String(opacity);
-        outer.style.pointerEvents = opacity > 0.05 ? 'auto' : 'none';
-        inner.style.setProperty('--zoom-scale', String(scale));
-      }
-    }
-    updatePinVisibility();
-    map.on('zoom', updatePinVisibility);
+    const onClick = (e) => {
+      const f = e.features && e.features[0];
+      if (!f) return;
+      const place = PLACES.find((p) => p.id === f.properties.id);
+      if (!place) return;
+      setSelected(place);
+      map.flyTo({
+        center: [place.lng, place.lat],
+        zoom: Math.max(map.getZoom(), 6.5),
+        duration: 900,
+      });
+    };
+    const onEnter = () => { map.getCanvas().style.cursor = 'pointer'; };
+    const onLeave = () => { map.getCanvas().style.cursor = ''; };
+
+    map.on('click', 'places-circles', onClick);
+    map.on('mouseenter', 'places-circles', onEnter);
+    map.on('mouseleave', 'places-circles', onLeave);
 
     return () => {
-      map.off('zoom', updatePinVisibility);
-      markers.forEach((m) => m.remove());
+      map.off('click', 'places-circles', onClick);
+      map.off('mouseenter', 'places-circles', onEnter);
+      map.off('mouseleave', 'places-circles', onLeave);
     };
   }, [mapReady]);
 
@@ -364,54 +349,63 @@ function addHeatLayer(map) {
   );
 }
 
-// Build the DOM element for one map pin.
+// Places layer — native MapLibre GL circle layer. Replaces the previous
+// HTML-marker approach so the dots obey the same zoom-driven visibility
+// rules the basemap's own labels use, instead of being faked with JS
+// opacity tracking on DOM elements.
 //
-// MapLibre owns the OUTER button's `transform` style for positioning (that's
-// the lesson from the original teleport bug). So we only set opacity on the
-// outer element, and do all scale/hover animation on an INNER span via CSS
-// custom properties: --zoom-scale composes with --hover-scale so the two
-// effects multiply cleanly instead of clobbering each other.
-function buildMarkerElement(place, onClick) {
-  const outer = document.createElement('button');
-  outer.type = 'button';
-  outer.setAttribute('aria-label', place.name);
-  outer.style.cssText = `
-    width: 14px; height: 14px; padding: 0;
-    background: transparent; border: 0; cursor: pointer;
-    display: block;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.25s ease;
-  `;
+// minzoom: 5 means the entire layer is culled below zoom 5 by the renderer
+// — not just opacity-zero, actually not drawn. Paint then fades it in
+// 5.0 → 6.5 and grows it 5.5 → 11 so it feels proportional to the world
+// beneath it.
+function addPlacesLayer(map) {
+  const features = PLACES.map((p) => ({
+    type: 'Feature',
+    properties: { id: p.id, name: p.name },
+    geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+  }));
 
-  const inner = document.createElement('span');
-  inner.style.cssText = `
-    display: block; width: 9px; height: 9px; margin: 2.5px;
-    border-radius: 50%;
-    background: ${COLORS.pin};
-    border: 1px solid ${COLORS.pinRing};
-    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.10), 0 1px 3px ${COLORS.pinShadow};
-    --zoom-scale: 1;
-    --hover-scale: 1;
-    transform: scale(calc(var(--zoom-scale) * var(--hover-scale)));
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-    transform-origin: center;
-  `;
-  outer.appendChild(inner);
-
-  outer.addEventListener('mouseenter', () => {
-    inner.style.setProperty('--hover-scale', '1.5');
-    inner.style.boxShadow = `0 0 0 3px rgba(255, 255, 255, 0.22), 0 2px 5px ${COLORS.pinShadow}`;
-  });
-  outer.addEventListener('mouseleave', () => {
-    inner.style.setProperty('--hover-scale', '1');
-    inner.style.boxShadow = `0 0 0 1.5px rgba(255, 255, 255, 0.10), 0 1px 3px ${COLORS.pinShadow}`;
-  });
-  outer.addEventListener('click', (e) => {
-    e.stopPropagation();
-    onClick();
+  map.addSource('places', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features },
   });
 
-  return { outer, inner };
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+
+  map.addLayer(
+    {
+      id: 'places-circles',
+      type: 'circle',
+      source: 'places',
+      minzoom: 5,
+      paint: {
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          5, 0,
+          5.5, 3,
+          8, 5,
+          11, 7,
+        ],
+        'circle-color': COLORS.pin,
+        'circle-opacity': [
+          'interpolate', ['linear'], ['zoom'],
+          5,   0,
+          5.5, 0.85,
+          6.5, 1.0,
+        ],
+        'circle-stroke-color': COLORS.pinRing,
+        'circle-stroke-width': 1,
+        'circle-stroke-opacity': [
+          'interpolate', ['linear'], ['zoom'],
+          5,   0,
+          5.5, 0.5,
+          6.5, 0.7,
+        ],
+      },
+    },
+    firstLabel
+  );
 }
 
 function Section({ label, body }) {
