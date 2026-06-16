@@ -18,7 +18,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { PLACES } from './places';
 import { HEAT_POINTS } from './heat';
 
 const BASEMAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
@@ -47,13 +46,13 @@ const mono = "'IBM Plex Mono', Menlo, Consolas, monospace";
 export default function SaoghalPage() {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
-  const [selected, setSelected] = useState(null);
-  const [mapReady, setMapReady] = useState(false);
+  // mapReady kept so we can extend later (e.g. add more layers post-load).
+  // eslint-disable-next-line no-unused-vars
+  const [_mapReady, setMapReady] = useState(false);
 
   const flyHome = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
-    setSelected(null);
     map.flyTo({
       center: HOME_CENTER, zoom: HOME_ZOOM,
       bearing: 0, pitch: 0,
@@ -61,9 +60,7 @@ export default function SaoghalPage() {
     });
   }, []);
 
-  // Keyboard shortcuts. `R` or `Home` resets the view. Skipped when the
-  // user is typing in a form control (defensive — we don't have inputs on
-  // this page today but adding the guard now avoids a future surprise).
+  // Keyboard shortcuts. `R` or `Home` resets the view.
   useEffect(() => {
     function onKey(e) {
       const tag = (e.target?.tagName || '').toLowerCase();
@@ -72,8 +69,6 @@ export default function SaoghalPage() {
       if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
         e.preventDefault();
         flyHome();
-      } else if (e.key === 'Escape') {
-        setSelected(null);
       }
     }
     window.addEventListener('keydown', onKey);
@@ -104,7 +99,6 @@ export default function SaoghalPage() {
     });
     map.on('load', () => {
       addHeatLayer(map);
-      addPlacesLayer(map);
       setMapReady(true);
     });
 
@@ -116,41 +110,6 @@ export default function SaoghalPage() {
       mapRef.current = null;
     };
   }, []);
-
-  // Click / hover handlers for the GL circle layer. The layer itself is
-  // added on map load (see addPlacesLayer); here we only attach the events.
-  // Native MapLibre handlers — they only fire when the layer is visible
-  // (i.e. above minzoom), so the "hidden at world view" behaviour is
-  // automatic, same as the basemap's own labels.
-  useEffect(() => {
-    if (!mapReady) return;
-    const map = mapRef.current;
-
-    const onClick = (e) => {
-      const f = e.features && e.features[0];
-      if (!f) return;
-      const place = PLACES.find((p) => p.id === f.properties.id);
-      if (!place) return;
-      setSelected(place);
-      map.flyTo({
-        center: [place.lng, place.lat],
-        zoom: Math.max(map.getZoom(), 6.5),
-        duration: 900,
-      });
-    };
-    const onEnter = () => { map.getCanvas().style.cursor = 'pointer'; };
-    const onLeave = () => { map.getCanvas().style.cursor = ''; };
-
-    map.on('click', 'places-circles', onClick);
-    map.on('mouseenter', 'places-circles', onEnter);
-    map.on('mouseleave', 'places-circles', onLeave);
-
-    return () => {
-      map.off('click', 'places-circles', onClick);
-      map.off('mouseenter', 'places-circles', onEnter);
-      map.off('mouseleave', 'places-circles', onLeave);
-    };
-  }, [mapReady]);
 
   return (
     <main style={{
@@ -183,8 +142,7 @@ export default function SaoghalPage() {
           color: COLORS.textMuted,
         }}>
           The gold shows where Gàidhlig lives — brightest in the heartlands,
-          fading across the diaspora. Click any cream pin for the story of its
-          name.
+          fading across the diaspora.
         </p>
       </header>
 
@@ -209,61 +167,6 @@ export default function SaoghalPage() {
         <span aria-hidden="true" style={{ fontSize: 14, lineHeight: 1, color: COLORS.goldLight }}>◎</span>
         Reset view
       </button>
-
-      {selected && (
-        <aside style={{
-          position: 'absolute', top: 0, right: 0, bottom: 0, zIndex: 6,
-          width: 'min(420px, 92vw)',
-          background: COLORS.panelBg,
-          borderLeft: `1px solid ${COLORS.border}`,
-          padding: '28px 28px 40px',
-          overflowY: 'auto',
-          boxShadow: '-10px 0 30px rgba(0,0,0,0.5)',
-        }}>
-          <button
-            type="button"
-            onClick={() => setSelected(null)}
-            aria-label="Close"
-            style={{
-              position: 'absolute', top: 14, right: 14, width: 32, height: 32,
-              background: 'transparent', color: COLORS.textMuted,
-              border: `1px solid ${COLORS.border}`,
-              cursor: 'pointer', fontSize: 18, lineHeight: 1, fontFamily: serif,
-            }}
-          >×</button>
-
-          <p style={{
-            margin: '0 0 6px', fontFamily: mono, fontSize: 10,
-            letterSpacing: '2.5px', color: COLORS.accent, textTransform: 'uppercase',
-          }}>{selected.region}</p>
-
-          <h2 style={{
-            margin: '0 0 4px', fontFamily: serif, fontWeight: 700,
-            fontSize: 30, color: COLORS.text, lineHeight: 1.1,
-          }}>{selected.name}</h2>
-
-          <p style={{
-            margin: '0 0 24px', fontFamily: serif, fontStyle: 'italic',
-            fontSize: 22, color: COLORS.goldLight,
-          }}>{selected.gaidhlig}</p>
-
-          {!selected.verified && (
-            <div style={{
-              margin: '0 0 24px', padding: '8px 12px',
-              background: 'rgba(201, 162, 74, 0.08)',
-              border: `1px solid ${COLORS.border}`,
-              fontFamily: mono, fontSize: 10, letterSpacing: '1.5px',
-              color: COLORS.textMuted, textTransform: 'uppercase',
-            }}>
-              Unverified — help us confirm
-            </div>
-          )}
-
-          <Section label="Meaning" body={selected.meaning} />
-          <Section label="Why it received the name" body={selected.why_named} />
-          {selected.founded && <Section label="Founded" body={selected.founded} />}
-        </aside>
-      )}
 
       <footer style={{
         position: 'absolute', bottom: 16, left: 20, zIndex: 4,
@@ -312,17 +215,14 @@ function addHeatLayer(map) {
           5, 1.4,
           9, 2.0,
         ],
-        // Radius grows with zoom so blobs look proportional. Wide enough
-        // at world view that high-weight clusters (Scottish Highlands,
-        // Cape Breton) read as one regional glow instead of a row of
-        // tight bullseyes that could be mistaken for pins.
+        // Radius grows with zoom so blobs look proportional, not pin-tiny.
         'heatmap-radius': [
           'interpolate', ['linear'], ['zoom'],
-          0, 60,
-          2, 90,
-          4, 120,
-          7, 180,
-          10, 240,
+          0, 22,
+          2, 45,
+          4, 75,
+          7, 140,
+          10, 230,
         ],
         // Transparent → deep amber → gold. Top end capped well below pure
         // white so peak density reads as "warm gold glow" rather than the
@@ -349,76 +249,3 @@ function addHeatLayer(map) {
   );
 }
 
-// Places layer — native MapLibre GL circle layer. Replaces the previous
-// HTML-marker approach so the dots obey the same zoom-driven visibility
-// rules the basemap's own labels use, instead of being faked with JS
-// opacity tracking on DOM elements.
-//
-// minzoom: 5 means the entire layer is culled below zoom 5 by the renderer
-// — not just opacity-zero, actually not drawn. Paint then fades it in
-// 5.0 → 6.5 and grows it 5.5 → 11 so it feels proportional to the world
-// beneath it.
-function addPlacesLayer(map) {
-  const features = PLACES.map((p) => ({
-    type: 'Feature',
-    properties: { id: p.id, name: p.name },
-    geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
-  }));
-
-  map.addSource('places', {
-    type: 'geojson',
-    data: { type: 'FeatureCollection', features },
-  });
-
-  const layers = map.getStyle().layers || [];
-  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
-
-  map.addLayer(
-    {
-      id: 'places-circles',
-      type: 'circle',
-      source: 'places',
-      minzoom: 5,
-      paint: {
-        'circle-radius': [
-          'interpolate', ['linear'], ['zoom'],
-          5, 0,
-          5.5, 3,
-          8, 5,
-          11, 7,
-        ],
-        'circle-color': COLORS.pin,
-        'circle-opacity': [
-          'interpolate', ['linear'], ['zoom'],
-          5,   0,
-          5.5, 0.85,
-          6.5, 1.0,
-        ],
-        'circle-stroke-color': COLORS.pinRing,
-        'circle-stroke-width': 1,
-        'circle-stroke-opacity': [
-          'interpolate', ['linear'], ['zoom'],
-          5,   0,
-          5.5, 0.5,
-          6.5, 0.7,
-        ],
-      },
-    },
-    firstLabel
-  );
-}
-
-function Section({ label, body }) {
-  return (
-    <div style={{ marginBottom: 22 }}>
-      <p style={{
-        margin: '0 0 6px', fontFamily: mono, fontSize: 10,
-        letterSpacing: '2px', color: COLORS.textMuted, textTransform: 'uppercase',
-      }}>{label}</p>
-      <p style={{
-        margin: 0, fontFamily: serif, fontSize: 15, lineHeight: 1.6,
-        color: COLORS.text,
-      }}>{body}</p>
-    </div>
-  );
-}
