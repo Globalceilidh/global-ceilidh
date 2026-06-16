@@ -373,52 +373,12 @@ function addHeatLayer(map) {
   );
 }
 
-// Build the drop-pin icon as an HTMLCanvas-rendered RGBA bitmap. Doing this
-// in code (rather than shipping a PNG/SVG asset) means the file stays self-
-// contained and the colour palette lives in one place. Rendered at 2× pixel
-// ratio for retina crispness; MapLibre uses pixelRatio:2 on addImage so the
-// CSS-pixel display size is W × H, not 2W × 2H.
-function buildPinIcon(pixelRatio = 2) {
-  const W = 18, H = 24; // CSS pixels — tall teardrop, point at the bottom
-  const canvas = document.createElement('canvas');
-  canvas.width = W * pixelRatio;
-  canvas.height = H * pixelRatio;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(pixelRatio, pixelRatio);
-
-  // Teardrop path: arc across the top, two curves sweeping into the bottom point.
-  const cx = 9, cy = 8, r = 7.2;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, Math.PI, 0, false);          // top semicircle (left → right)
-  ctx.bezierCurveTo(cx + r, cy + r * 1.3, cx + r * 0.45, cy + r * 2.0, cx, H - 1.5);  // right → point
-  ctx.bezierCurveTo(cx - r * 0.45, cy + r * 2.0, cx - r, cy + r * 1.3, cx - r, cy);   // point → left
-  ctx.closePath();
-
-  ctx.fillStyle = COLORS.goldLight;
-  ctx.fill();
-  ctx.strokeStyle = '#1A1A1A';
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
-
-  // Inner dark dot so the pin reads as a pin, not just a teardrop.
-  ctx.beginPath();
-  ctx.arc(cx, cy, 2.4, 0, Math.PI * 2);
-  ctx.fillStyle = '#1A1A1A';
-  ctx.fill();
-
-  return ctx.getImageData(0, 0, canvas.width, canvas.height);
-}
-
-// Places (drop-pin) layer. minzoom: 5 = layer is culled by the renderer
-// below zoom 5, same way the basemap culls town labels at world view —
-// not opacity zero, actually not drawn. Then icon-opacity fades 5→6 and
-// icon-size grows 6→10. Hover uses feature-state so the size bump runs in
-// paint expressions; no JS hover scaling.
+// Minimum-viable pin layer. No icons, no feature-state, no zoom-gating yet —
+// just bright red circles at every place, always visible, large enough to
+// see from across the globe. Once these are confirmed on screen we'll layer
+// the polish back in one piece at a time.
 function addPlacesLayer(map) {
-  if (!map.hasImage('place-pin')) {
-    const pr = (typeof window !== 'undefined' && window.devicePixelRatio) || 2;
-    map.addImage('place-pin', buildPinIcon(pr), { pixelRatio: pr });
-  }
+  console.log('[saoghal] addPlacesLayer: building', PLACES.length, 'features');
 
   const features = PLACES.map((p) => ({
     type: 'Feature',
@@ -426,42 +386,27 @@ function addPlacesLayer(map) {
     geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
   }));
 
-  map.addSource('places', {
-    type: 'geojson',
-    data: { type: 'FeatureCollection', features },
-    // promoteId tells MapLibre to use feature.properties.id as the feature
-    // ID for setFeatureState calls — required for hover state to work.
-    promoteId: 'id',
-  });
-
-  map.addLayer({
-    id: 'places-pins',
-    type: 'symbol',
-    source: 'places',
-    minzoom: 5,
-    layout: {
-      'icon-image': 'place-pin',
-      'icon-anchor': 'bottom',          // the pin tip sits exactly on the lat/lng
-      'icon-allow-overlap': true,        // crowded clusters still all render
-      'icon-pitch-alignment': 'viewport',// pins stay upright when the globe is tilted
-      // Composite zoom × hover: base size by zoom, then 1.3× when hovered.
-      'icon-size': [
-        '*',
-        ['interpolate', ['linear'], ['zoom'],
-          5, 0.55,
-          6, 0.70,
-          10, 1.00,
-        ],
-        ['case', ['boolean', ['feature-state', 'hover'], false], 1.3, 1.0],
-      ],
-    },
-    paint: {
-      'icon-opacity': [
-        'interpolate', ['linear'], ['zoom'],
-        5, 0,
-        6, 1,
-      ],
-    },
-  });
+  try {
+    map.addSource('places', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features },
+      promoteId: 'id',
+    });
+    map.addLayer({
+      id: 'places-pins',
+      type: 'circle',
+      source: 'places',
+      paint: {
+        'circle-radius': 8,
+        'circle-color': '#FF3B30',
+        'circle-stroke-color': '#FFFFFF',
+        'circle-stroke-width': 2,
+      },
+    });
+    console.log('[saoghal] places-pins layer added. Layer ids on map:',
+      map.getStyle().layers.map((l) => l.id));
+  } catch (e) {
+    console.error('[saoghal] FAILED to add places layer:', e);
+  }
 }
 
