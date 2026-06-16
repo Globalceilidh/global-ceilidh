@@ -396,11 +396,22 @@ function addPlacesLayer(map) {
       id: 'places-pins',
       type: 'circle',
       source: 'places',
+      minzoom: 5,
       paint: {
         'circle-radius': 8,
         'circle-color': '#FF3B30',
         'circle-stroke-color': '#FFFFFF',
         'circle-stroke-width': 2,
+        'circle-opacity': [
+          'interpolate', ['linear'], ['zoom'],
+          5, 0,
+          6, 1,
+        ],
+        'circle-stroke-opacity': [
+          'interpolate', ['linear'], ['zoom'],
+          5, 0,
+          6, 1,
+        ],
       },
     });
     console.log('[saoghal] places-pins layer added. Layer ids on map:',
