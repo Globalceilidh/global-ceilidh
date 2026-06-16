@@ -373,6 +373,7 @@ function buildMarkerElement(place, onClick) {
     width: 14px; height: 14px; padding: 0;
     background: transparent; border: 0; cursor: pointer;
     display: block;
+    opacity: 0; pointer-events: none;
     transition: opacity 0.25s ease;
   `;
 
