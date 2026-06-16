@@ -153,6 +153,7 @@ export default function SaoghalPage() {
     map.on('load', () => {
       addHeatLayer(map);
       addPlacesLayer(map);
+      uniformLabelTiming(map);
       setMapReady(true);
     });
 
@@ -371,6 +372,21 @@ function addHeatLayer(map) {
     },
     firstLabel
   );
+}
+
+// Override the basemap's per-layer minzoom so the biggest-city tier doesn't
+// appear before state borders / state labels / our pins. CARTO's default
+// stages cities in waves: r2 (mega-cities) at zoom 4, r4 at 5, r7 at 6, etc.
+// Pushing r2 to 5 means at zoom 4 you see only continents + state boundary
+// lines, and at zoom 5 the world "snaps in" — state labels, major cities,
+// and our pins all arrive together.
+function uniformLabelTiming(map) {
+  const adjust = { 'place_city_dot_r2': 5 };
+  for (const [id, mz] of Object.entries(adjust)) {
+    if (map.getLayer(id)) {
+      map.setLayerZoomRange(id, mz, 24);
+    }
+  }
 }
 
 // Minimum-viable pin layer. No icons, no feature-state, no zoom-gating yet —
