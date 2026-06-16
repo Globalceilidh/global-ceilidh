@@ -19,6 +19,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HEAT_POINTS } from './heat';
+import { PLACES } from './places';
 
 const BASEMAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
@@ -46,13 +47,13 @@ const mono = "'IBM Plex Mono', Menlo, Consolas, monospace";
 export default function SaoghalPage() {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
-  // mapReady kept so we can extend later (e.g. add more layers post-load).
-  // eslint-disable-next-line no-unused-vars
-  const [_mapReady, setMapReady] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
 
   const flyHome = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
+    setSelected(null);
     map.flyTo({
       center: HOME_CENTER, zoom: HOME_ZOOM,
       bearing: 0, pitch: 0,
@@ -60,7 +61,7 @@ export default function SaoghalPage() {
     });
   }, []);
 
-  // Keyboard shortcuts. `R` or `Home` resets the view.
+  // Keyboard: R or Home resets, Escape closes the side panel.
   useEffect(() => {
     function onKey(e) {
       const tag = (e.target?.tagName || '').toLowerCase();
@@ -69,11 +70,63 @@ export default function SaoghalPage() {
       if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
         e.preventDefault();
         flyHome();
+      } else if (e.key === 'Escape') {
+        setSelected(null);
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [flyHome]);
+
+  // Click + hover handlers for the pin layer. Hover uses feature-state so
+  // the size change happens entirely in the paint expressions, no JS scale
+  // tracking on the DOM. Native pattern, MapLibre-canonical.
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    let hoveredId = null;
+
+    const onClick = (e) => {
+      const f = e.features && e.features[0];
+      if (!f) return;
+      const place = PLACES.find((p) => p.id === f.properties.id);
+      if (!place) return;
+      setSelected(place);
+      map.flyTo({
+        center: [place.lng, place.lat],
+        zoom: Math.max(map.getZoom(), 6.5),
+        duration: 900,
+      });
+    };
+    const onMove = (e) => {
+      map.getCanvas().style.cursor = 'pointer';
+      if (!e.features.length) return;
+      const id = e.features[0].id;
+      if (hoveredId === id) return;
+      if (hoveredId !== null) {
+        map.setFeatureState({ source: 'places', id: hoveredId }, { hover: false });
+      }
+      hoveredId = id;
+      map.setFeatureState({ source: 'places', id: hoveredId }, { hover: true });
+    };
+    const onLeave = () => {
+      map.getCanvas().style.cursor = '';
+      if (hoveredId !== null) {
+        map.setFeatureState({ source: 'places', id: hoveredId }, { hover: false });
+        hoveredId = null;
+      }
+    };
+
+    map.on('click', 'places-pins', onClick);
+    map.on('mousemove', 'places-pins', onMove);
+    map.on('mouseleave', 'places-pins', onLeave);
+
+    return () => {
+      map.off('click', 'places-pins', onClick);
+      map.off('mousemove', 'places-pins', onMove);
+      map.off('mouseleave', 'places-pins', onLeave);
+    };
+  }, [mapReady]);
 
   // Initialise the map once on mount.
   useEffect(() => {
@@ -99,6 +152,7 @@ export default function SaoghalPage() {
     });
     map.on('load', () => {
       addHeatLayer(map);
+      addPlacesLayer(map);
       setMapReady(true);
     });
 
@@ -142,7 +196,7 @@ export default function SaoghalPage() {
           color: COLORS.textMuted,
         }}>
           The gold shows where Gàidhlig lives — brightest in the heartlands,
-          fading across the diaspora.
+          fading across the diaspora. Zoom in for the named places.
         </p>
       </header>
 
@@ -168,6 +222,61 @@ export default function SaoghalPage() {
         Reset view
       </button>
 
+      {selected && (
+        <aside style={{
+          position: 'absolute', top: 0, right: 0, bottom: 0, zIndex: 6,
+          width: 'min(420px, 92vw)',
+          background: COLORS.panelBg,
+          borderLeft: `1px solid ${COLORS.border}`,
+          padding: '28px 28px 40px',
+          overflowY: 'auto',
+          boxShadow: '-10px 0 30px rgba(0,0,0,0.5)',
+        }}>
+          <button
+            type="button"
+            onClick={() => setSelected(null)}
+            aria-label="Close"
+            style={{
+              position: 'absolute', top: 14, right: 14, width: 32, height: 32,
+              background: 'transparent', color: COLORS.textMuted,
+              border: `1px solid ${COLORS.border}`,
+              cursor: 'pointer', fontSize: 18, lineHeight: 1, fontFamily: serif,
+            }}
+          >×</button>
+
+          <p style={{
+            margin: '0 0 6px', fontFamily: mono, fontSize: 10,
+            letterSpacing: '2.5px', color: COLORS.accent, textTransform: 'uppercase',
+          }}>{selected.region}</p>
+
+          <h2 style={{
+            margin: '0 0 4px', fontFamily: serif, fontWeight: 700,
+            fontSize: 30, color: COLORS.text, lineHeight: 1.1,
+          }}>{selected.name}</h2>
+
+          <p style={{
+            margin: '0 0 24px', fontFamily: serif, fontStyle: 'italic',
+            fontSize: 22, color: COLORS.goldLight,
+          }}>{selected.gaidhlig}</p>
+
+          {!selected.verified && (
+            <div style={{
+              margin: '0 0 24px', padding: '8px 12px',
+              background: 'rgba(201, 162, 74, 0.08)',
+              border: `1px solid ${COLORS.border}`,
+              fontFamily: mono, fontSize: 10, letterSpacing: '1.5px',
+              color: COLORS.textMuted, textTransform: 'uppercase',
+            }}>
+              Unverified — help us confirm
+            </div>
+          )}
+
+          <Section label="Meaning" body={selected.meaning} />
+          <Section label="Why it received the name" body={selected.why_named} />
+          {selected.founded && <Section label="Founded" body={selected.founded} />}
+        </aside>
+      )}
+
       <footer style={{
         position: 'absolute', bottom: 16, left: 20, zIndex: 4,
         fontFamily: mono, fontSize: 9, letterSpacing: '1.5px',
@@ -176,6 +285,21 @@ export default function SaoghalPage() {
         Tìr nan Gàidheal · Everywhere
       </footer>
     </main>
+  );
+}
+
+function Section({ label, body }) {
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <p style={{
+        margin: '0 0 6px', fontFamily: mono, fontSize: 10,
+        letterSpacing: '2px', color: COLORS.textMuted, textTransform: 'uppercase',
+      }}>{label}</p>
+      <p style={{
+        margin: 0, fontFamily: serif, fontSize: 15, lineHeight: 1.6,
+        color: COLORS.text,
+      }}>{body}</p>
+    </div>
   );
 }
 
@@ -247,5 +371,97 @@ function addHeatLayer(map) {
     },
     firstLabel
   );
+}
+
+// Build the drop-pin icon as an HTMLCanvas-rendered RGBA bitmap. Doing this
+// in code (rather than shipping a PNG/SVG asset) means the file stays self-
+// contained and the colour palette lives in one place. Rendered at 2× pixel
+// ratio for retina crispness; MapLibre uses pixelRatio:2 on addImage so the
+// CSS-pixel display size is W × H, not 2W × 2H.
+function buildPinIcon(pixelRatio = 2) {
+  const W = 18, H = 24; // CSS pixels — tall teardrop, point at the bottom
+  const canvas = document.createElement('canvas');
+  canvas.width = W * pixelRatio;
+  canvas.height = H * pixelRatio;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(pixelRatio, pixelRatio);
+
+  // Teardrop path: arc across the top, two curves sweeping into the bottom point.
+  const cx = 9, cy = 8, r = 7.2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 0, false);          // top semicircle (left → right)
+  ctx.bezierCurveTo(cx + r, cy + r * 1.3, cx + r * 0.45, cy + r * 2.0, cx, H - 1.5);  // right → point
+  ctx.bezierCurveTo(cx - r * 0.45, cy + r * 2.0, cx - r, cy + r * 1.3, cx - r, cy);   // point → left
+  ctx.closePath();
+
+  ctx.fillStyle = COLORS.goldLight;
+  ctx.fill();
+  ctx.strokeStyle = '#1A1A1A';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Inner dark dot so the pin reads as a pin, not just a teardrop.
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2.4, 0, Math.PI * 2);
+  ctx.fillStyle = '#1A1A1A';
+  ctx.fill();
+
+  return ctx.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+// Places (drop-pin) layer. minzoom: 5 = layer is culled by the renderer
+// below zoom 5, same way the basemap culls town labels at world view —
+// not opacity zero, actually not drawn. Then icon-opacity fades 5→6 and
+// icon-size grows 6→10. Hover uses feature-state so the size bump runs in
+// paint expressions; no JS hover scaling.
+function addPlacesLayer(map) {
+  if (!map.hasImage('place-pin')) {
+    const pr = (typeof window !== 'undefined' && window.devicePixelRatio) || 2;
+    map.addImage('place-pin', buildPinIcon(pr), { pixelRatio: pr });
+  }
+
+  const features = PLACES.map((p) => ({
+    type: 'Feature',
+    properties: { id: p.id, name: p.name },
+    geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+  }));
+
+  map.addSource('places', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features },
+    // promoteId tells MapLibre to use feature.properties.id as the feature
+    // ID for setFeatureState calls — required for hover state to work.
+    promoteId: 'id',
+  });
+
+  map.addLayer({
+    id: 'places-pins',
+    type: 'symbol',
+    source: 'places',
+    minzoom: 5,
+    layout: {
+      'icon-image': 'place-pin',
+      'icon-anchor': 'bottom',          // the pin tip sits exactly on the lat/lng
+      'icon-allow-overlap': true,        // crowded clusters still all render
+      'icon-pitch-alignment': 'viewport',// pins stay upright when the globe is tilted
+      // Composite zoom × hover: base size by zoom, then 1.3× when hovered.
+      'icon-size': [
+        '*',
+        ['interpolate', ['linear'], ['zoom'],
+          5, 0.55,
+          6, 0.70,
+          10, 1.00,
+        ],
+        ['case', ['boolean', ['feature-state', 'hover'], false], 1.3, 1.0],
+      ],
+    },
+    paint: {
+      'icon-opacity': [
+        'interpolate', ['linear'], ['zoom'],
+        5, 0,
+        6, 1,
+      ],
+    },
+  });
 }
 
