@@ -327,24 +327,30 @@ function addHeatLayer(map) {
           5, 1.4,
           9, 2.0,
         ],
-        // Radius grows with zoom so blobs look proportional, not pin-tiny.
+        // Radius grows with zoom so blobs look proportional. Wide enough
+        // at world view that high-weight clusters (Scottish Highlands,
+        // Cape Breton) read as one regional glow instead of a row of
+        // tight bullseyes that could be mistaken for pins.
         'heatmap-radius': [
           'interpolate', ['linear'], ['zoom'],
-          0, 18,
-          2, 40,
-          4, 70,
-          7, 140,
+          0, 60,
+          2, 90,
+          4, 120,
+          7, 180,
           10, 240,
         ],
-        // Transparent → deep amber → bright gold.
+        // Transparent → deep amber → gold. Top end capped well below pure
+        // white so peak density reads as "warm gold glow" rather than the
+        // hot bullseye it was before, which could look pin-like at world
+        // zoom.
         'heatmap-color': [
           'interpolate', ['linear'], ['heatmap-density'],
-          0,   'rgba(0,0,0,0)',
-          0.1, 'rgba(107, 78, 31, 0.35)',
-          0.3, 'rgba(170, 122, 50, 0.55)',
-          0.55, 'rgba(201, 162, 74, 0.75)',
-          0.85, 'rgba(242, 215, 138, 0.85)',
-          1.0, 'rgba(255, 235, 175, 0.92)',
+          0,    'rgba(0,0,0,0)',
+          0.1,  'rgba(107, 78, 31, 0.32)',
+          0.3,  'rgba(170, 122, 50, 0.50)',
+          0.55, 'rgba(201, 162, 74, 0.62)',
+          0.85, 'rgba(225, 185, 105, 0.70)',
+          1.0,  'rgba(235, 200, 130, 0.78)',
         ],
         'heatmap-opacity': [
           'interpolate', ['linear'], ['zoom'],
