@@ -12,7 +12,6 @@
 // The page itself is intentionally outside (main) so it renders without
 // the Navigation/Footer chrome — rooms are meant to be near-fullscreen.
 
-import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import RoomClient from './RoomClient';
@@ -36,10 +35,8 @@ async function loadRoom(slug) {
 
 export default async function RoomPage({ params }) {
   const { slug } = await params;
-  // Auth is guaranteed by middleware.js (calls auth.protect() on /rooms/*
-  // which triggers Clerk's handshake before we ever reach this page).
-  // We still call auth() to read userId for the host-match check below.
-  const { userId } = await auth();
+  // Auth is checked client-side in RoomClient.js — see comment in
+  // middleware.js for why we don't gate server-side here.
 
   const room = await loadRoom(slug);
   if (!room) notFound();

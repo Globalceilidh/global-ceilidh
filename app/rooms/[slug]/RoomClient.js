@@ -1,28 +1,22 @@
 'use client';
 
-// Browser-side LiveKit room. Mounted by /rooms/[slug]/page.js once
-// Clerk auth and the room lookup succeed server-side. The flow:
+// Browser-side LiveKit room. Auth is checked HERE (not in middleware /
+// not in the server page) because Clerk's cross-subdomain cookie
+// handshake doesn't work in this Account Portal setup — the server
+// can't see __session on globalceilidh.com, only on accounts.*.
+// Clerk's client SDK reads session state independently of that cookie
+// and gives us getToken() which we send as a Bearer to the API.
 //
-//   1. On mount, POST /api/rooms/[slug]/token to fetch a scoped JWT.
-//      The server re-checks the access tier there — see route.js. The
-//      page-level check is just to fail fast with a nicer message.
-//   2. Hand the token + LiveKit URL to <LiveKitRoom/>. The SDK
-//      negotiates WebRTC against LiveKit Cloud and renders the
-//      <VideoConference/> grid (camera + mic controls, participant
-//      tiles, screen share, leave button — all batteries included
-//      for the MVP; custom chrome comes later).
-//   3. <RoomAudioRenderer/> handles the audio mixing element React
-//      expects when there are multiple participants.
-//
-// Notes:
-//   * @livekit/components-styles ships the prebuilt CSS. We import it
-//     once here — Next picks it up via the global CSS path.
-//   * The room name shown to the user is the friendly name from
-//     gc_rooms; LiveKit's internal room name is always
-//     room.livekit_room_name (kept separate so we can rename the human
-//     label without losing the in-flight session).
+// Flow:
+//   1. If signed out → show sign-in button.
+//   2. If signed in → call useAuth().getToken() to mint a Bearer JWT.
+//   3. POST /api/rooms/[slug]/token with Authorization: Bearer <jwt>.
+//      The server's auth() reads the Bearer and the access-tier check
+//      proceeds as if the cookie were present.
+//   4. Hand the LiveKit JWT to <LiveKitRoom/> and render <VideoConference/>.
 
 import { useEffect, useState } from 'react';
+import { useAuth, SignInButton, SignedIn, SignedOut } from '@clerk/nextjs';
 import {
   LiveKitRoom,
   VideoConference,
@@ -31,15 +25,44 @@ import {
 import '@livekit/components-styles';
 
 export default function RoomClient({ room }) {
+  return (
+    <>
+      <SignedOut>
+        <main style={msgWrap}>
+          <h1 style={msgTitle}>{room.name}</h1>
+          <p style={{ marginTop: 8 }}>Sign in to join the room.</p>
+          <div style={{ marginTop: 16 }}>
+            <SignInButton mode="modal">
+              <button style={signInButton}>Sign in</button>
+            </SignInButton>
+          </div>
+        </main>
+      </SignedOut>
+      <SignedIn>
+        <RoomConnector room={room} />
+      </SignedIn>
+    </>
+  );
+}
+
+
+function RoomConnector({ room }) {
+  const { getToken, isLoaded } = useAuth();
   const [token, setToken] = useState(null);
   const [url, setUrl]     = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!isLoaded) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/rooms/${room.slug}/token`, { method: 'POST' });
+        const bearer = await getToken();
+        if (!bearer) throw new Error('Could not obtain session token from Clerk.');
+        const res = await fetch(`/api/rooms/${room.slug}/token`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${bearer}` },
+        });
         const body = await res.json();
         if (!res.ok) {
           throw new Error(body?.message || `Token request failed (${res.status})`);
@@ -53,7 +76,7 @@ export default function RoomClient({ room }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [room.slug]);
+  }, [room.slug, getToken, isLoaded]);
 
   if (error) {
     return (
@@ -118,4 +141,16 @@ const msgLink = {
   fontSize: 13,
   color: '#6B4E1F',
   textDecoration: 'none',
+};
+
+const signInButton = {
+  background: '#1A3A2A',
+  color: '#F0E6CC',
+  border: 'none',
+  padding: '12px 24px',
+  fontFamily: 'Georgia, serif',
+  fontSize: 15,
+  fontWeight: 700,
+  letterSpacing: 0.5,
+  cursor: 'pointer',
 };

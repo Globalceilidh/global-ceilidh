@@ -33,9 +33,7 @@ function isPublic(pathname) {
   return PUBLIC_PREFIXES.some(p => pathname.startsWith(p));
 }
 
-const ROOM_ROUTES = /^\/rooms($|\/)/;
-
-export default clerkMiddleware(async (auth, request) => {
+export default clerkMiddleware((auth, request) => {
   const { pathname, searchParams } = request.nextUrl;
 
   // If key is in the URL, set the cookie and redirect (stripping the key param)
@@ -51,18 +49,11 @@ export default clerkMiddleware(async (auth, request) => {
     return response;
   }
 
-  // Rooms — pre-launch cookie not required, but Clerk auth IS required.
-  // Calling auth.protect() here (rather than just letting NextResponse.next()
-  // pass through) is what triggers Clerk's handshake mechanism — without
-  // this, a user signed into the auth subdomain (accounts.globalceilidh.com)
-  // never gets their __session cookie copied to .globalceilidh.com and the
-  // page-level auth() returns null in a redirect loop.
-  if (ROOM_ROUTES.test(pathname)) {
-    await auth.protect();
-    return NextResponse.next();
-  }
-
-  // Public routes — always allow
+  // Public routes — always allow. Rooms pages do client-side auth via
+  // Clerk's React SDK (see app/rooms/[slug]/RoomClient.js) because the
+  // server-side __session cookie isn't reliably propagated across
+  // subdomains in this Clerk setup. The token API route reads its own
+  // Bearer token from the client.
   if (isPublic(pathname)) return NextResponse.next();
 
   // Check cookie for access to the real site
