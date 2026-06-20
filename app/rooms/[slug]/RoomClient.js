@@ -16,7 +16,7 @@
 //   4. Hand the LiveKit JWT to <LiveKitRoom/> and render <VideoConference/>.
 
 import { useEffect, useState } from 'react';
-import { useAuth, SignInButton, SignedIn, SignedOut } from '@clerk/nextjs';
+import { useAuth, SignInButton } from '@clerk/nextjs';
 import {
   LiveKitRoom,
   VideoConference,
@@ -25,24 +25,32 @@ import {
 import '@livekit/components-styles';
 
 export default function RoomClient({ room }) {
-  return (
-    <>
-      <SignedOut>
-        <main style={msgWrap}>
-          <h1 style={msgTitle}>{room.name}</h1>
-          <p style={{ marginTop: 8 }}>Sign in to join the room.</p>
-          <div style={{ marginTop: 16 }}>
-            <SignInButton mode="modal">
-              <button style={signInButton}>Sign in</button>
-            </SignInButton>
-          </div>
-        </main>
-      </SignedOut>
-      <SignedIn>
-        <RoomConnector room={room} />
-      </SignedIn>
-    </>
-  );
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <main style={msgWrap}>
+        <h1 style={msgTitle}>{room.name}</h1>
+        <p style={{ marginTop: 8, fontStyle: 'italic', color: '#8B6914' }}>Loading…</p>
+      </main>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <main style={msgWrap}>
+        <h1 style={msgTitle}>{room.name}</h1>
+        <p style={{ marginTop: 8 }}>Sign in to join the room.</p>
+        <div style={{ marginTop: 16 }}>
+          <SignInButton mode="modal">
+            <button style={signInButton}>Sign in</button>
+          </SignInButton>
+        </div>
+      </main>
+    );
+  }
+
+  return <RoomConnector room={room} />;
 }
 
 
