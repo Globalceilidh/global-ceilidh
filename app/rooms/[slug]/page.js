@@ -36,13 +36,10 @@ async function loadRoom(slug) {
 
 export default async function RoomPage({ params }) {
   const { slug } = await params;
-  // Clerk's helper handles the redirect to the hosted sign-in URL
-  // (currently clerk.globalceilidh.com) and returns the user here
-  // after sign-in. No local /sign-in route needed.
-  const { userId, redirectToSignIn } = await auth();
-  if (!userId) {
-    return redirectToSignIn({ returnBackUrl: `/rooms/${slug}` });
-  }
+  // Auth is guaranteed by middleware.js (calls auth.protect() on /rooms/*
+  // which triggers Clerk's handshake before we ever reach this page).
+  // We still call auth() to read userId for the host-match check below.
+  const { userId } = await auth();
 
   const room = await loadRoom(slug);
   if (!room) notFound();

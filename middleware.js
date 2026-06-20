@@ -33,7 +33,9 @@ function isPublic(pathname) {
   return PUBLIC_PREFIXES.some(p => pathname.startsWith(p));
 }
 
-export default clerkMiddleware((auth, request) => {
+const ROOM_ROUTES = /^\/rooms($|\/)/;
+
+export default clerkMiddleware(async (auth, request) => {
   const { pathname, searchParams } = request.nextUrl;
 
   // If key is in the URL, set the cookie and redirect (stripping the key param)
@@ -47,6 +49,17 @@ export default clerkMiddleware((auth, request) => {
       path: "/",
     });
     return response;
+  }
+
+  // Rooms — pre-launch cookie not required, but Clerk auth IS required.
+  // Calling auth.protect() here (rather than just letting NextResponse.next()
+  // pass through) is what triggers Clerk's handshake mechanism — without
+  // this, a user signed into the auth subdomain (accounts.globalceilidh.com)
+  // never gets their __session cookie copied to .globalceilidh.com and the
+  // page-level auth() returns null in a redirect loop.
+  if (ROOM_ROUTES.test(pathname)) {
+    await auth.protect();
+    return NextResponse.next();
   }
 
   // Public routes — always allow
