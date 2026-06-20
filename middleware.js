@@ -17,6 +17,10 @@ const PUBLIC_PREFIXES = [
   "/sruth",
   "/feisean",
   "/coming-soon-features",
+  // Rooms are pre-launch-public so invitees can land on a /rooms/<slug>
+  // URL without needing the editor's cookie key. Clerk auth still gates
+  // entry — see app/rooms/[slug]/page.js and the token route.
+  "/rooms",
   "/api/",
   "/_next/",
   "/favicon",
