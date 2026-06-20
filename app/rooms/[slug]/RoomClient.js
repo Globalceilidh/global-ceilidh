@@ -1,22 +1,17 @@
 'use client';
 
-// Browser-side LiveKit room. Auth is checked HERE (not in middleware /
-// not in the server page) because Clerk's cross-subdomain cookie
-// handshake doesn't work in this Account Portal setup — the server
-// can't see __session on globalceilidh.com, only on accounts.*.
-// Clerk's client SDK reads session state independently of that cookie
-// and gives us getToken() which we send as a Bearer to the API.
+// Browser-side LiveKit room. MVP build: Clerk auth disabled so the
+// vertical slice works while we fix Clerk's cross-subdomain setup in
+// a follow-up. Public rooms (the only kind right now) just need a
+// display name. We'll re-add the Clerk gate in the next PR once the
+// __session cookie reliably reaches globalceilidh.com.
 //
 // Flow:
-//   1. If signed out → show sign-in button.
-//   2. If signed in → call useAuth().getToken() to mint a Bearer JWT.
-//   3. POST /api/rooms/[slug]/token with Authorization: Bearer <jwt>.
-//      The server's auth() reads the Bearer and the access-tier check
-//      proceeds as if the cookie were present.
-//   4. Hand the LiveKit JWT to <LiveKitRoom/> and render <VideoConference/>.
+//   1. Prompt for a display name on first mount.
+//   2. POST /api/rooms/[slug]/token with the name in the body.
+//   3. Hand the returned LiveKit JWT to <LiveKitRoom/>.
 
 import { useEffect, useState } from 'react';
-import { useAuth, SignInButton } from '@clerk/nextjs';
 import {
   LiveKitRoom,
   VideoConference,
@@ -25,51 +20,70 @@ import {
 import '@livekit/components-styles';
 
 export default function RoomClient({ room }) {
-  const { isLoaded, isSignedIn } = useAuth();
+  const [name, setName] = useState('');
+  const [submittedName, setSubmittedName] = useState(null);
 
-  if (!isLoaded) {
+  if (!submittedName) {
     return (
       <main style={msgWrap}>
         <h1 style={msgTitle}>{room.name}</h1>
-        <p style={{ marginTop: 8, fontStyle: 'italic', color: '#8B6914' }}>Loading…</p>
+        <p style={{ marginTop: 8, marginBottom: 16, maxWidth: 420, textAlign: 'center' }}>
+          {room.description}
+        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const trimmed = name.trim();
+            if (trimmed) setSubmittedName(trimmed);
+          }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
+        >
+          <label style={{ fontSize: 13, color: '#6B4E1F', letterSpacing: 1.5, textTransform: 'uppercase' }}>
+            Your name (visible in the room)
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Scott"
+            autoFocus
+            style={{
+              padding: '10px 12px',
+              fontSize: 16,
+              fontFamily: 'Georgia, serif',
+              border: '1px solid #D6CFC0',
+              borderRadius: 4,
+              minWidth: 280,
+            }}
+          />
+          <button
+            type="submit"
+            disabled={!name.trim()}
+            style={{ ...signInButton, opacity: name.trim() ? 1 : 0.5 }}
+          >
+            Join the room
+          </button>
+        </form>
       </main>
     );
   }
 
-  if (!isSignedIn) {
-    return (
-      <main style={msgWrap}>
-        <h1 style={msgTitle}>{room.name}</h1>
-        <p style={{ marginTop: 8 }}>Sign in to join the room.</p>
-        <div style={{ marginTop: 16 }}>
-          <SignInButton mode="modal">
-            <button style={signInButton}>Sign in</button>
-          </SignInButton>
-        </div>
-      </main>
-    );
-  }
-
-  return <RoomConnector room={room} />;
+  return <RoomConnector room={room} displayName={submittedName} />;
 }
 
 
-function RoomConnector({ room }) {
-  const { getToken, isLoaded } = useAuth();
+function RoomConnector({ room, displayName }) {
   const [token, setToken] = useState(null);
   const [url, setUrl]     = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!isLoaded) return;
     let cancelled = false;
     (async () => {
       try {
-        const bearer = await getToken();
-        if (!bearer) throw new Error('Could not obtain session token from Clerk.');
         const res = await fetch(`/api/rooms/${room.slug}/token`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${bearer}` },
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ displayName }),
         });
         const body = await res.json();
         if (!res.ok) {
@@ -84,7 +98,7 @@ function RoomConnector({ room }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [room.slug, getToken, isLoaded]);
+  }, [room.slug, displayName]);
 
   if (error) {
     return (

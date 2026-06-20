@@ -18,10 +18,10 @@
 // participant moderation and analytics tie cleanly back to our user
 // table.
 
-import { auth, currentUser } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 import { AccessToken } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
+import crypto from 'node:crypto';
 
 function jerr(status, code, message) {
   return NextResponse.json({ error: code, message }, { status });
@@ -59,12 +59,8 @@ async function userHasActiveGrant(supabase, roomId, userId) {
   return data.some(g => !g.expires_at || g.expires_at > nowIso);
 }
 
-export async function POST(_request, { params }) {
+export async function POST(request, { params }) {
   const { slug } = await params;
-
-  // 1. Auth gate
-  const { userId } = await auth();
-  if (!userId) return jerr(401, 'unauthorized', 'Sign in to join a room.');
 
   const apiKey    = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;
@@ -72,6 +68,13 @@ export async function POST(_request, { params }) {
     return jerr(500, 'livekit_not_configured',
       'LiveKit credentials missing on the server.');
   }
+
+  // 1. Display name from the client (MVP: prompt, not Clerk profile)
+  let displayName = 'Guest';
+  try {
+    const body = await request.json();
+    if (body?.displayName) displayName = String(body.displayName).slice(0, 60);
+  } catch { /* empty body OK; fall through to Guest */ }
 
   const supabase = db();
 
@@ -87,36 +90,18 @@ export async function POST(_request, { params }) {
     return jerr(410, 'room_closed', `Room "${slug}" is ${room.status}.`);
   }
 
-  // 3. Access tier gate — host is always allowed regardless of tier
-  const isHost = room.host_user_id === userId;
-  if (!isHost) {
-    if (room.access_tier === 'public') {
-      // any signed-in user passes
-    } else if (room.access_tier === 'group_members_free') {
-      const ok = await userHasGroupMembership(supabase, room.group_id, userId);
-      if (!ok) return jerr(403, 'not_a_member',
-        'This room is for group members only.');
-    } else if (room.access_tier === 'paid') {
-      const ok = await userHasActiveGrant(supabase, room.id, userId);
-      if (!ok) return jerr(402, 'payment_required',
-        'This room requires payment. Buy a ticket to join.');
-    } else {
-      return jerr(500, 'unknown_access_tier',
-        `Room access_tier "${room.access_tier}" is not recognised.`);
-    }
+  // 3. Access tier gate — MVP: only 'public' rooms supported until Clerk
+  // is wired back in. The other tiers return 403 instead of unsafely
+  // letting anyone through.
+  if (room.access_tier !== 'public') {
+    return jerr(403, 'auth_required_for_tier',
+      `Access tier "${room.access_tier}" is not yet available — Clerk auth is being re-wired. Try a public room.`);
   }
 
-  // 4. Display name from Clerk (falls back to anonymous if profile sparse)
-  const user = await currentUser();
-  const displayName =
-    [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
-    user?.username ||
-    user?.emailAddresses?.[0]?.emailAddress?.split('@')[0] ||
-    'Guest';
-
-  // 5. Mint the LiveKit token
+  // 4. Mint the LiveKit token with a per-tab random identity
+  const identity = `guest_${crypto.randomBytes(6).toString('hex')}`;
   const at = new AccessToken(apiKey, apiSecret, {
-    identity: userId,
+    identity,
     name: displayName,
     ttl: '2h',
   });
