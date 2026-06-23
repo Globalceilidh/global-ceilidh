@@ -398,6 +398,78 @@ Bha Albannaich Milwaukee gu mòr Gallta is bailteil — bancairean, ceàirdean, 
     why_named: 'A surviving place-name fragment marking a Scottish settler presence in Dane County, Wisconsin.',
     founded: null,
     verified: false,
+    body_en: `Far a bheil thu / Where you are
+You're on the Military Ridge in Dane County, in the farmland straddling Springdale and Verona Townships near the small community of Mount Vernon — country still locally remembered as "Scotch Lane." Unlike most of the places GlobalCeilidh has covered so far in Wisconsin, this isn't a single named town or a place-name riding on borrowed Scottish heritage. It's a genuine rural settlement, founded directly by Highland Scots fleeing the Clearances, that held together as a recognizable community for decades.
+
+Na tha mu do choinneamh / What's around you
+The clearest living trace of the settlement is the historical marker itself, and the small cemetery it stands beside:
+
+- Pioneer Scottish Settlement Historical Marker — at the intersection of County Road G and County Road J, near Mount Vernon, Dane County. Erected in 1996 by the Dane County Historical Society.
+- The Pioneer Scottish Cemetery — adjacent to the marker, the resting place of some of the original Scotch Lane settlers.
+- Dane County Historical Society — the institution responsible for documenting and preserving this site's history.
+
+Wider afield, Wisconsin's main living Scottish cultural calendar runs through Milwaukee, about 75 miles east:
+
+- [Saint Andrew's Society of the City of Milwaukee](https://saintandrewsmilwaukee.org)
+- [Milwaukee Highland Games](https://milwaukeehighlandgames.org)
+- [Wisconsin Highland Games](https://wisconsinscottish.org)
+- [Caledonian Scottish Dancers](https://caledonianscottishdancers.com)
+
+Closer to home, Madison — about 20 miles northeast — is the nearest urban hub, home to the Wisconsin Historical Society, which holds much of the documentary record relevant to this settlement.
+
+Mar a ràinig thu an seo / How you got here
+The Scotch Lane story begins with the Highland Clearances. As the historical marker records, "Highland Clearances" and 300% hikes in farm rent prompted many Scottish farmers to sail to America in the mid-1800s. Displaced Scots settled on both sides of the Military Ridge, in Springdale and Verona Townships, in a community that became known locally — simply, descriptively — as Scotch Lane.
+
+This was not a small or fleeting settlement. By 1870, nearly 100 families had put down roots here. The community built the institutions that mark a settlement intending to stay: a Presbyterian church, a post office, and two schools — the Henderson School and the McPherson/McGregor School. Some of the earliest settlers are buried in what the marker calls the early "Scottish Cemetery," which still exists today beside the historical marker itself.
+
+The community didn't just survive — it produced people of real consequence in Wisconsin public life. Members of Scotch Lane went on to serve as county board chairmen (James McPherson and Frank Stewart), state legislators (Thomas Stewart, John Stewart, and Joseph Henderson), and even as State Senator and Wisconsin Secretary of State (John S. Donald, later remembered as the "Father of Wisconsin's Good Roads Law"). For a rural farming community of Highland refugees, that's a remarkable civic legacy.
+
+As is common in the long arc of American immigrant settlement, the community gradually changed hands. In later years, neighboring Swiss, German, and Norwegian families acquired many of the original Scotch Lane farms, and few Scottish descendants remain on the home soil today. What remains is the marker, the cemetery, and the name that locals still use for the road.
+
+A' Ghàidhlig an seo / Gàidhlig here
+There's no record of Gàidhlig surviving in Scotch Lane as a spoken community language today, though the settlers who founded it were genuinely Highland refugees of the Clearances — the population most associated, historically, with the Gaelic-speaking parts of Scotland. Whether the original Scotch Lane families themselves spoke Gàidhlig on arrival, or had already shifted to English before emigrating, hasn't been confirmed against a primary source, and is worth investigating further given how directly tied this community is to the Clearances themselves. What is certain is that no Gàidhlig-speaking institution — church, school, or newspaper — survived here into the 20th century, and there is no Gàidhlig revival community in the area today. The nearest paths to the language run through these organizations:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — The Gaelic Council of Nova Scotia
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — The Gaelic College, St. Ann's, Nova Scotia
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
+    body_gd: `Far a bheil thu
+Tha thu air Military Ridge ann an Siorrachd Dane, ann an dùthaich thuathanachais a tha a' sìneadh thairis air Sgìrean Springdale agus Verona faisg air a' choimhearsnachd bheag Mount Vernon — dùthaich air a bheil cuimhne ionadail fhathast mar "Scotch Lane." An àite a' mhòrchuid de na h-àiteachan a tha GlobalCeilidh air a chòmhdach gu seo ann an Wisconsin, chan e seo aon bhaile ainmichte no ainm-àite a tha a' marcachd air dìleab Albannach iasaidte. Is e tuineachadh dùthchail fìor a tha seo, air a stèidheachadh gu dìreach le Gàidheil a theich bho na Fuadaichean, a chùm còmhla mar choimhearsnachd ri fhaicinn airson deicheadan.
+
+Na tha mu do choinneamh
+Is e a' chomharra eachdraidheil fhèin, agus an cladh beag ri a thaobh, an comharra as fhollaisiche air an tuineachadh:
+
+- Comharra Eachdraidheil an Tuineachaidh Tùsail Albannach — aig crois Rathad Siorrachd G agus Rathad Siorrachd J, faisg air Mount Vernon, Siorrachd Dane. Air a chur suas ann an 1996 le Comann Eachdraidh Siorrachd Dane.
+- An Cladh Tùsail Albannach — ri taobh na comharra, an t-ionad-tàmh aig cuid de na tuineachaidhean Scotch Lane tùsail.
+- Comann Eachdraidh Siorrachd Dane — an institiud a tha an urra ri eachdraidh an làraich seo a chlàradh agus a ghleidheadh.
+
+Nas fhaide air falbh, tha mìosachan cultarail Albannach as motha Wisconsin a' ruith tro Milwaukee, mu 75 mìle an ear:
+
+- [Comann Naoimh Anndra, Baile Milwaukee](https://saintandrewsmilwaukee.org)
+- [Geamannan Gàidhealach Milwaukee](https://milwaukeehighlandgames.org)
+- [Geamannan Gàidhealach Wisconsin](https://wisconsinscottish.org)
+- [Dannsairean Albannach Caledonian](https://caledonianscottishdancers.com)
+
+Nas fhaisge air an taigh, tha Madison — mu 20 mìle an ear-thuath — an ionad bailteil as fhaisge, dachaigh do Chomann Eachdraidh Wisconsin, a tha a' cumail mòran den chlàr sgrìobhte co-cheangailte ris an tuineachadh seo.
+
+Mar a ràinig thu an seo
+Tha sgeulachd Scotch Lane a' tòiseachadh leis na Fuadaichean Gàidhealach. Mar a tha a' chomharra eachdraidheil a' clàradh, bhrosnaich na "Fuadaichean Gàidhealach" agus àrdachaidhean cìse-fearainn de 300% mòran tuathanaich Albannach gu seòladh a dh'Ameireaga ann am meadhan an 19mh linn. Thuinich Albannaich fuadaichte air an dà thaobh de Military Ridge, ann an Sgìrean Springdale agus Verona, ann an coimhearsnachd a thàinig gu bhith ainmeil gu ionadail — gu sìmplidh, gu tuairisgeulach — mar Scotch Lane.
+
+Cha b' e tuineachadh beag no gun bhuan a bha seo. Ro 1870, bha faisg air 100 teaghlach air freumhan a thogail an seo. Thog a' choimhearsnachd na institiudan a chomharraicheas tuineachadh le rùn fuireach: eaglais Phreasbaiteireach, oifis-puist, agus dà sgoil — Sgoil Henderson agus Sgoil McPherson/McGregor. Tha cuid de na tuineachaidhean as tràithe air an tiodhlacadh anns na tha a' chomharra a' gabhail "Cladh Albannach" tràth, a tha fhathast ann an-diugh ri taobh na comharra eachdraidheil fhèin.
+
+Cha do mhair a' choimhearsnachd a-mhàin — thug i a-mach daoine de bhuaidh fìor ann am beatha phoblach Wisconsin. Chaidh buill Scotch Lane air adhart gu bhith nan cathraichean bòrd siorrachd (James McPherson agus Frank Stewart), neach-reachdaiche stàite (Thomas Stewart, John Stewart, agus Joseph Henderson), agus eadhon mar Sheanadair Stàite agus Rùnaire Stàite Wisconsin (John S. Donald, air a chuimhneachadh às dèidh sin mar "Athair Lagh Rathaidean Math Wisconsin"). Airson coimhearsnachd thuathanachais dùthchail de dh'fhògarraich Gàidhealach, is e dìleab catharra ainmeil a tha sin.
+
+Mar as cumanta ann an cuairt fhada tuineachadh in-imrich Ameireaganach, dh'atharraich a' choimhearsnachd làmhan mean air mhean. Anns na bliadhnaichean an dèidh sin, cheannaich teaghlaichean Eilbheiseach, Gearmailteach, agus Nirribheach faisg air làimh mòran de na tuathanasan Scotch Lane tùsail, agus tha glè bheag de shliochd Albannach a' fuireach air an talamh dachaigh an-diugh. Is e na tha air fhàgail a' chomharra, an cladh, agus an ainm air am bheil muinntir an àite fhathast a' cleachdadh airson an rathaid.
+
+A' Ghàidhlig an seo
+Chan eil clàr ann gun do mhair a' Ghàidhlig ann an Scotch Lane mar chànan coimhearsnachd labhairteach an-diugh, ged a b' e fògarraich Ghàidhealach fìor nan Fuadaichean a bha anns an luchd-tuineachaidh a stèidhich e — an t-sluagh as motha co-cheangailte, gu h-eachdraidheil, ri pàirtean Gàidhlig-bruidhneach na h-Alba. Nach do bhruidhinn na teaghlaichean Scotch Lane tùsail fhèin Gàidhlig nuair a ràinig iad, no an robh iad air gluasad gu Beurla mus do dh'fhalbh iad — chan eil seo dearbhte fhathast an aghaidh prìomh stòir, agus is fhiach a rannsachadh nas fhaide leis cho dìreach 's a tha a' choimhearsnachd seo co-cheangailte ris na Fuadaichean fhèin. Is e na tha cinnteach nach do mhair institiud Gàidhlig-bruidhneach sam bith — eaglais, sgoil, no pàipear-naidheachd — an seo a-steach don 20mh linn, agus chan eil coimhearsnachd ath-bheothachaidh Gàidhlig san sgìre an-diugh. Tha na slighean as fhaisge chun a' chànain a' dol tro na buidhnean seo:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — Comhairle na Gàidhlig Alba Nuadh
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — An Colaisde Gàidhealach, St. Ann's, Alba Nuadh
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
     id: 'glencoe-mn',
