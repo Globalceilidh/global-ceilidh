@@ -352,6 +352,35 @@ function Section({ label, body }) {
 //   - a block whose every line starts with "- " becomes a <ul>
 //   - a single-line short block with no terminal punctuation becomes a section header
 //   - everything else is a paragraph
+// Inline: [label](url) becomes a gold underlined anchor.
+function renderInline(text) {
+  const parts = [];
+  const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIdx = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIdx) parts.push(text.slice(lastIdx, match.index));
+    parts.push(
+      <a
+        key={`a${match.index}`}
+        href={match[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          color: '#F2D78A',
+          textDecoration: 'underline',
+          textUnderlineOffset: 2,
+        }}
+      >
+        {match[1]}
+      </a>
+    );
+    lastIdx = match.index + match[0].length;
+  }
+  if (lastIdx < text.length) parts.push(text.slice(lastIdx));
+  return parts;
+}
+
 function Longform({ text }) {
   const blocks = text.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
   return (
@@ -361,11 +390,11 @@ function Longform({ text }) {
         if (lines.length > 0 && lines.every(l => l.startsWith('- '))) {
           return (
             <ul key={i} style={{
-              margin: '0 0 16px', paddingLeft: 18,
+              margin: '0 0 18px', paddingLeft: 20,
               fontFamily: serif, fontSize: 15, lineHeight: 1.6, color: COLORS.text,
             }}>
               {lines.map((l, j) => (
-                <li key={j} style={{ marginBottom: 6 }}>{l.replace(/^- /, '')}</li>
+                <li key={j} style={{ marginBottom: 6 }}>{renderInline(l.replace(/^- /, ''))}</li>
               ))}
             </ul>
           );
@@ -373,9 +402,8 @@ function Longform({ text }) {
         if (lines.length === 1 && lines[0].length < 60 && !/[.!?]$/.test(lines[0])) {
           return (
             <h3 key={i} style={{
-              margin: '24px 0 8px', fontFamily: mono, fontSize: 10,
-              letterSpacing: '2px', color: COLORS.accent,
-              textTransform: 'uppercase', fontWeight: 600,
+              margin: '30px 0 10px', fontFamily: serif, fontSize: 19,
+              fontWeight: 700, color: '#F2D78A', lineHeight: 1.25,
             }}>{lines[0]}</h3>
           );
         }
@@ -383,7 +411,7 @@ function Longform({ text }) {
           <p key={i} style={{
             margin: '0 0 16px', fontFamily: serif, fontSize: 15,
             lineHeight: 1.6, color: COLORS.text,
-          }}>{lines.join(' ')}</p>
+          }}>{renderInline(lines.join(' '))}</p>
         );
       })}
     </div>

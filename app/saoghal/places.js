@@ -151,7 +151,7 @@ The nearest living Scottish cultural calendar runs through the Milwaukee–Wauke
 
 For research into the families themselves, the Wisconsin Historical Society (headquartered in Madison, about 40 miles northeast) holds the state's principal genealogical archive, and Lafayette County's own local history societies keep records specific to the original township plats.
 
-For learning the language: there is currently no active Scottish Gàidhlig program at either UW–Madison or UW–Milwaukee. UW–Madison runs community classes in Irish Gaelic, and UW–Milwaukee's Celtic Studies Center is also Irish-focused. For Scottish Gàidhlig itself, the realistic starting points from Argyle are online: GlobalCeilidh, BBC Alba, Duolingo, and Bòrd na Gàidhlig's learner resources.
+For learning the language: there is currently no active Scottish Gàidhlig program at either UW–Madison or UW–Milwaukee. UW–Madison runs community classes in Irish Gaelic, and UW–Milwaukee's Celtic Studies Center is also Irish-focused. For Scottish Gàidhlig itself, the realistic starting points from Argyle are online: [GlobalCeilidh.com](https://globalceilidh.com), [Colaisde na Gàidhlig](https://gaeliccollege.edu) (the Gaelic College in St. Ann's, Cape Breton), and [ACGA](https://acgamerica.org) (An Comunn Gàidhlig Ameireaganach — the North American Gaelic society).
 
 Mar a ràinig thu an seo / How you got here
 Argyle exists because of one man's gratitude. Allan Wright, a Scottish immigrant, settled at a ford on the Pecatonica River in the 1840s and was appointed the settlement's first postmaster in 1844. He named the new post office Argyle after the Duke of Argyll, who had financially sponsored his passage from Scotland.
@@ -173,7 +173,7 @@ Tha am mìosachan cultarail Albannach as fhaisge a' ruith tro sgìre Milwaukee-W
 
 Airson rannsachadh teaghlaich, tha Comann Eachdraidh Wisconsin ann am Madison na phrìomh tasglann sloinntearachd na stàite.
 
-Airson an cànan ionnsachadh: chan eil prògram beò Gàidhlig na h-Alba an-dràsta aig Oilthigh Wisconsin-Madison no Milwaukee — chan eil ann ach Gaeilge na h-Èireann. Airson Gàidhlig na h-Alba fhèin, 's e na puingean tòiseachaidh as practaigiche bho Argyle: GlobalCeilidh, BBC Alba, Duolingo, agus goireasan ionnsachaidh Bòrd na Gàidhlig.
+Airson an cànan ionnsachadh: chan eil prògram beò Gàidhlig na h-Alba an-dràsta aig Oilthigh Wisconsin-Madison no Milwaukee — chan eil ann ach Gaeilge na h-Èireann. Airson Gàidhlig na h-Alba fhèin, 's e na puingean tòiseachaidh as practaigiche bho Argyle: [GlobalCeilidh.com](https://globalceilidh.com), [Colaisde na Gàidhlig](https://gaeliccollege.edu) (an Colaisde Ghàidhlig ann an Cidhe Anna, Eilean Cheap Breatainn), agus [ACGA](https://acgamerica.org) (An Comunn Gàidhlig Ameireaganach).
 
 Mar a ràinig thu an seo
 Tha Argyle ann air sgàth taingealachd aon duine. Shocraich Allan Wright, eilthireach Albannach, aig àth air Abhainn Pecatonica anns na 1840an, agus chaidh a chur an dreuchd mar phost-mhaighstir an toiseach ann an 1844. Thug e Argyle mar ainm air an oifis-puist ùr, an dèidh Diùc Earra-Ghàidheal, a phàigh airson a thurais bhon Alba.
