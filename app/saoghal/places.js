@@ -196,6 +196,58 @@ Cha do ghabh a' Ghàidhlig freumh ann an Argyle. An àite na coimhearsnachdan G�
     why_named: 'A settlers\' tribute to the Scottish homeland — one of several Caledonias scattered across the diaspora.',
     founded: '1839',
     verified: false,
+    body_en: `Far a bheil thu / Where you are
+You're east of Portage, in the rolling bluff country of Columbia County, where the Wisconsin River bends and turns north. This Caledonia is genuinely what its name promises: the town was named by Scottish settlers after the Latin name for Scotland, and the landscape still carries that imprint — locals call the local hills the Caledonia Bluffs, and the town today is known for the same kind of scenic drives and quiet farmland its first Scottish settlers worked.
+
+Na tha mu do choinneamh / What's around you
+The nearest living Scottish cultural calendar runs through the Milwaukee area, about 90 miles southeast:
+
+- Wisconsin Highland Games — Labor Day weekend at the Waukesha County Expo.
+- Milwaukee Highland Games — each June at Croatian Park in Franklin.
+- Saint Andrew's Society of the City of Milwaukee — the region's main Scottish civil-society group, the usual venue for Burns Night and ceilidh events.
+- The Center for Celtic Studies, UW–Milwaukee — though, as elsewhere in the state, its language programming runs through Irish rather than Scottish Gàidhlig.
+
+Closer to home, the Caledonia Historical Society of Columbia County maintains local records, and Durward's Glen, a scenic retreat and conference center within the town itself, is the area's most recognizable landmark — worth a visit even setting the history aside.
+
+Mar a ràinig thu an seo / How you got here
+This Caledonia's founding story belongs to a real Scottish emigrant. John Pate was born in 1802 at Brown Castle, in the parish of Culbride, Lanarkshire, Scotland. He married Agnes Stewart in 1837, and in the spring of 1842 the couple sailed from Glasgow aboard the ship Perthshire, a seven-week crossing to America. From New York the journey continued by steamboat, canal, and ox-team, ending on unsurveyed land in what was then called Dekorra, in the Wisconsin Territory — land that would become Section 30, Town of Caledonia, Columbia County.
+
+Pate wasn't alone. The 1880 county history records other Scottish families settling alongside him — names like Douglas, with at least one family tracing back to Crosshouse and Ochiltree in Ayrshire. When the township organized out of Dekorra, Pate became its first Town Chairman, later serving as Supervisor, Assessor, and Town Clerk. He farmed 200 acres until his death in 1879, remained a lifelong member of the Presbyterian Church, and — fittingly — composed music, including a piece called "Caledonia" that, by the time of his death, was still sung in the local Presbyterian congregation he'd helped build.
+
+A' Ghàidhlig an seo / Gàidhlig here
+There's no record of Gàidhlig surviving here as a spoken community language. The settlers who founded this Caledonia were Lowland Scots — from Lanarkshire and Ayrshire — regions where Gàidhlig had already receded centuries before emigration, replaced by Scots and English. So the silence of the language in Wisconsin's Caledonia isn't really a story of assimilation erasing Gàidhlig; it's that the language wasn't carried across the Atlantic to begin with by this particular wave of settlers. The Scottish identity that took root here — and it clearly did, deeply, judging by Pate's own life — expressed itself instead through Presbyterian church life, music, and the place-name itself. There is no Gàidhlig revival community in Caledonia today. The nearest paths to the language run through these organizations:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — The Gaelic Council of Nova Scotia
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — The Gaelic College, St. Ann's, Nova Scotia
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
+    body_gd: `Far a bheil thu
+Tha thu an ear air Portage, ann an dùthaich chnocach Siorrachd Columbia, far a bheil Abhainn Wisconsin a' lùbadh agus a' tionndadh gu tuath. Tha an Caledonia seo dha-rìribh mar a tha an ainm a' gealltainn: chaidh am baile ainmeachadh le luchd-tuineachaidh Albannach an dèidh an seann ainm Laideann airson Alba. Tha am fearann fhathast a' giùlan an dìleab sin — canar Caledonia Bluffs ris na cnuic ionadail, agus tha am baile an-diugh ainmeil airson na h-aon seòrsa de shealladh tlachdmhor agus dùthaich thuathanachais sàmhach air an robh an luchd-tuineachaidh Albannach a' saothrachadh an toiseach.
+
+Na tha mu do choinneamh
+Tha am mìosachan cultarail Albannach as fhaisge a' ruith tro sgìre Milwaukee, mu 90 mìle an ear-dheas:
+
+- Geamannan Gàidhealach Wisconsin — deireadh-seachdain Latha an Luchd-obrach, aig Ionad-falbhain Siorrachd Waukesha.
+- Geamannan Gàidhealach Milwaukee — anns an Ògmhios gach bliadhna, aig Croatian Park, Franklin.
+- Comann Naoimh Anndra, Milwaukee — am prìomh chomann sìobhalta Albannach san sgìre.
+- Ionad Eòlas Ceilteach, Oilthigh Wisconsin-Milwaukee — ged a tha am prògram cànain ann Èireannach seach Gàidhlig na h-Alba, mar a tha air feadh na stàite.
+
+Nas fhaisge air an taigh, tha Comann Eachdraidh Caledonia, Siorrachd Columbia a' cumail clàran ionadail, agus tha Durward's Glen, ionad-fasgaidh agus co-labhairt a tha taobh a-staigh a' bhaile fhèin, mar an comharra as ainmeile san sgìre.
+
+Mar a ràinig thu an seo
+Buinidh sgeulachd stèidheachaidh a' Chaledonia seo do dh'eilthireach Albannach fìor. Rugadh John Pate ann an 1802 aig Brown Castle, ann am paraiste Culbride, Siorrachd Lanark, Alba. Phòs e Agnes Stewart ann an 1837, agus as t-earrach 1842 sheòl an càraid bho Ghlaschu air bòrd na soithich Perthshire, turas seachd seachdainean a-null thairis a dh'Ameireaga. Bho New York chaidh an turas air adhart le bàta-smùid, canàl, agus damh-chairt, a' tighinn gu ceann air fearann gun tomhas anns an Diùc-thabhachd Wisconsin, ris an canar Dekorra aig an àm — fearann a thàinig gu bhith na Earrann 30, Baile Caledonia, Siorrachd Columbia.
+
+Cha robh Pate na aonar. Tha eachdraidh siorrachd 1880 a' clàradh teaghlaichean Albannach eile a thuinich ri thaobh — ainmean mar Douglas, le co-cheangal aig teaghlach dhiubh ri Crosshouse agus Ochiltree ann an Siorrachd Ayr. Nuair a chaidh am baile a chur air dòigh bho Dekorra, b' e Pate an Cathraiche Baile an toiseach, agus an dèidh sin Maoir-roinne, Measadair, agus Clàrc Baile. Bha e na thuathanach air 200 acair gus a bhàsachadh ann an 1879, bha e na bhall den Eaglais Phreasbaiteireach fad a bheatha, agus — gu freagarrach — rinn e ceòl, a' gabhail a-steach pìos air an robh "Caledonia," a bha, ron àm a bhàis, fhathast air a sheinn anns an Eaglais Phreasbaiteireach ionadail a chuidich e a thogail.
+
+A' Ghàidhlig an seo
+Chan eil clàr ann gun do mhair a' Ghàidhlig an seo mar chànan coimhearsnachd labhairteach. B' e Gallta Albannach a bha anns an luchd-tuineachaidh a stèidhich an Caledonia seo — bho Siorrachd Lanark agus Siorrachd Ayr, sgìrean far an robh a' Ghàidhlig air a dhol air ais o chionn linntean ron eilthireachd, agus Beurla na h-Alba (Scots) agus Sasannach air tighinn na h-àite. Mar sin, chan eil sàmhchair a' chànain ann an Caledonia, Wisconsin, dha-rìribh na sgeulachd de cho-mheasgachadh a' dubhadh às na Gàidhlig; tha e dha-rìribh nach deach an cànan a ghiùlan thairis air a' Chuan Siar leis an tonn shònraichte seo de luchd-tuineachaidh. Nochd an dearbh-aithne Albannach a ghabh freumh an seo e fhèin tro bheatha-eaglais Phreasbaiteireach, ceòl, agus ainm an àite fhèin. Chan eil coimhearsnachd ath-bheothachaidh Gàidhlig ann an Caledonia an-diugh. Tha na slighean as fhaisge chun a' chànain a' dol tro na buidhnean seo:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — Comhairle na Gàidhlig Alba Nuadh
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — An Colaisde Gàidhealach, St. Ann's, Alba Nuadh
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
     id: 'glencoe-mn',
