@@ -550,6 +550,18 @@ Thathar a' cur cunntas air an luchd-tuineachaidh fhèin mar a' tighinn à Siorra
 - [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
+    id: 'glasgow-cemetery-wi',
+    name: 'Glasgow Cemetery',
+    region: 'Wisconsin, USA',
+    lng: -91.2009,
+    lat: 44.0959,
+    gaidhlig: 'Cladh Ghlaschu',
+    meaning: '"Cladh Ghlaschu" — "cemetery of Glasgow."',
+    why_named: 'Burial ground of the Scottish settlement at Glasgow, Trempealeau County (12410 WI-54 Trunk, Ettrick, WI) — sister community to the Decorah Prairie Scots, founded by the same wave of Scottish miners-turned-farmers.',
+    founded: null,
+    verified: false,
+  },
+  {
     id: 'glencoe-mn',
     name: 'Glencoe',
     region: 'Minnesota, USA',
