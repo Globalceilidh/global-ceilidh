@@ -330,6 +330,62 @@ Chan eil clàr ann gun do mhair a' Ghàidhlig an seo mar chànan coimhearsnachd 
     why_named: 'Wisconsin\'s largest city and the regional centre for Scottish-American cultural life — home to the Wisconsin and Milwaukee Highland Games, the Saint Andrew\'s Society of the City of Milwaukee, and UW-Milwaukee\'s Center for Celtic Studies.',
     founded: '1846',
     verified: false,
+    body_en: `Far a bheil thu / Where you are
+You're in Milwaukee, on the shore of Lake Michigan — the largest city in Wisconsin, and the place where the state's Scottish story actually has its deepest roots, even though it's easy to overlook in favor of the smaller, more visibly "Scottish-named" towns inland. Scots were never a large share of Milwaukee's population — fewer than 2,000 people in the metropolitan area claimed Scottish birth as late as 1880 — but they built something disproportionate to their numbers: banks, churches, sporting clubs, and a charitable society still running today, more than 165 years on.
+
+Na tha mu do choinneamh / What's around you
+Milwaukee carries the most active, continuously-running Scottish institutional life anywhere in the state:
+
+- [Saint Andrew's Society of the City of Milwaukee](https://saintandrewsmilwaukee.org) — founded in 1859, the city's oldest Scottish institution, hosting an annual Burns Night banquet and ongoing charitable work.
+- [Caledonian Scottish Dancers](https://caledonianscottishdancers.com) — founded in 1966, performing Highland and National dance at festivals throughout the Midwest and on tours of Scotland itself.
+- [Milwaukee Scottish Country Dancers](https://milwaukeescd.org) — an active social dancing group affiliated with the Royal Scottish Country Dance Society, with weekly classes open to all.
+- [Milwaukee Highland Games](https://milwaukeehighlandgames.org) — held each June at Croatian Park in Franklin.
+- The Wisconsin Club / Alexander Mitchell Mansion — 900 W Wisconsin Avenue, the standing physical monument to Milwaukee's most prominent Scottish immigrant, and still the regular venue for Saint Andrew's Society events today.
+- The Center for Celtic Studies, UW–Milwaukee — though, as elsewhere in the state, its language instruction runs through Irish rather than Scottish Gàidhlig.
+
+Mar a ràinig thu an seo / How you got here
+Milwaukee's first permanent Scottish settler arrived in 1835: James Murray, a painter, glazier, and real estate broker who helped found the city's First Presbyterian Church. Four years later, in 1839, a young Alexander Mitchell arrived from Scotland and went on to become one of the most consequential figures in the city's history — eventually running the Chicago, Milwaukee & St. Paul Railway, managing the Wisconsin Marine and Fire Insurance Company bank, serving two terms in Congress, and amassing a fortune estimated at $20 million. The mansion he built still stands today as the Wisconsin Club.
+
+The community organized early and stayed organized. In the early 1840s, Scots took up curling on the frozen Milwaukee River, founding the Milwaukee Curling Club in 1845 with Murray as its first president. In March 1847, Mitchell rallied the local Scottish community to raise relief funds for famine victims back in Scotland — a campaign that, twelve years later, grew into the formal founding of the Saint Andrew's Society of the City of Milwaukee on January 25, 1859, dedicated to relief and mutual support for Scots and their descendants. That society is still active today.
+
+By the early 20th century, Scottish ancestry in metropolitan Milwaukee was a modest but stable presence — fewer than 2,500 people claiming Scottish birth by 1930 — yet by the most recent census estimates, roughly 15,000 people in the metro area report Scottish ancestry, a legacy far larger than the original immigrant numbers alone would suggest.
+
+A' Ghàidhlig an seo / Gàidhlig here
+Milwaukee's Scots were overwhelmingly Lowland and urban — bankers, tradesmen, and Presbyterians rather than Highland Gaelic-speaking communities of the kind that settled, say, Cape Breton or parts of North Carolina. There's no record of Gàidhlig ever taking root here as a living, spoken community language. The cultural continuity that did take hold — curling, Burns Night, Highland dance, civic philanthropy — runs through institutions and performance traditions rather than language. There is no Gàidhlig revival community in Milwaukee today. The nearest paths to the language run through these organizations:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — The Gaelic Council of Nova Scotia
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — The Gaelic College, St. Ann's, Nova Scotia
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
+    body_gd: `Far a bheil thu
+Tha thu ann am Milwaukee, air cladach Lake Michigan — am baile as motha ann an Wisconsin, agus an àite far a bheil na freumhaichean as motha de sgeulachd Albannach na stàite, ged a tha e furasta a leigeil seachad airson na bailtean nas lugha, nas fhollaisiche "Albannach" am broinn na stàite. Cha robh na h-Albannaich a-riamh nam pàirt mhòr de shluagh Milwaukee — nas lugha na 2,000 neach anns a' mheatropoliotan a thuirt gun deach am breith ann an Alba mu 1880 — ach thog iad rudeigin nach robh a' freagairt ris an àireamh sin: bancaichean, eaglaisean, clubaichean spòrs, agus comann carthannas a tha fhathast a' ruith an-diugh, còrr is 165 bliadhna an dèidh sin.
+
+Na tha mu do choinneamh
+Tha am beatha institiudach Albannach as gnìomhaiche agus as buan ann an Wisconsin gu lèir ann am Milwaukee:
+
+- [Comann Naoimh Anndra, Baile Milwaukee](https://saintandrewsmilwaukee.org) — air a stèidheachadh ann an 1859, an institiud Albannach as sine sa bhaile, a' cumail cuirm Burns bliadhnail agus obair charthannais leantainneach.
+- [Dannsairean Albannach Caledonian](https://caledonianscottishdancers.com) — air a stèidheachadh ann an 1966, a' cluich dannsa Gàidhealach is Nàiseanta aig fèilltean air feadh Meadhan-Iar nan Stàitean agus air chuairtean ann an Alba fhèin.
+- [Dannsairean Dùthchail Albannach Milwaukee](https://milwaukeescd.org) — buidheann dannsa sòisealta gnìomhach co-cheangailte ri Comann Rìoghail Dannsa Dùthchail na h-Alba, le clasaichean seachdaineil fosgailte do gach neach.
+- [Geamannan Gàidhealach Milwaukee](https://milwaukeehighlandgames.org) — air an cumail anns an Ògmhios gach bliadhna aig Croatian Park, Franklin.
+- An Wisconsin Club / Taigh-mòr Alexander Mitchell — 900 W Wisconsin Avenue, an carragh-cuimhne corporra a tha na sheasamh airson eilthireach Albannach as ainmeile Milwaukee, agus fhathast na àite cumanta airson tachartasan Comann Naoimh Anndra an-diugh.
+- Ionad Eòlas Ceilteach, Oilthigh Wisconsin-Milwaukee — ged a tha am prògram cànain ann Èireannach seach Gàidhlig na h-Alba, mar a tha air feadh na stàite.
+
+Mar a ràinig thu an seo
+Ràinig a' chiad neach-tuineachaidh Albannach maireannach Milwaukee ann an 1835: James Murray, peantair, glainneadair, agus broker seilbh-fhearainn a chuidich le stèidheachadh Ciad Eaglais Phreasbaiteireach a' bhaile. Ceithir bliadhna às a dhèidh, ann an 1839, ràinig Alexander Mitchell òg à Alba, agus thàinig e gu bhith mar aon de na duine as buaidh-mhoire ann an eachdraidh a' bhaile — fa-dheòidh a' ruith Companaidh Rèile Chicago, Milwaukee & St. Paul, a' stiùireadh banca Companaidh Àrachais Mara is Teine Wisconsin, a' frithealadh dà theirm sa Chòmhdhail, agus a' cruinneachadh fortan air a mheas aig $20 millean. Tha an taigh-mòr a thog e fhathast na sheasamh an-diugh mar an Wisconsin Club.
+
+Chuir a' choimhearsnachd dòigh-obrachaidh air dòigh tràth, agus dh'fhan iad eagraichte. Anns na 1840an tràth, ghabh Albannaich ri curladh air Abhainn Milwaukee reòta, a' stèidheachadh Club Curladh Milwaukee ann an 1845 le Murray mar a' chiad cheann-suidhe. Sa Mhàrt 1847, chuir Mitchell a' choimhearsnachd Albannach ionadail air dòigh gus airgead-faochaidh a thogail airson luchd-fulang gort ann an Alba — iomairt a dh'fhàs, dusan bliadhna às a dhèidh, gu bhith na stèidheachadh foirmeil Comann Naoimh Anndra, Baile Milwaukee, air 25 Faoilleach 1859, coisrigte do dh'fhaochadh agus taic dha chèile do dh'Albannaich agus an sliochd. Tha an comann sin fhathast gnìomhach an-diugh.
+
+Ron 20mh linn tràth, bha sloinneadh Albannach ann am metropoliotan Milwaukee na làthaireachd chiùin ach seasmhach — nas lugha na 2,500 neach a' tagradh breith Albannach ro 1930 — ach a-rèir an cunntais-sluaigh as ùire, tha mu 15,000 neach anns a' mheatropoliotan ag aithris sloinneadh Albannach, dìleab fada nas motha na na h-àireamhan eilthireach tùsail leotha fhèin a chomharraicheas.
+
+A' Ghàidhlig an seo
+Bha Albannaich Milwaukee gu mòr Gallta is bailteil — bancairean, ceàirdean, agus Preasbaiteirich seach coimhearsnachdan Gàidhealach a bha a' bruidhinn Gàidhlig den t-seòrsa a thuinich, can, ann an Eilean Cheap Breatainn no ann am pàirtean de North Carolina. Chan eil clàr ann gun do ghabh a' Ghàidhlig freumh an seo a-riamh mar chànan beò, labhairteach coimhearsnachd. Tha an leantainneachd chultarach a thug seasamh — curladh, Oidhche Burns, dannsa Gàidhealach, gràdh-cathrach catharra — a' dol tro institiudan agus traidiseanan cluiche seach cànan. Chan eil coimhearsnachd ath-bheothachaidh Gàidhlig ann am Milwaukee an-diugh. Tha na slighean as fhaisge chun a' chànain a' dol tro na buidhnean seo:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — Comhairle na Gàidhlig Alba Nuadh
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — An Colaisde Gàidhealach, St. Ann's, Alba Nuadh
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
     id: 'glencoe-mn',
