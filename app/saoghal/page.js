@@ -383,6 +383,15 @@ function renderInline(text) {
 
 function Longform({ text }) {
   const blocks = text.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+  const isHeaderLine = (line) => line.length < 80 && !/[.!?:]$/.test(line);
+  const headerStyle = {
+    margin: '30px 0 10px', fontFamily: serif, fontSize: 19,
+    fontWeight: 700, color: '#F2D78A', lineHeight: 1.25,
+  };
+  const paragraphStyle = {
+    margin: '0 0 16px', fontFamily: serif, fontSize: 15,
+    lineHeight: 1.6, color: COLORS.text,
+  };
   return (
     <div>
       {blocks.map((block, i) => {
@@ -399,19 +408,20 @@ function Longform({ text }) {
             </ul>
           );
         }
-        if (lines.length === 1 && lines[0].length < 60 && !/[.!?]$/.test(lines[0])) {
+        // First line of a multi-line block can be a header followed by body —
+        // the source author separates them with a single newline, not a blank.
+        if (lines.length > 0 && isHeaderLine(lines[0])) {
+          const header = <h3 style={headerStyle}>{lines[0]}</h3>;
+          if (lines.length === 1) return <div key={i}>{header}</div>;
           return (
-            <h3 key={i} style={{
-              margin: '30px 0 10px', fontFamily: serif, fontSize: 19,
-              fontWeight: 700, color: '#F2D78A', lineHeight: 1.25,
-            }}>{lines[0]}</h3>
+            <div key={i}>
+              {header}
+              <p style={paragraphStyle}>{renderInline(lines.slice(1).join(' '))}</p>
+            </div>
           );
         }
         return (
-          <p key={i} style={{
-            margin: '0 0 16px', fontFamily: serif, fontSize: 15,
-            lineHeight: 1.6, color: COLORS.text,
-          }}>{renderInline(lines.join(' '))}</p>
+          <p key={i} style={paragraphStyle}>{renderInline(lines.join(' '))}</p>
         );
       })}
     </div>
