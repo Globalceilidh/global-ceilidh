@@ -472,6 +472,18 @@ Chan eil clàr ann gun do mhair a' Ghàidhlig ann an Scotch Lane mar chànan coi
 - [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
+    id: 'decorah-prairie-wi',
+    name: 'Decorah Prairie',
+    region: 'Wisconsin, USA',
+    lng: -91.2854,
+    lat: 44.0816,
+    gaidhlig: 'Rèidhlean Decorah',
+    meaning: '"Decorah" honours the Ho-Chunk (Winnebago) leader Wau-kon-haw-kaw, known as Decorah; the "Prairie" describes the open land. There is no traditional Gàidhlig name for this place.',
+    why_named: 'Open-prairie settlement area in Trempealeau County, western Wisconsin, near the Mississippi River.',
+    founded: null,
+    verified: false,
+  },
+  {
     id: 'glencoe-mn',
     name: 'Glencoe',
     region: 'Minnesota, USA',
