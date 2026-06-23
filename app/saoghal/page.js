@@ -554,8 +554,36 @@ function addPlacesLayer(map) {
         ],
       },
     });
-    console.log('[saoghal] places-pins layer added. Layer ids on map:',
-      map.getStyle().layers.map((l) => l.id));
+    // Label layer — pin names appear beneath the dot, fading in at zoom 6
+    // so they don't clutter the world view. Dark halo keeps them legible
+    // over the heat-glow.
+    map.addLayer({
+      id: 'places-labels',
+      type: 'symbol',
+      source: 'places',
+      minzoom: 6,
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+        'text-size': 12,
+        'text-offset': [0, 1.1],
+        'text-anchor': 'top',
+        'text-allow-overlap': false,
+        'text-padding': 2,
+      },
+      paint: {
+        'text-color': '#F2ECDC',
+        'text-halo-color': '#0A0807',
+        'text-halo-width': 1.6,
+        'text-halo-blur': 0.5,
+        'text-opacity': [
+          'interpolate', ['linear'], ['zoom'],
+          6, 0,
+          7, 1,
+        ],
+      },
+    });
+    console.log('[saoghal] places-pins + places-labels layers added.');
   } catch (e) {
     console.error('[saoghal] FAILED to add places layer:', e);
   }
