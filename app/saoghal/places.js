@@ -320,6 +320,18 @@ Chan eil clàr ann gun do mhair a' Ghàidhlig an seo mar chànan coimhearsnachd 
 - [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
+    id: 'milwaukee-wi',
+    name: 'Milwaukee',
+    region: 'Wisconsin, USA',
+    lng: -87.9240,
+    lat: 43.0397,
+    gaidhlig: 'Milwaukee',
+    meaning: '"Milwaukee" is from an Algonquian (Potawatomi / Ojibwe) root meaning "good / pleasant land" or "gathering place by the water"; there is no traditional Gàidhlig name for the city.',
+    why_named: 'Wisconsin\'s largest city and the regional centre for Scottish-American cultural life — home to the Wisconsin and Milwaukee Highland Games, the Saint Andrew\'s Society of the City of Milwaukee, and UW-Milwaukee\'s Center for Celtic Studies.',
+    founded: '1846',
+    verified: false,
+  },
+  {
     id: 'glencoe-mn',
     name: 'Glencoe',
     region: 'Minnesota, USA',
