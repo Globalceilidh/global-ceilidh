@@ -260,6 +260,64 @@ Chan eil clàr ann gun do mhair a' Ghàidhlig an seo mar chànan coimhearsnachd 
     why_named: 'Historic Scottish settlement in Rock County, just south of Janesville; the Rock Prairie community was settled by Scottish immigrants in the 1840s and anchored by a mid-19th-century Presbyterian congregation.',
     founded: null,
     verified: false,
+    body_en: `Far a bheil thu / Where you are
+You're on the open farmland east of Janesville, in Rock County's Rock Prairie — flat, fertile country that drew settlers for exactly the reason its name suggests. This is one of the genuinely confirmed Scottish settlements in Wisconsin: a 1908 county history records the area as home to farmers from New England and "some industrious Scotch, English and German immigrants," and the Wisconsin Historical Society itself holds a record describing Rock Prairie directly as the "home of Scotch." The Scottish presence here wasn't an isolated household — it was substantial enough to leave behind a church that's still standing and still active nearly two centuries later.
+
+Na tha mu do choinneamh / What's around you
+The clearest living trace of the Scottish settlement is the church itself:
+
+- Rock Prairie Presbyterian Church — 8605 E. County Hwy A, Janesville, WI 53545. A working congregation today, this church is the direct institutional descendant of the original Scottish settlers' place of worship.
+- Rock County Genealogical Society — holds family records for the area's Scottish settler families, including documented lines such as Morton, Barclay, Gentle, McArthur, Gow, Wilson, Barlass, Kyle, and Harvey.
+- The 1879 History of Rock County, Wisconsin — digitized and searchable through the Wisconsin Historical Society and Internet Archive, the primary historical source for the area's settlement record.
+
+Wider afield, Wisconsin's main living Scottish cultural calendar runs through Milwaukee, about 70 miles northeast:
+
+- Wisconsin Highland Games — Labor Day weekend, Waukesha County Expo.
+- Milwaukee Highland Games — each June at Croatian Park, Franklin.
+- Saint Andrew's Society of the City of Milwaukee — the region's main Scottish civil-society group.
+
+A note on the name: you may see this place referred to elsewhere as "Scotch Grove." That name actually belongs to a different, separate Scottish settlement in Jones County, Iowa, founded by Highland families who migrated overland from the Red River Colony in 1837. It's a distinct community with its own history — not this one — so we've kept this entry under its correct and confirmed name, Rock Prairie.
+
+Mar a ràinig thu an seo / How you got here
+The specific founding story here is still being verified — the names most often associated with this settlement (families like Graham, MacFarlane, and Culbertson) appear in some secondary accounts, but haven't yet been confirmed against the primary 1879 county history. What is solidly confirmed is the broader pattern: Scottish families settled Rock Prairie alongside New England Yankees, in numbers substantial enough to be remembered specifically as a Scottish community by local historians, and to sustain a Presbyterian congregation that has now served the area for well over a century.
+
+A' Ghàidhlig an seo / Gàidhlig here
+There's no record of Gàidhlig surviving here as a spoken community language. As with Wisconsin's other Scottish settlements, the available evidence points to Lowland Scots and Presbyterian church life as the carriers of identity here, rather than the Gaelic language itself — though this hasn't yet been confirmed in the same depth as other entries, and is worth revisiting if more genealogical detail on the original families' regional origins in Scotland comes to light. There is no Gàidhlig revival community in Rock Prairie today. The nearest paths to the language run through these organizations:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — The Gaelic Council of Nova Scotia
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — The Gaelic College, St. Ann's, Nova Scotia
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
+    body_gd: `Far a bheil thu
+Tha thu air an fhearann fosgailte fosgailte an ear air Janesville, ann am Rock Prairie, Siorrachd Rock — dùthaich rèidh, torrach a tharraing luchd-tuineachaidh air an aon adhbhar a tha an ainm a' moladh. Is e seo aon de na tuineachaidhean Albannach a tha gu fìor dearbhte ann an Wisconsin: tha eachdraidh siorrachd 1908 a' clàradh na sgìre seo mar dhachaigh do thuathanaich à Sasainn Nuadh agus cuid de dh'eilthirich Albannach, Sasannach, agus Gearmailteach dìcheallach, agus tha Comann Eachdraidh Wisconsin fhèin a' cumail clàr a tha a' toirt cunntas air Rock Prairie mar "dhachaigh nan Albannach." Cha b' e dachaigh aonaranach a bha an làthaireachd Albannach an seo — bha i mòr gu leòr gus eaglais fhàgail air dheireadh a tha fhathast na seasamh agus fhathast gnìomhach faisg air dà linn an dèidh sin.
+
+Na tha mu do choinneamh
+Is e an eaglais fhèin an comharra as fhollaisiche air an tuineachadh Albannach:
+
+- Eaglais Phreasbaiteireach Rock Prairie — 8605 E. County Hwy A, Janesville, WI 53545. Coitheanal gnìomhach an-diugh, is e an eaglais seo dìreach sliochd institiudach an àite adhraidh aig na tuineachaidhean Albannach tùsail.
+- Comann Sloinntearachd Siorrachd Rock — a' cumail clàran teaghlaich airson teaghlaichean tuineachaidh Albannach na sgìre, a' gabhail a-steach loidhnichean clàraichte mar Morton, Barclay, Gentle, McArthur, Gow, Wilson, Barlass, Kyle, agus Harvey.
+- Eachdraidh Siorrachd Rock, 1879 — air a sgrìobhadh gu didseatach agus rannsachail tro Chomann Eachdraidh Wisconsin agus Internet Archive, am prìomh stòr eachdraidheil airson clàr tuineachaidh na sgìre.
+
+Nas fhaide air falbh, tha mìosachan cultarail Albannach as motha Wisconsin a' ruith tro Milwaukee, mu 70 mìle an ear-thuath:
+
+- Geamannan Gàidhealach Wisconsin — deireadh-seachdain Latha an Luchd-obrach, Ionad-falbhain Siorrachd Waukesha.
+- Geamannan Gàidhealach Milwaukee — anns an Ògmhios gach bliadhna, aig Croatian Park, Franklin.
+- Comann Naoimh Anndra, Milwaukee — am prìomh chomann sìobhalta Albannach san sgìre.
+
+Aire mun ainm: dh'fhaodadh tu am baile seo fhaicinn air ainmeachadh ann an àiteachan eile mar "Scotch Grove." Buinidh an ainm sin dha-rìribh do thuineachadh Albannach eile, fa leth, ann an Siorrachd Jones, Iowa, a chaidh a stèidheachadh le teaghlaichean Gàidhealach a rinn eilthireachd thar-thìreach bhon Choloinidh Abhainn Dheirg ann an 1837. Is e coimhearsnachd fa leth a tha sin le a h-eachdraidh fhèin — chan e seo — mar sin chumadh sinn an t-iomradh seo fon ainm cheart agus dearbhte aige, Rock Prairie.
+
+Mar a ràinig thu an seo
+Tha an sgeulachd stèidheachaidh shònraichte an seo fhathast a dhol fo dheuchainn — na h-ainmean as motha co-cheangailte ris an tuineachadh seo (teaghlaichean mar Graham, MacFarlane, agus Culbertson) a' nochdadh ann an cuid de chunntasan dàrnach, ach gun a bhith dearbhte fhathast an aghaidh eachdraidh siorrachd phrìomhach 1879. Is e na tha dearbhte gu math: thuinich teaghlaichean Albannach ann an Rock Prairie ri taobh Iancaich Sasainn Nuadh, ann an àireamhan mòr gu leòr gus a bhith air an cuimhneachadh gu sònraichte mar choimhearsnachd Albannach le luchd-eachdraidh ionadail, agus gus coitheanal Preasbaiteireach a chumail suas a tha air seirbheis a thoirt don sgìre airson còrr is linn.
+
+A' Ghàidhlig an seo
+Chan eil clàr ann gun do mhair a' Ghàidhlig an seo mar chànan coimhearsnachd labhairteach. Mar a tha le tuineachaidhean Albannach eile Wisconsin, tha an fhianais a tha ri fhaighinn a' comharrachadh gu Gallta Albannach agus beatha-eaglais Phreasbaiteireach mar luchd-giùlain dearbh-aithne an seo, seach a' Ghàidhlig fhèin — ged nach eil seo air a dhearbhadh fhathast cho domhainn ri tachartasan eile, agus is fhiach ath-bheachdachadh air ma thig barrachd mion-fhiosrachaidh sloinntearachd air freumhan roinneil nan teaghlaichean tùsail ann an Alba am follais. Chan eil coimhearsnachd ath-bheothachaidh Gàidhlig ann an Rock Prairie an-diugh. Tha na slighean as fhaisge chun a' chànain a' dol tro na buidhnean seo:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — Comhairle na Gàidhlig Alba Nuadh
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — An Colaisde Gàidhealach, St. Ann's, Alba Nuadh
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
     id: 'glencoe-mn',
