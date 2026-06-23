@@ -250,6 +250,18 @@ Chan eil clàr ann gun do mhair a' Ghàidhlig an seo mar chànan coimhearsnachd 
 - [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
+    id: 'rock-prairie-wi',
+    name: 'Rock Prairie',
+    region: 'Wisconsin, USA',
+    lng: -88.8750,
+    lat: 42.6991,
+    gaidhlig: 'Rèidhlean na Creige',
+    meaning: '"Rèidhlean na Creige" — "the prairie of the rock"; named for the limestone outcrops on the open prairie of southern Wisconsin.',
+    why_named: 'Historic Scottish settlement in Rock County, just south of Janesville; the Rock Prairie community was settled by Scottish immigrants in the 1840s and anchored by a mid-19th-century Presbyterian congregation.',
+    founded: null,
+    verified: false,
+  },
+  {
     id: 'glencoe-mn',
     name: 'Glencoe',
     region: 'Minnesota, USA',
