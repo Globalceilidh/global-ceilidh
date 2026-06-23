@@ -80,7 +80,23 @@ export const translations = {
     close: { en: 'Close', gd: 'Dùin' },
     learn_more: { en: 'Learn more', gd: 'Ionnsaich tuilleadh' },
     formal_badge: { en: 'Formal', gd: 'Foirmeil' },
-  }
+  },
+  // An Saoghal — the diaspora map page
+  saoghal: {
+    title: { en: 'The Gàidhlig World', gd: 'An Saoghal Gàidhealach' },
+    intro: {
+      en: 'The gold shows where Gàidhlig lives — brightest in the heartlands, fading across the diaspora. Zoom in for the named places.',
+      gd: 'Tha an t-òr a\' sealltainn far a bheil a\' Ghàidhlig beò — as soilleire anns na cridhe-tìrean, a\' crìonadh thar an diaspora. Dèan sùm a-steach airson nan àiteachan ainmichte.',
+    },
+    reset: { en: 'Reset view', gd: 'Ath-shuidhich' },
+    reset_title: { en: 'Reset view (R)', gd: 'Ath-shuidhich sealladh (R)' },
+    unverified: { en: 'Unverified — help us confirm', gd: 'Gun dearbhadh — cuidich gus a dhearbhadh' },
+    meaning: { en: 'Meaning', gd: 'Ciall' },
+    why_named: { en: 'Why it received the name', gd: 'Carson a fhuair e an t-ainm' },
+    founded: { en: 'Founded', gd: 'Air a stèidheachadh' },
+    switch_to_gd: { en: 'Switch to Gàidhlig', gd: 'Tionndaidh gu Gàidhlig' },
+    switch_to_en: { en: 'Switch to English', gd: 'Tionndaidh gu Beurla' },
+  },
 };
 
 export function LanguageProvider({ children }) {

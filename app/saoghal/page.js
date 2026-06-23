@@ -20,6 +20,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HEAT_POINTS } from './heat';
 import { PLACES } from './places';
+import { useLanguage } from '../../context/LanguageContext';
 
 const BASEMAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
@@ -49,6 +50,7 @@ export default function SaoghalPage() {
   const mapRef = useRef(null);
   const [selected, setSelected] = useState(null);
   const [mapReady, setMapReady] = useState(false);
+  const { language, toggleLanguage, t } = useLanguage();
 
   const flyHome = useCallback(() => {
     const map = mapRef.current;
@@ -190,22 +192,57 @@ export default function SaoghalPage() {
           margin: '6px 0 4px', fontFamily: serif, fontWeight: 400, fontSize: 22,
           color: COLORS.text, fontStyle: 'italic',
         }}>
-          The Gàidhlig World
+          {t('saoghal.title')}
         </h1>
         <p style={{
           margin: 0, fontFamily: serif, fontSize: 13, lineHeight: 1.5,
           color: COLORS.textMuted,
         }}>
-          The gold shows where Gàidhlig lives — brightest in the heartlands,
-          fading across the diaspora. Zoom in for the named places.
+          {t('saoghal.intro')}
         </p>
+
+        {/* EN ⇄ GD pill toggle — mirrors the site-nav toggle but
+            restyled for the dark map chrome. */}
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          aria-label={language === 'en' ? t('saoghal.switch_to_gd') : t('saoghal.switch_to_en')}
+          title={language === 'en' ? t('saoghal.switch_to_gd') : t('saoghal.switch_to_en')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            marginTop: 12,
+            padding: '5px 10px',
+            background: 'rgba(10, 8, 7, 0.5)',
+            border: `1px solid ${COLORS.border}`,
+            cursor: 'pointer',
+            fontFamily: mono, fontSize: 10, letterSpacing: '2px',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span style={{ color: language === 'en' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>EN</span>
+          <span style={{
+            display: 'inline-block', position: 'relative',
+            width: 28, height: 14, borderRadius: 7,
+            background: language === 'gd' ? COLORS.goldDeep : '#3A2E1E',
+            transition: 'background 200ms ease',
+          }}>
+            <span style={{
+              position: 'absolute', top: 1.5,
+              width: 11, height: 11, borderRadius: '50%',
+              background: COLORS.text,
+              left: language === 'gd' ? 14 : 1.5,
+              transition: 'left 200ms ease',
+            }}/>
+          </span>
+          <span style={{ color: language === 'gd' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>GD</span>
+        </button>
       </header>
 
       <button
         type="button"
         onClick={flyHome}
-        aria-label="Reset view (R)"
-        title="Reset view (R)"
+        aria-label={t('saoghal.reset_title')}
+        title={t('saoghal.reset_title')}
         style={{
           position: 'absolute', top: 20, right: 20, zIndex: 5,
           display: 'flex', alignItems: 'center', gap: 8,
@@ -220,7 +257,7 @@ export default function SaoghalPage() {
         }}
       >
         <span aria-hidden="true" style={{ fontSize: 14, lineHeight: 1, color: COLORS.goldLight }}>◎</span>
-        Reset view
+        {t('saoghal.reset')}
       </button>
 
       {selected && (
@@ -236,7 +273,7 @@ export default function SaoghalPage() {
           <button
             type="button"
             onClick={() => setSelected(null)}
-            aria-label="Close"
+            aria-label={t('common.close')}
             style={{
               position: 'absolute', top: 14, right: 14, width: 32, height: 32,
               background: 'transparent', color: COLORS.textMuted,
@@ -268,13 +305,19 @@ export default function SaoghalPage() {
               fontFamily: mono, fontSize: 10, letterSpacing: '1.5px',
               color: COLORS.textMuted, textTransform: 'uppercase',
             }}>
-              Unverified — help us confirm
+              {t('saoghal.unverified')}
             </div>
           )}
 
-          <Section label="Meaning" body={selected.meaning} />
-          <Section label="Why it received the name" body={selected.why_named} />
-          {selected.founded && <Section label="Founded" body={selected.founded} />}
+          {(selected.body_en || selected.body_gd) ? (
+            <Longform text={(language === 'gd' && selected.body_gd) ? selected.body_gd : (selected.body_en || selected.body_gd)} />
+          ) : (
+            <>
+              <Section label={t('saoghal.meaning')} body={selected.meaning} />
+              <Section label={t('saoghal.why_named')} body={selected.why_named} />
+              {selected.founded && <Section label={t('saoghal.founded')} body={selected.founded} />}
+            </>
+          )}
         </aside>
       )}
 
@@ -300,6 +343,49 @@ function Section({ label, body }) {
         margin: 0, fontFamily: serif, fontSize: 15, lineHeight: 1.6,
         color: COLORS.text,
       }}>{body}</p>
+    </div>
+  );
+}
+
+// Renders rich body_en / body_gd content. Block rules:
+//   - blocks split by blank line
+//   - a block whose every line starts with "- " becomes a <ul>
+//   - a single-line short block with no terminal punctuation becomes a section header
+//   - everything else is a paragraph
+function Longform({ text }) {
+  const blocks = text.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+  return (
+    <div>
+      {blocks.map((block, i) => {
+        const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length > 0 && lines.every(l => l.startsWith('- '))) {
+          return (
+            <ul key={i} style={{
+              margin: '0 0 16px', paddingLeft: 18,
+              fontFamily: serif, fontSize: 15, lineHeight: 1.6, color: COLORS.text,
+            }}>
+              {lines.map((l, j) => (
+                <li key={j} style={{ marginBottom: 6 }}>{l.replace(/^- /, '')}</li>
+              ))}
+            </ul>
+          );
+        }
+        if (lines.length === 1 && lines[0].length < 60 && !/[.!?]$/.test(lines[0])) {
+          return (
+            <h3 key={i} style={{
+              margin: '24px 0 8px', fontFamily: mono, fontSize: 10,
+              letterSpacing: '2px', color: COLORS.accent,
+              textTransform: 'uppercase', fontWeight: 600,
+            }}>{lines[0]}</h3>
+          );
+        }
+        return (
+          <p key={i} style={{
+            margin: '0 0 16px', fontFamily: serif, fontSize: 15,
+            lineHeight: 1.6, color: COLORS.text,
+          }}>{lines.join(' ')}</p>
+        );
+      })}
     </div>
   );
 }
