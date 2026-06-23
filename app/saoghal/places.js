@@ -482,6 +482,72 @@ Chan eil clàr ann gun do mhair a' Ghàidhlig ann an Scotch Lane mar chànan coi
     why_named: 'Open-prairie settlement area in Trempealeau County, western Wisconsin, near the Mississippi River.',
     founded: null,
     verified: false,
+    body_en: `Far a bheil thu / Where you are
+You're in west-central Wisconsin's Trempealeau County, on fine farming land a few miles from Galesville. Decorah Prairie is exactly what its name suggests — open, fertile prairie ground, and one of the genuine Scottish-founded agricultural settlements in the state. This isn't a place that merely borrowed a Scottish name; it was built, worked, and lived in by Scottish families from its earliest days.
+
+Na tha mu do choinneamh / What's around you
+The clearest living trace of the settlement's sister community is nearby:
+
+- Glasgow Cemetery — 12410 WI-54 Trunk, Ettrick, WI 54627. The burial ground of the related Scottish settlement at Glasgow, a few miles north, founded by the same wave of Scottish miners-turned-farmers.
+- Galesville — founded in 1854 by George Gale, the nearest town and home to Gale College, once known as "the university in the wilderness." The Galesville Burns Club, which the Decorah Prairie and Glasgow settlers themselves founded, is the most direct living cultural legacy of this community.
+- Trempealeau County Historical Society — based in Galesville, holds the area's documentary record, including the full 1917 county history that preserves this settlement's story.
+
+Wider afield, Wisconsin's main living Scottish cultural calendar runs through Milwaukee, well over 200 miles southeast:
+
+- [Saint Andrew's Society of the City of Milwaukee](https://saintandrewsmilwaukee.org)
+- [Milwaukee Highland Games](https://milwaukeehighlandgames.org)
+- [Wisconsin Highland Games](https://wisconsinscottish.org)
+
+Mar a ràinig thu an seo / How you got here
+Decorah Prairie's settlers came by an unusual two-step migration. They were, as a rule, originally from the mining districts of Scotland — men who had already left Scotland once before, settling first in places like Maryland and Kentucky to work in American coal mines, before hearing of homestead land opening up in Wisconsin and moving farther west.
+
+Among the first to settle Decorah Prairie were James Sampson, John Davidson, Thomas Hunter, Robert Oliver, William Dick, David Cook, Duncan Grant, Robert Grant, Collins Irving, and Robert Sommerville. They found Decorah Prairie to be exceptional farmland, and prospered on it — building, even in the early days, what a 1917 county history called "handsome homes," with most settlers becoming well-to-do.
+
+This was not a grim, joyless pioneer existence. The Decorah Prairie Scots were remembered as genial and sociable, fond of dances and gatherings, with enough musicians among them that an orchestra could be assembled on the spot. Scotch songs were sung at every gathering "with a vim and heartiness that showed they came from the heart," and the good old Scotch brogue carried on in daily speech, unashamed.
+
+The community's most lasting cultural institution was the Galesville Burns Club, which the Decorah Prairie and neighboring Glasgow settlers founded together — a direct, organized commitment to keeping the memory of Robert Burns, and by extension their Scottish identity, alive in their new home.
+
+A' Ghàidhlig an seo / Gàidhlig here
+The settlers themselves are described as coming from Lanarkshire and similar Lowland districts, suggesting Decorah Prairie's community was primarily Scots-English (Lowland Scots) speaking rather than Gàidhlig-speaking — though the related Glasgow settlement nearby did include some genuinely Highland-born settlers, the McMillan family among them, which raises a real possibility that some Gàidhlig was spoken, at least within individual households, in this wider settlement. That detail hasn't been confirmed beyond the McMillans' Highland origin, and is worth investigating further given how directly this community traces back to Scotland's mining and farming counties. What's certain is that no Gàidhlig-speaking institution survived here, and there is no Gàidhlig revival community in the area today. The nearest paths to the language run through these organizations:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — The Gaelic Council of Nova Scotia
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — The Gaelic College, St. Ann's, Nova Scotia
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
+    body_gd: `Far a bheil thu
+Tha thu ann an Siorrachd Trempealeau, iar-meadhan Wisconsin, air fearann tuathanachais math beagan mìltean bho Galesville. Tha Decorah Prairie dìreach mar a tha an ainm a' moladh — talamh prèiridh fosgailte, torrach, agus aon de na tuineachaidhean tuathanachais Albannach fìor san stàite. Chan e seo àite a thug iasad air ainm Albannach a-mhàin; chaidh a thogail, a shaothrachadh, agus a' bhith air a chòmhnaidh le teaghlaichean Albannach bhon chiad latha.
+
+Na tha mu do choinneamh
+Tha comharra as fhollaisiche de cho-thuineachadh an tuineachaidh seo faisg air làimh:
+
+- Cladh Glasgow — 12410 WI-54 Trunk, Ettrick, WI 54627. Ionad-tàmh an tuineachaidh Albannach co-cheangailte ann an Glasgow, beagan mìltean gu tuath, air a stèidheachadh leis an aon tonn de mhèinneadairean Albannach a thionndaidh gu bhith nan tuathanaich.
+- Galesville — air a stèidheachadh ann an 1854 le George Gale, am baile as fhaisge agus dachaigh do Cholaiste Gale, air an robh "an oilthigh san fhàsach" mar ainm. Is e Club Burns Galesville, a stèidhich na tuineachaidhean Decorah Prairie agus Glasgow fhèin, an dìleab chultarach as dìriche a tha fhathast beò bhon choimhearsnachd seo.
+- Comann Eachdraidh Siorrachd Trempealeau — stèidhichte ann an Galesville, a' cumail clàr sgrìobhte na sgìre, a' gabhail a-steach eachdraidh shiorrachd 1917 gu lèir a tha a' gleidheadh sgeulachd an tuineachaidh seo.
+
+Nas fhaide air falbh, tha mìosachan cultarail Albannach as motha Wisconsin a' ruith tro Milwaukee, fada thairis air 200 mìle an ear-dheas:
+
+- [Comann Naoimh Anndra, Baile Milwaukee](https://saintandrewsmilwaukee.org)
+- [Geamannan Gàidhealach Milwaukee](https://milwaukeehighlandgames.org)
+- [Geamannan Gàidhealach Wisconsin](https://wisconsinscottish.org)
+
+Mar a ràinig thu an seo
+Thàinig luchd-tuineachaidh Decorah Prairie le eilthireachd neo-àbhaisteach ann an dà cheum. Bha iad, mar as cumanta, bho thùs à sgìrean mèinneadh na h-Alba — fir a bha air Alba fhàgail aon turas mu thràth, a' tuineachadh an toiseach ann an àiteachan mar Maryland agus Kentucky gus obair ann am mèinnean gualach Ameireaganach, mus cuala iad mu fhearann homestead a' fosgladh ann an Wisconsin agus a' gluasad nas fhaide an iar.
+
+Am measg na feadhainn as tràithe a thuinich ann an Decorah Prairie bha James Sampson, John Davidson, Thomas Hunter, Robert Oliver, William Dick, David Cook, Duncan Grant, Robert Grant, Collins Irving, agus Robert Sommerville. Fhuair iad Decorah Prairie mar fhearann tuathanachais sàr-mhath, agus shoirbhich iad air, a' togail, eadhon anns na làithean tràth, na thug eachdraidh shiorrachd 1917 air "dachaighean briagha," leis a' mhòr-chuid de luchd-tuineachaidh a' fàs beairteach.
+
+Cha b' e beatha tùsanach dhorcha, gun aighear a bha seo. Bha cuimhne air Albannaich Decorah Prairie mar dhaoine càirdeil, sòisealta, measail air danns is cruinneachaidhean, le gu leòr de luchd-ciùil nam measg gus orcastra a chur air dòigh air an spot. Bha òrain Albannach air an seinn aig gach cruinneachadh "le sgairt agus dùrachd a sheall gun tàinig iad bhon chridhe," agus mhair an seann chànan beòil Albannach (an "brogue") ann an cainnt làitheil, gun nàire idir.
+
+B' e an institiud chultarach as maireannaiche aig a' choimhearsnachd Club Burns Galesville, a stèidhich luchd-tuineachaidh Decorah Prairie agus an luchd-tuineachaidh Glasgow faisg air làimh còmhla — gealltanas dìreach, eagraichte, gus cuimhne Robert Burns, agus an dearbh-aithne Albannach aca fhèin, a chumail beò san dachaigh ùr aca.
+
+A' Ghàidhlig an seo
+Thathar a' cur cunntas air an luchd-tuineachaidh fhèin mar a' tighinn à Siorrachd Lanark agus sgìrean Gallta coltach ris, a' nochdadh gur e coimhearsnachd Albannach-Beurla (Gallta Albannach) gu sònraichte a bha ann an Decorah Prairie seach coimhearsnachd Gàidhlig-bruidhneach — ged a bha an tuineachadh co-cheangailte aig Glasgow faisg air làimh a' gabhail a-steach cuid de luchd-tuineachaidh a bha gu fìor Gàidhealach, an teaghlach McMillan nam measg, a tha a' togail comas fìor gum biodh beagan Gàidhlig air a bruidhinn, co-dhiù taobh a-staigh dachaighean fa-leth, anns an tuineachadh nas fharsainge seo. Chan eil am mion-fhiosrachadh sin dearbhte seach freumhan Gàidhealach nan McMillanach, agus is fhiach a rannsachadh nas fhaide leis cho dìreach 's a tha a' choimhearsnachd seo a' tighinn bho shiorrachdan mèinneadh is tuathanachais na h-Alba. Is e na tha cinnteach nach do mhair institiud Gàidhlig-bruidhneach an seo, agus chan eil coimhearsnachd ath-bheothachaidh Gàidhlig san sgìre an-diugh. Tha na slighean as fhaisge chun a' chànain a' dol tro na buidhnean seo:
+
+- [GlobalCeilidh](https://globalceilidh.com)
+- [Comhairle na Gàidhlig](https://gaelic.ca) — Comhairle na Gàidhlig Alba Nuadh
+- [Colaisde na Gàidhlig](https://gaeliccollege.edu) — An Colaisde Gàidhealach, St. Ann's, Alba Nuadh
+- [Slighe nan Gàidheal](https://slighe.org)
+- [An Comunn Gàidhealach Ameireaganach (ACGA)](https://acgamerica.org)`,
   },
   {
     id: 'glencoe-mn',
