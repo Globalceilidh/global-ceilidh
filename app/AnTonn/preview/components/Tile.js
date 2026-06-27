@@ -1,43 +1,52 @@
 'use client'
 
-// One tile on the cylinder. A textured plane with a labelled cover area,
-// year + tags strip, and title + creator line below. Hover state slightly
-// brightens; click state expands via the parent's onSelect callback.
+// Tile — a single grid cell on the inside of the cylinder.
 //
-// Geometry: 2.4 × 1.6 units, lifted slightly off the cylinder surface so
-// tiles don't z-fight. The plane is rendered facing inward — toward (0,0,0)
-// at the cylinder's centre, where the camera sits.
+// Phantom-style structure (per Scott's spec):
+//   • Cell is a square (CELL_W × CELL_W world units)
+//   • Cells touch their neighbours — no gaps in the grid
+//   • Inside each cell is a centred cover image, ~75% of cell size
+//   • Around the image is a translucent dark "border" so the vortex
+//     shader behind the cylinder glows softly through the negative space
+//   • Thin per-vertical accent line frames the image, so even without
+//     reading text you can tell category at a glance
+//   • No text on the tile itself — the detail panel handles full info
+//     when you tap. (Text at the density of 121 cells is unreadable
+//     anyway; Phantom's tiles don't show metadata either at idle.)
 
-import { useRef, useState, useMemo, useEffect } from 'react'
-import { Text } from '@react-three/drei'
+import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
-import { useFrame, useLoader } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 
-const TILE_W = 3.2
-const TILE_H = 2.1
-
-// Per-vertical accent colour — used as the tile's tint when no cover image
-// is supplied, and as the underline / tag glow when one is. Mirrors the
-// existing An Tonn palette in app/AnTonn/page.js.
 const VERTICAL_TINT = {
-  music:    '#C9A047',  // Highland gold
-  books:    '#6B4E1F',  // Sruth brown
-  podcasts: '#7A4A8C',  // muted purple
-  film:     '#A8323D',  // banked red
-  radio:    '#3F6E2A',  // moss green
-  tours:    '#1F4E6E',  // sea blue (marquee)
+  music:    '#C9A047',
+  books:    '#6B4E1F',
+  podcasts: '#7A4A8C',
+  film:     '#A8323D',
+  radio:    '#3F6E2A',
+  tours:    '#1F4E6E',
 }
 
-export default function Tile({ item, position, rotation, vertical, onSelect, hovered, focused, dimmed = false }) {
+// Cell dimensions are set by CylinderGallery (it knows the grid math).
+// Defaults here are just sane fallbacks if a Tile is rendered standalone.
+export default function Tile({
+  item,
+  position,
+  rotation,
+  vertical,
+  cellSize = 3.0,
+  imageRatio = 0.78,
+  onSelect,
+  hovered,
+  focused,
+  dimmed = false,
+}) {
   const groupRef = useRef(null)
   const [internalHover, setInternalHover] = useState(false)
-
-  // Texture loading is lazy — if item.cover_url is a non-empty string we
-  // try to load it; if it 404s or the value is empty, we fall back to a
-  // flat colour tinted by the tile's vertical.
   const [texture, setTexture] = useState(null)
+
   useEffect(() => {
-    if (!item.cover_url) return
+    if (!item?.cover_url) return
     let cancelled = false
     const loader = new THREE.TextureLoader()
     loader.setCrossOrigin('anonymous')
@@ -49,90 +58,67 @@ export default function Tile({ item, position, rotation, vertical, onSelect, hov
         setTexture(tex)
       },
       undefined,
-      () => { /* swallow load errors — fallback to tint */ },
+      () => { /* fallback to tint */ },
     )
     return () => { cancelled = true }
-  }, [item.cover_url])
+  }, [item?.cover_url])
 
-  // Brighten on hover or focus
+  // Slight scale-up on hover/focus — enough to read as interactive
   useFrame(() => {
     if (!groupRef.current) return
-    const target = (internalHover || hovered || focused) ? 1.0 : 0.85
-    groupRef.current.scale.x += (target * (focused ? 1.05 : 1) - groupRef.current.scale.x) * 0.15
+    const target = (internalHover || hovered || focused) ? 1.04 : 1.0
+    groupRef.current.scale.x += (target - groupRef.current.scale.x) * 0.18
     groupRef.current.scale.y = groupRef.current.scale.x
     groupRef.current.scale.z = groupRef.current.scale.x
   })
 
   const tint = VERTICAL_TINT[vertical] || '#888'
+  const imageSize = cellSize * imageRatio
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
-      {/* Tile background — colored "frame" slightly larger than the cover
-          so the per-vertical accent shows as a thick border */}
-      <mesh position={[0, 0, -0.005]}>
-        <planeGeometry args={[TILE_W + 0.18, TILE_H * 0.78 + 0.18]} />
+      {/* Cell background — translucent dark plane filling the whole cell.
+          Cells touch their neighbours, so this creates one continuous
+          dark wallpaper grid across the cylinder interior. The vortex
+          glows through at low opacity. */}
+      <mesh position={[0, 0, -0.01]}>
+        <planeGeometry args={[cellSize, cellSize]} />
         <meshBasicMaterial
-          color={tint}
+          color="#0a0d14"
           transparent
-          opacity={dimmed ? 0.35 : (internalHover || hovered ? 0.95 : 0.78)}
+          opacity={dimmed ? 0.50 : 0.70}
+          depthWrite={false}
         />
       </mesh>
 
-      {/* Cover plane */}
+      {/* Per-vertical accent line — thin border around the image area only.
+          Adds a visible category cue without dominating the tile.
+          Rendered as a slightly larger flat plane behind the image,
+          tinted with the accent colour. */}
+      <mesh position={[0, 0, -0.005]}>
+        <planeGeometry args={[imageSize + 0.08, imageSize + 0.08]} />
+        <meshBasicMaterial
+          color={tint}
+          transparent
+          opacity={dimmed ? 0.30 : (internalHover || hovered ? 0.95 : 0.75)}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Image — sits inside the accent frame */}
       <mesh
         onPointerOver={(e) => { e.stopPropagation(); setInternalHover(true); document.body.style.cursor = 'pointer' }}
         onPointerOut={() => { setInternalHover(false); document.body.style.cursor = 'auto' }}
         onClick={(e) => { e.stopPropagation(); onSelect?.(item) }}
       >
-        <planeGeometry args={[TILE_W, TILE_H * 0.78]} />
+        <planeGeometry args={[imageSize, imageSize]} />
         <meshBasicMaterial
           map={texture}
-          color={texture ? '#ffffff' : '#0a0d14'}
+          color={texture ? '#ffffff' : '#1a1f2a'}
           transparent
-          opacity={dimmed ? 0.4 : (internalHover || hovered ? 1.0 : 0.92)}
+          opacity={dimmed ? 0.70 : 1.0}
         />
       </mesh>
-
-      {/* Title — bottom of cover area */}
-      <Text
-        position={[0, -TILE_H * 0.45, 0.01]}
-        fontSize={0.12}
-        color="#F2ECDC"
-        anchorX="center"
-        anchorY="top"
-        maxWidth={TILE_W * 0.95}
-        outlineColor="#000"
-        outlineWidth={0.005}
-      >
-        {(item.title || '').toUpperCase()}
-      </Text>
-
-      {/* Creator — below title */}
-      <Text
-        position={[0, -TILE_H * 0.55, 0.01]}
-        fontSize={0.085}
-        color={tint}
-        anchorX="center"
-        anchorY="top"
-        maxWidth={TILE_W * 0.95}
-        outlineColor="#000"
-        outlineWidth={0.003}
-      >
-        {item.creator || ''}
-      </Text>
-
-      {/* Year + first tag pill */}
-      {(item.year || item.tags?.[0]) && (
-        <Text
-          position={[-TILE_W * 0.45, TILE_H * 0.45, 0.01]}
-          fontSize={0.075}
-          color="#888"
-          anchorX="left"
-          anchorY="bottom"
-        >
-          {[item.year, ...(item.tags || []).slice(0, 2)].filter(Boolean).join(' · ').toUpperCase()}
-        </Text>
-      )}
     </group>
   )
 }
