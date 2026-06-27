@@ -15,6 +15,7 @@ import CylinderGallery from './components/CylinderGallery'
 import DetailPanel from './components/DetailPanel'
 import AirAnTonnOverlay from './components/AirAnTonnOverlay'
 import FilterPanel, { FILTER_GROUPS } from './components/FilterPanel'
+import { ListView, SEOMirror } from './components/ListView'
 import { useCylinderControls } from './hooks/useCylinderControls'
 import { issue as week2 } from './data/week-2026-06-23'
 
@@ -29,12 +30,18 @@ export default function CylinderClient() {
   const [filters, setFilters] = useState(EMPTY_FILTERS)
   const [reduceMotion, setReduceMotion] = useState(false)
   const [docHidden, setDocHidden] = useState(false)
+  const [listMode, setListMode] = useState(false)
 
-  // prefers-reduced-motion
+  // prefers-reduced-motion — auto-flip to list view for these users so
+  // they're not stuck with motion they don't want.
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
     setReduceMotion(mq.matches)
-    const handler = (e) => setReduceMotion(e.matches)
+    if (mq.matches) setListMode(true)
+    const handler = (e) => {
+      setReduceMotion(e.matches)
+      if (e.matches) setListMode(true)
+    }
     mq.addEventListener?.('change', handler)
     return () => mq.removeEventListener?.('change', handler)
   }, [])
@@ -187,14 +194,30 @@ export default function CylinderClient() {
         Filter
       </button>
 
-      {/* List view toggle (bottom-left) — placeholder for v3 */}
+      {/* List view toggle (bottom-left) */}
       <button
         style={listViewBtnStyle}
-        onClick={() => alert('List view coming next commit')}
+        onClick={() => setListMode(true)}
         aria-label="Switch to list view"
+        title="List view (better for screen readers and low-end devices)"
       >
         ⊞
       </button>
+
+      {/* Off-screen SEO + a11y mirror — always present in the DOM */}
+      <SEOMirror issue={issuePayload} />
+
+      {/* List view — overrides everything else when active */}
+      {listMode && (
+        <ListView
+          issue={filteredIssue}
+          onClose={() => setListMode(false)}
+          onTileSelect={(item, vertical) => {
+            setFocusedTile(item)
+            setFocusedVertical(vertical)
+          }}
+        />
+      )}
 
       {/* Help text — temporary while interactions are still being added */}
       {!anyOverlayOpen && (
