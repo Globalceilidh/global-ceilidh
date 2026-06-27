@@ -225,7 +225,7 @@ export default function DetailPanel({ tile, vertical, onClose }) {
         </div>
         </div>{/* end right column */}
       </div>{/* end grid container */}
-    </div>{/* end overlay */}
+    </div>
   )
 }
 
