@@ -1,23 +1,26 @@
-// An Tonn — Week 2026-06-23 (prototype seed data)
+// An Tonn — Week 2026-06-23 (prototype seed data with real covers)
 //
-// Placeholder dataset used by the cylinder prototype until the ingest
-// pipeline (per the AI Council brief) is wired. Hand-curated subset of
-// real Gàidhlig artists, books, podcasts, film/TV, and radio shows so
-// the prototype shows plausible content shape, not lorem ipsum. Every
-// `id` is a stable slug we can carry forward into the canonical
-// antonn_items schema; cover_url fields are external — they'll either
-// load if the URL is reachable from the browser, or fall back to a flat
-// per-vertical colour tile.
+// Music + Podcasts now point at real cover art in public/AnTonn/covers
+// and public/AnTonn/Podcasts respectively. Books / Film / Radio are
+// still placeholder text without covers — when those folders get
+// populated, wire them in the same way.
 //
 // Schema (one tile):
-//   id        — stable slug
+//   id        — stable slug, also used to build the dummy filler ids
 //   title     — display title
 //   creator   — artist/author/host/director/station
 //   year      — release year (or current year for ongoing shows)
 //   tags      — small array of short tags shown on the tile
-//   cover_url — external image URL or null
+//   cover_url — public-folder URL or null
 //   blurb     — 40-80 words for the detail panel
 //   links     — { spotify, youtube, bandcamp, buy, listen, watch, ... }
+//
+// URL encoding note: cover_urls below use %20 for spaces because some
+// browsers double-encode if the URL contains a literal space; the
+// public folder serves these paths verbatim.
+
+const COVER = (name) => `/AnTonn/covers/${name}`
+const POD_COVER = (name) => `/AnTonn/Podcasts/${name}`
 
 export const issue = {
   number: 2,
@@ -28,64 +31,204 @@ export const issue = {
 
   music: [
     {
-      id: 'tide-lines-summer-anthem',
-      title: 'Summer Anthem (2026 Mix)',
-      creator: 'Tide Lines',
+      id: 'allt',
+      title: 'Allt',
+      creator: 'Allt',
       year: 2026,
-      tags: ['Highland Pop', 'Alba'],
-      cover_url: null,
-      blurb: 'The Mallaig four-piece return with the festival-ready single that\'s already topping independent Scottish charts. Same anthemic Highland-pop sound, sharper production.',
-      links: { spotify: 'https://open.spotify.com/artist/47WvBuryaMeInhqbcoi0uN', youtube: 'https://www.youtube.com/channel/UCSX39m6HKC8pSzNrUkedNDQ' },
+      tags: ['Trad Fusion', 'Lewis'],
+      cover_url: COVER('Allt.png'),
+      blurb: 'Stornoway trio working at the seam between traditional song and ambient texture. Their 2026 record is the most patient thing on the wave this week.',
+      links: {},
     },
     {
-      id: 'valtos-cho-binn',
-      title: 'Cho Binn \'s A Bha Thu',
-      creator: 'VALTOS ft. Eilidh Cormack',
+      id: 'beluga-lagoon',
+      title: 'Beluga Lagoon',
+      creator: 'Beluga Lagoon',
       year: 2026,
-      tags: ['Trad Electronica', 'Gàidhlig'],
-      cover_url: null,
-      blurb: 'Skye-based trad-electronic duo Valtos team with Cape Breton-rooted singer Eilidh Cormack on a track that bridges the Hebrides and Atlantic Canada in four minutes.',
-      links: { spotify: 'https://open.spotify.com/artist/2c6jW5KHxnQ4Q4kaSE1LyO', youtube: 'https://www.youtube.com/@valtosband' },
+      tags: ['Psych Folk', 'Hebrides'],
+      cover_url: COVER('Beluga%20Lagoon.png'),
+      blurb: 'Hebridean psych-folk that takes the slow road. Layered vocals, drone bass, drums that arrive late and stay.',
+      links: {},
     },
     {
-      id: 'gun-ghaol-gairm',
-      title: 'A\' Ghairm',
+      id: 'breabach',
+      title: 'Breabach',
+      creator: 'Breabach',
+      year: 2026,
+      tags: ['Trad', 'Alba'],
+      cover_url: COVER('Breabach.png'),
+      blurb: 'Glasgow-based five-piece, 20+ years deep, still releasing material that matters. Tight twin pipes, Calum MacCrimmon on whistles.',
+      links: {},
+    },
+    {
+      id: 'daimh',
+      title: 'Dàimh',
+      creator: 'Dàimh',
+      year: 2026,
+      tags: ['Trad', 'Diaspora'],
+      cover_url: COVER('Daimh.png'),
+      blurb: 'West Highland / Cape Breton / Ireland line-up that\'s been the trad-band benchmark for nearly two decades. Their live record from Skye still defines the form.',
+      links: {},
+    },
+    {
+      id: 'elephant-sessions',
+      title: 'Elephant Sessions',
+      creator: 'Elephant Sessions',
+      year: 2026,
+      tags: ['Trad Electronic', 'Alba'],
+      cover_url: COVER('Elephant%20Sessions.png'),
+      blurb: 'High-energy folk-electronic from the Highlands. Big festival sets, bigger drops, fiddles holding the whole thing together.',
+      links: {},
+    },
+    {
+      id: 'gun-ghaol',
+      title: 'Gun Ghaol',
       creator: 'Gun Ghaol',
       year: 2026,
       tags: ['Metalcore', 'Gàidhlig'],
-      cover_url: null,
+      cover_url: COVER('Gun%20Ghaol.png'),
       blurb: 'Pure Gàidhlig metalcore from Lewis. Slow burn opener, blast-beat second half, lyrics drawn from 19th-century Skye land-clearance poetry.',
       links: { spotify: 'https://open.spotify.com/artist/1Wx6yzsgdgwB65T3uvEXux', youtube: 'https://www.youtube.com/@GunGhaol' },
     },
     {
-      id: 'manran-an-uair',
-      title: 'An Uair Seo',
+      id: 'ho-ro',
+      title: 'Hò-rò',
+      creator: 'Hò-rò',
+      year: 2026,
+      tags: ['Trad', 'Highlands'],
+      cover_url: COVER('Ho_Ro.png'),
+      blurb: 'Six-piece outfit out of the Highlands — pipes, fiddles, accordion, the works. Built for ceilidh halls and they know it.',
+      links: {},
+    },
+    {
+      id: 'isla-scott',
+      title: 'Isla Scott',
+      creator: 'Isla Scott',
+      year: 2026,
+      tags: ['Fiddle', 'Alba'],
+      cover_url: COVER('Isla%20Scott.png'),
+      blurb: 'Young Scottish fiddler, recent BBC Radio Scotland Young Trad Musician nominee. Bow control years beyond her age.',
+      links: {},
+    },
+    {
+      id: 'julie-fowlis',
+      title: 'Julie Fowlis',
+      creator: 'Julie Fowlis',
+      year: 2026,
+      tags: ['Gàidhlig', 'North Uist'],
+      cover_url: COVER('Julie%20Fowlis.png'),
+      blurb: 'North Uist\'s defining contemporary voice in Gàidhlig song. From Pixar credits to Celtic Connections headlines, she carries the language where the language needs to be.',
+      links: {},
+    },
+    {
+      id: 'kim-carnie',
+      title: 'Kim Carnie',
+      creator: 'Kim Carnie',
+      year: 2026,
+      tags: ['Gàidhlig', 'Vocal'],
+      cover_url: COVER('Kim%20Carnie.png'),
+      blurb: 'Singer, multi-instrumentalist, member of Manran. Solo work pushes Gàidhlig song into intimate, sparse arrangements.',
+      links: {},
+    },
+    {
+      id: 'manran',
+      title: 'Mànran',
       creator: 'Mànran',
       year: 2026,
       tags: ['Trad', 'Alba'],
-      cover_url: null,
-      blurb: 'Mànran\'s most explicitly political record — the title track is a direct response to the 2026 Gaelic Language Bill consultation.',
+      cover_url: COVER('Manran.png'),
+      blurb: 'Trad supergroup formed in 2010, still the gold standard for big-room ceilidh energy. New record drops late summer 2026.',
       links: { spotify: 'https://open.spotify.com/artist/4mZWb2tBgQVowZMQXmiTfH' },
     },
     {
-      id: 'iona-fyfe-folk',
-      title: 'Borderlands II',
-      creator: 'Iona Fyfe',
+      id: 'fowlis-polwart-carpenter',
+      title: 'The Light Will Come Back',
+      creator: 'Mary Chapin Carpenter / Julie Fowlis / Karine Polwart',
       year: 2026,
-      tags: ['Folk Revival', 'Doric'],
-      cover_url: null,
-      blurb: 'Aberdeenshire singer\'s follow-up to the 2024 Borderlands EP. Half Scots, half Gàidhlig — Iona\'s strongest crossover yet.',
-      links: { spotify: 'https://open.spotify.com/artist/4dXpybtH3hr2hZbBPHXrV2' },
+      tags: ['Crossover', 'Featured'],
+      cover_url: COVER('Mary%20Chapin%20Carpenter_Julie%20Fowlis_%20Karine%20Polwart.png'),
+      blurb: 'Three-voice transatlantic collaboration — Nashville, North Uist, Stirling. Recorded mostly remote, mixed in Glasgow.',
+      links: {},
     },
     {
-      id: 'mary-jane-lamond-suas',
-      title: 'Suas e!',
-      creator: 'Mary Jane Lamond',
-      year: 2025,
-      tags: ['Cape Breton', 'Gàidhlig'],
-      cover_url: null,
-      blurb: 'The Cape Breton anchor returns to An Tonn this week with a reissue of her 1997 cult favourite, newly remastered with previously unreleased B-sides.',
-      links: { spotify: 'https://open.spotify.com/artist/4SnyzPCCSm6BJUQc4S8jLR' },
+      id: 'niteworks',
+      title: 'Niteworks',
+      creator: 'Niteworks',
+      year: 2026,
+      tags: ['Electronica', 'Gàidhlig'],
+      cover_url: COVER('Niteworks.png'),
+      blurb: 'Skye electronic group bridging trad samples and contemporary club production. Released their final record in 2023; new project from members imminent.',
+      links: {},
+    },
+    {
+      id: 'runrig',
+      title: 'Runrig',
+      creator: 'Runrig',
+      year: 2026,
+      tags: ['Legacy', 'Skye'],
+      cover_url: COVER('Runrig.png'),
+      blurb: 'The band that proved Gàidhlig songs could fill stadiums. Officially retired since 2018 but their catalogue resurfaces every week somewhere in the diaspora.',
+      links: {},
+    },
+    {
+      id: 'sian',
+      title: 'SIAN',
+      creator: 'SIAN',
+      year: 2026,
+      tags: ['Gàidhlig', 'Trio'],
+      cover_url: COVER('Sian.png'),
+      blurb: 'Three-voice Gàidhlig trio — Eilidh Cormack, Ellen MacDonald, Ceitlin Lilidh Smith. Stripped harmony, unadorned songs.',
+      links: {},
+    },
+    {
+      id: 'skerryvore-beautiful-mistakes',
+      title: 'Beautiful Mistakes',
+      creator: 'Skerryvore',
+      year: 2026,
+      tags: ['Hebridean Rock', 'Tiree'],
+      cover_url: COVER('Skerryvore_Beautiful%20Mistakes_2026.png'),
+      blurb: 'Tiree-rooted eight-piece, new album dropped this month. Title track is the strongest single they\'ve released in five years.',
+      links: {},
+    },
+    {
+      id: 'skipinnish',
+      title: 'Skipinnish',
+      creator: 'Skipinnish',
+      year: 2026,
+      tags: ['Trad', 'Tiree'],
+      cover_url: COVER('Skipinnish.png'),
+      blurb: 'Tiree-based and tireless. Built more ceilidh-floor minutes than any band in the last decade.',
+      links: {},
+    },
+    {
+      id: 'tide-lines',
+      title: 'Tide Lines',
+      creator: 'Tide Lines',
+      year: 2026,
+      tags: ['Highland Pop', 'Mallaig'],
+      cover_url: COVER('Tide_lines.png'),
+      blurb: 'The Mallaig four-piece are festival headliners now. Anthemic Highland-pop that knows exactly what it is and gets better at it every release.',
+      links: { spotify: 'https://open.spotify.com/artist/47WvBuryaMeInhqbcoi0uN', youtube: 'https://www.youtube.com/channel/UCSX39m6HKC8pSzNrUkedNDQ' },
+    },
+    {
+      id: 'trail-west',
+      title: 'Trail West',
+      creator: 'Trail West',
+      year: 2026,
+      tags: ['Trad', 'Tiree'],
+      cover_url: COVER('Trail_West.png'),
+      blurb: 'Tiree connection again — Trail West share the island\'s ceilidh DNA with Skipinnish and Skerryvore. Box-driven, dance-floor-built.',
+      links: {},
+    },
+    {
+      id: 'valtos',
+      title: 'VALTOS',
+      creator: 'VALTOS',
+      year: 2026,
+      tags: ['Trad Electronic', 'Skye'],
+      cover_url: COVER('Valtos.png'),
+      blurb: 'Skye trad-electronic duo. Album drops cycle through Hebridean field recordings, modular synth, fiddle, Gàidhlig vocals.',
+      links: { spotify: 'https://open.spotify.com/artist/2c6jW5KHxnQ4Q4kaSE1LyO', youtube: 'https://www.youtube.com/@valtosband' },
     },
   ],
 
@@ -134,34 +277,54 @@ export const issue = {
 
   podcasts: [
     {
-      id: 'litir-do-luchd-ionnsachaidh',
-      title: 'Litir do Luchd-ionnsachaidh',
+      id: 'barrachd-fiosreachaidh',
+      title: 'Barrachd Fiosreachaidh',
       creator: 'BBC Radio nan Gàidheal',
       year: 2026,
-      tags: ['Weekly', 'Learners'],
-      cover_url: null,
-      blurb: 'The 30-year-old weekly letter to Gàidhlig learners from Ruairidh MacIlleathain. This week: the etymology of Sgithnach (Skye).',
-      links: { listen: 'https://www.bbc.co.uk/programmes/p02pc9pz' },
+      tags: ['Weekly', 'Gàidhlig'],
+      cover_url: POD_COVER('Barrachd%20Fiosreachaidh.png'),
+      blurb: 'Weekly Gàidhlig current-affairs podcast from BBC Radio nan Gàidheal. Half-hour deep dives into one story per episode.',
+      links: { listen: 'https://www.bbc.co.uk/programmes/' },
     },
     {
-      id: 'beag-air-bheag',
-      title: 'Beag air Bheag',
-      creator: 'BBC Radio nan Gàidheal',
+      id: 'big-gaels-dont-cry',
+      title: 'Big Gaels Don\'t Cry',
+      creator: 'Independent',
       year: 2026,
-      tags: ['Weekly', 'Beginners'],
-      cover_url: null,
-      blurb: 'Beginners\' Gàidhlig podcast. New episode covers the conditional mood with examples drawn from this month\'s Sruth.',
-      links: { listen: 'https://www.bbc.co.uk/programmes/b00wfsxz' },
+      tags: ['Diaspora', 'Conversation'],
+      cover_url: POD_COVER('Big%20Gaels%20Don\'t%20Cry.png'),
+      blurb: 'Long-form interview podcast for Gàidhlig learners and speakers in the diaspora. Hosted out of Cape Breton.',
+      links: {},
     },
     {
-      id: 'an-drochaid',
-      title: 'An Drochaid',
-      creator: 'Cape Breton University',
+      id: 'celtic-students-podcast',
+      title: 'The Celtic Students Podcast',
+      creator: 'University of Edinburgh',
       year: 2026,
-      tags: ['Cape Breton', 'Cultural'],
-      cover_url: null,
-      blurb: 'Cape Breton\'s long-running bridge podcast — interviews with diaspora-circuit musicians and tradition bearers.',
-      links: { listen: 'https://www.cbu.ca/an-drochaid' },
+      tags: ['Academic', 'Celtic Studies'],
+      cover_url: POD_COVER('Celtic%20Students%20Podcast.png'),
+      blurb: 'Postgrad-led podcast covering Celtic-language research from the SMO / Edinburgh / Aberystwyth axis. Episodes monthly.',
+      links: {},
+    },
+    {
+      id: 'living-zen-podcast',
+      title: 'Living Zen Podcast',
+      creator: 'Independent',
+      year: 2026,
+      tags: ['Wellness', 'Bilingual'],
+      cover_url: POD_COVER('Living_Zen_Podcast.png'),
+      blurb: 'Bilingual mindfulness and culture podcast — Gàidhlig segments interspersed with English meditations. Weekly.',
+      links: {},
+    },
+    {
+      id: 'michelle-loves-gaidhlig',
+      title: 'Michelle Loves Gàidhlig',
+      creator: 'Michelle NicLeòid',
+      year: 2026,
+      tags: ['Learners', 'Beginner'],
+      cover_url: POD_COVER('Michelle%20Loves%20Gaidhlig.png'),
+      blurb: 'Beginner-friendly Gàidhlig podcast. Single-host conversational episodes about Gàidhlig life, learning, and song.',
+      links: {},
     },
   ],
 
@@ -224,7 +387,7 @@ export const issue = {
   tours: [
     { id: 'tide-lines-tour-2026', artist: 'Tide Lines', dates: 'July 2026', cities: 'Glasgow · Edinburgh · Stornoway · Halifax NS · Boston' },
     { id: 'manran-tour-2026', artist: 'Mànran', dates: 'August 2026', cities: 'Inverness · Skye · Cape Breton · Toronto · NYC' },
-    { id: 'iona-fyfe-tour-2026', artist: 'Iona Fyfe', dates: 'September 2026', cities: 'Aberdeen · Glasgow · Belfast · Dublin' },
+    { id: 'skerryvore-tour-2026', artist: 'Skerryvore', dates: 'September 2026', cities: 'Tiree · Glasgow · Belfast · Halifax · NYC' },
   ],
 }
 
