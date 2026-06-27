@@ -16,12 +16,10 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 
 const ROTATION_PER_PIXEL = 0.005   // horizontal drag → yaw radians (FREE — full 360°)
-const PITCH_PER_PIXEL    = 0.005   // vertical drag → pitch radians
+const PITCH_PER_PIXEL    = 0.005   // vertical drag → pitch radians (FREE — Scott explicitly asked
+                                   // for full 360° spin both axes; trade-off is that past ~90° the
+                                   // world appears upside-down, which is intentional)
 const MOMENTUM_DECAY     = 0.94    // velocity multiplier per frame after release
-// Clamp pitch — past ~60° you can't read tile text anyway and the world
-// goes upside-down. Yaw stays unlimited (true 360° horizontal). This is
-// what the v4 attempt got wrong by letting pitch run free.
-const MAX_PITCH          = 1.05    // ~60° up or down
 
 export function useCylinderControls() {
   const [rotationY, setRotationY] = useState(0)
@@ -37,7 +35,7 @@ export function useCylinderControls() {
     velocityY: 0,
   })
 
-  // Decay both yaw and pitch momentum after release.
+  // Decay both yaw and pitch momentum after release. No clamp.
   useEffect(() => {
     let raf = 0
     const tick = () => {
@@ -48,7 +46,7 @@ export function useCylinderControls() {
           ds.velocityX *= MOMENTUM_DECAY
         }
         if (Math.abs(ds.velocityY) > 0.0001) {
-          setPitch((p) => clamp(p + ds.velocityY, -MAX_PITCH, MAX_PITCH))
+          setPitch((p) => p + ds.velocityY)
           ds.velocityY *= MOMENTUM_DECAY
         }
       }
@@ -88,7 +86,7 @@ export function useCylinderControls() {
     ds.velocityX = deltaYaw
     ds.velocityY = deltaPitch
     setRotationY((r) => r + deltaYaw)
-    setPitch((p) => clamp(p + deltaPitch, -MAX_PITCH, MAX_PITCH))
+    setPitch((p) => p + deltaPitch)
   }, [])
 
   const onPointerUp = useCallback((e) => {
@@ -113,5 +111,3 @@ export function useCylinderControls() {
 
   return { rotationY, pitch, mouseUv, isDragging, bind }
 }
-
-function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)) }

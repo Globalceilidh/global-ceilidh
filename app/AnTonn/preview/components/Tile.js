@@ -1,18 +1,16 @@
 'use client'
 
-// Tile — a single grid cell on the inside of the cylinder.
+// Tile — one cell on the inside of the cylinder. v7 uses the curved
+// geometry passed in from CylinderGallery (both `cellGeom` for the
+// translucent dark background and `imageGeom` for the cover art).
+// Each cell follows the cylinder arc rather than sitting flat, so
+// adjacent cells meet seamlessly and the overall cylinder reads as
+// smooth rather than as an 11-sided polygon.
 //
-// Phantom-style structure (per Scott's spec):
-//   • Cell is a square (CELL_W × CELL_W world units)
-//   • Cells touch their neighbours — no gaps in the grid
-//   • Inside each cell is a centred cover image, ~75% of cell size
-//   • Around the image is a translucent dark "border" so the vortex
-//     shader behind the cylinder glows softly through the negative space
-//   • Thin per-vertical accent line frames the image, so even without
-//     reading text you can tell category at a glance
-//   • No text on the tile itself — the detail panel handles full info
-//     when you tap. (Text at the density of 121 cells is unreadable
-//     anyway; Phantom's tiles don't show metadata either at idle.)
+// Cell background opacity dropped from 0.7 → 0.32 so the vortex glows
+// through softly between images — the cell BG is a wash, not a solid
+// frame. Image is smaller (0.60 of cell) leaving more border for the
+// vortex to show through.
 
 import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
@@ -28,15 +26,15 @@ const VERTICAL_TINT = {
   tours:    '#1F4E6E',
 }
 
-// Cell dimensions are set by CylinderGallery (it knows the grid math).
-// Defaults here are just sane fallbacks if a Tile is rendered standalone.
 export default function Tile({
   item,
   position,
   rotation,
   vertical,
+  cellGeom,
+  imageGeom,
   cellSize = 3.0,
-  imageRatio = 0.78,
+  imageRatio = 0.60,
   onSelect,
   hovered,
   focused,
@@ -59,12 +57,11 @@ export default function Tile({
         setTexture(tex)
       },
       undefined,
-      () => { /* fallback to tint */ },
+      () => {},
     )
     return () => { cancelled = true }
   }, [item?.cover_url])
 
-  // Slight scale-up on hover/focus — enough to read as interactive
   useFrame(() => {
     if (!groupRef.current) return
     const target = (internalHover || hovered || focused) ? 1.04 : 1.0
@@ -78,41 +75,38 @@ export default function Tile({
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
-      {/* Cell background — translucent dark plane filling the whole cell.
-          Cells touch their neighbours, so this creates one continuous
-          dark wallpaper grid across the cylinder interior. The vortex
-          glows through at low opacity. */}
-      <mesh position={[0, 0, -0.01]}>
-        <planeGeometry args={[cellSize, cellSize]} />
+      {/* Cell background — curved plane following the cylinder arc.
+          Very translucent so the vortex glows softly through. Cells
+          overlap their neighbours by ~4% so the dark wash reads as
+          continuous wallpaper with no visible seams. */}
+      <mesh geometry={cellGeom} position={[0, 0, -0.02]}>
         <meshBasicMaterial
-          color="#0a0d14"
+          color="#070b14"
           transparent
-          opacity={dimmed ? 0.50 : 0.70}
+          opacity={dimmed ? 0.22 : 0.32}
           depthWrite={false}
         />
       </mesh>
 
-      {/* Per-vertical accent line — thin border around the image area only.
-          Adds a visible category cue without dominating the tile.
-          Rendered as a slightly larger flat plane behind the image,
-          tinted with the accent colour. */}
-      <mesh position={[0, 0, -0.005]}>
-        <planeGeometry args={[imageSize + 0.08, imageSize + 0.08]} />
+      {/* Per-vertical accent ring — thin coloured plane behind the
+          image, slightly larger than the image so it shows as a
+          border. Curved at image scale. */}
+      <mesh geometry={imageGeom} position={[0, 0, -0.005]} scale={[1.06, 1.06, 1]}>
         <meshBasicMaterial
           color={tint}
           transparent
-          opacity={dimmed ? 0.30 : (internalHover || hovered ? 0.95 : 0.75)}
+          opacity={dimmed ? 0.30 : (internalHover || hovered ? 0.95 : 0.70)}
           depthWrite={false}
         />
       </mesh>
 
-      {/* Image — sits inside the accent frame */}
+      {/* Image — curved plane carrying the cover texture */}
       <mesh
+        geometry={imageGeom}
         onPointerOver={(e) => { e.stopPropagation(); setInternalHover(true); document.body.style.cursor = 'pointer' }}
         onPointerOut={() => { setInternalHover(false); document.body.style.cursor = 'auto' }}
         onClick={(e) => { e.stopPropagation(); onSelect?.(item) }}
       >
-        <planeGeometry args={[imageSize, imageSize]} />
         <meshBasicMaterial
           map={texture}
           color={texture ? '#ffffff' : '#1a1f2a'}
@@ -121,20 +115,16 @@ export default function Tile({
         />
       </mesh>
 
-      {/* Hover title — drifts in above the tile when pointer is over.
-          At 121 cells you can't tell what each item is at a glance; this
-          gives context before commit-to-tap. Rendered as drei <Text>
-          (SDF-based, crisp at any zoom) anchored above the cell. */}
+      {/* Hover title — drifts above the cell so user gets context
+          before committing to tap. drei <Text> = SDF, crisp at zoom. */}
       {(internalHover || hovered || focused) && (
         <>
-          {/* Tiny background slab so the title is readable against the
-              vortex even at low contrast spots */}
-          <mesh position={[0, cellSize * 0.62, 0.04]}>
+          <mesh position={[0, cellSize * 0.50, 0.04]}>
             <planeGeometry args={[cellSize * 1.4, cellSize * 0.20]} />
             <meshBasicMaterial color="#020409" transparent opacity={0.78} depthWrite={false} />
           </mesh>
           <Text
-            position={[0, cellSize * 0.66, 0.05]}
+            position={[0, cellSize * 0.54, 0.05]}
             fontSize={cellSize * 0.10}
             color="#F2ECDC"
             anchorX="center"
@@ -147,7 +137,7 @@ export default function Tile({
             {(item.title || '').toUpperCase()}
           </Text>
           <Text
-            position={[0, cellSize * 0.56, 0.05]}
+            position={[0, cellSize * 0.44, 0.05]}
             fontSize={cellSize * 0.07}
             color={tint}
             anchorX="center"

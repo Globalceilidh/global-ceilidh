@@ -1,45 +1,85 @@
 'use client'
 
 // CylinderGallery — Phantom-style 11×11 grid wallpaper on the inside of
-// a vertical cylinder.
+// a vertical cylinder, with per-tile geometry CURVED to match the
+// cylinder surface (so the overall cylinder reads as smooth, not as
+// an 11-faceted hendecagon).
 //
-// Geometry math:
-//   • COLS columns evenly distributed around the cylinder. Each cell
-//     subtends 360°/COLS of arc. Cell width at radius R is
-//     2 · R · sin(π / COLS).
-//   • Cell height = cell width (square cells), so adjacent rows touch
-//     vertically the same way columns touch horizontally.
-//   • ROWS rows total, vertically centred on Y=0 (so row (ROWS-1)/2
-//     sits at the camera-eye-level row).
-//
-// Content distribution:
-//   The 5 verticals (music/books/podcasts/film/radio) have wildly
-//   uneven content counts in a real week (Music ~20, Books ~5,
-//   Podcasts ~5, Film ~3, Radio ~2). We build one flat list of real
-//   items, then pad to ROWS × COLS with duplicates from the largest
-//   pool (typically music). Tiles keep their source vertical's colour
-//   regardless of position, so the grid is colour-coded by category
-//   even though categories are scattered rather than rowed.
-//
-//   Distribution within the grid uses a deterministic round-robin so
-//   re-renders are stable (no shuffling between frames).
+// Each cell mesh is a subdivided plane whose vertices are warped so the
+// plane follows an arc of the cylinder. Adjacent cells meet seamlessly
+// along their shared edge — no flat-face seams, no visible polygon
+// joints. Geometry is built once at module load and shared across all
+// 121 cells (instances, not instances-of-instances, so it's cheap).
 
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
+import * as THREE from 'three'
 import Tile from './Tile'
 
-const RADIUS = 6.0          // distance from camera at origin to cell surface
-const COLS = 11             // horizontal cells around the circumference
-const ROWS = 11             // vertical cells (most off-screen at idle, pan to see)
-const IMAGE_RATIO = 0.78    // image plane size as fraction of cell size
+const RADIUS = 6.0
+const COLS = 11
+const ROWS = 11
+const IMAGE_RATIO = 0.60        // image plane size as fraction of cell — smaller = more border
+const CELL_OVERLAP = 1.04       // cell BG extends 4% beyond touching edge so cells visibly join
+const CURVE_SUBDIVISIONS = 16   // horizontal subdivisions per cell — enough for smooth arc at 11 cols
 
-// Derived constants
-const CELL_W = 2 * RADIUS * Math.sin(Math.PI / COLS)  // ≈ 1.69 at R=6
+const CELL_W = 2 * RADIUS * Math.sin(Math.PI / COLS)
 const CELL_H = CELL_W
-const ROW_Y_OFFSET = (ROWS - 1) / 2                    // centres the grid on Y=0
+const ROW_Y_OFFSET = (ROWS - 1) / 2
+const CELL_ANGLE = (Math.PI * 2) / COLS
 
-// Build one big flat list of real items across every vertical. Each
-// item carries its origin vertical so the renderer can colour-code.
+// Pre-built curved cell geometry, shared across all 121 cells. Vertices
+// in the horizontal direction are pushed back along Z so the plane traces
+// an arc on the cylinder. Z=0 at cell center, Z=-bulge at cell edges,
+// where bulge = R - R·cos(half-cell-angle).
+function buildCurvedCellGeometry() {
+  // Slightly oversized so adjacent cells overlap by CELL_OVERLAP and
+  // there's no gap between neighbouring BG planes.
+  const w = CELL_W * CELL_OVERLAP
+  const h = CELL_H * CELL_OVERLAP
+  const g = new THREE.PlaneGeometry(w, h, CURVE_SUBDIVISIONS, 1)
+  const pos = g.attributes.position
+  for (let i = 0; i < pos.count; i++) {
+    const lx = pos.getX(i)
+    // Each vertex's angle relative to the cell's center, on the cylinder.
+    // The cell's "tangent" axis is local +X. lx / RADIUS gives the angle
+    // subtended from the cell centre to this vertex (small-angle approx).
+    const subAngle = lx / RADIUS
+    // Push the vertex back (away from camera at origin) by however much
+    // the cylinder surface deviates from the flat tangent at that angle.
+    // Negative Z = away from the camera at the cylinder centre.
+    const zShift = -(RADIUS - RADIUS * Math.cos(subAngle))
+    pos.setZ(i, zShift)
+  }
+  pos.needsUpdate = true
+  g.computeVertexNormals()
+  return g
+}
+
+const CURVED_CELL_GEOM = buildCurvedCellGeometry()
+
+// A smaller curved geom for the image plane — same arc-on-cylinder math
+// but at imageRatio scale. Built independently so the image's curve
+// depth is correct for its actual width rather than scaled from the
+// larger cell geom.
+function buildImageGeometry() {
+  const w = CELL_W * IMAGE_RATIO
+  const h = CELL_H * IMAGE_RATIO
+  const g = new THREE.PlaneGeometry(w, h, CURVE_SUBDIVISIONS, 1)
+  const pos = g.attributes.position
+  for (let i = 0; i < pos.count; i++) {
+    const lx = pos.getX(i)
+    const subAngle = lx / RADIUS
+    const zShift = -(RADIUS - RADIUS * Math.cos(subAngle))
+    pos.setZ(i, zShift)
+  }
+  pos.needsUpdate = true
+  g.computeVertexNormals()
+  return g
+}
+
+const CURVED_IMAGE_GEOM = buildImageGeometry()
+
 function buildItemList(issue) {
   if (!issue) return []
   const verticals = ['music', 'books', 'podcasts', 'film', 'radio']
@@ -52,10 +92,6 @@ function buildItemList(issue) {
   return items
 }
 
-// Pad the item list to TARGET_COUNT by cycling through the largest pool
-// (typically music). Each filler keeps its source vertical's colour so
-// the grid still looks colour-coded by category, just with more of the
-// abundant category.
 function padItems(items, issue, targetCount) {
   if (items.length >= targetCount) return items.slice(0, targetCount)
   const sizes = ['music', 'books', 'podcasts', 'film', 'radio']
@@ -83,7 +119,6 @@ function padItems(items, issue, targetCount) {
 export default function CylinderGallery({ issue, focusedId, onTileSelect, rotation = 0 }) {
   const groupRef = useRef(null)
 
-  // Smooth rotation toward externally driven yaw target
   useFrame(() => {
     if (!groupRef.current) return
     groupRef.current.rotation.y += (rotation - groupRef.current.rotation.y) * 0.12
@@ -92,7 +127,7 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
   const cells = useMemo(() => {
     const realItems = buildItemList(issue)
     if (realItems.length === 0) return []
-    const targetCount = ROWS * COLS  // 121 with COLS=ROWS=11
+    const targetCount = ROWS * COLS
     const allItems = padItems(realItems, issue, targetCount)
 
     const cells = []
@@ -102,15 +137,10 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
         const item = allItems[idx]
         if (!item) continue
 
-        // Horizontal: even angular distribution around the cylinder
         const angle = (col / COLS) * Math.PI * 2
         const x = Math.sin(angle) * RADIUS
         const z = Math.cos(angle) * RADIUS
-
-        // Vertical: row 0 at top, row (ROWS-1) at bottom
-        const y = (ROW_Y_OFFSET - row) * CELL_H
-
-        // Yaw so the tile's +Z normal points inward toward (0,0,0)
+        const y = (ROW_Y_OFFSET - row) * CELL_H * CELL_OVERLAP
         const yaw = angle + Math.PI
 
         cells.push({
@@ -137,6 +167,8 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
           vertical={vertical}
           position={position}
           rotation={rotation}
+          cellGeom={CURVED_CELL_GEOM}
+          imageGeom={CURVED_IMAGE_GEOM}
           cellSize={CELL_W}
           imageRatio={IMAGE_RATIO}
           focused={focusedId === item.id}
