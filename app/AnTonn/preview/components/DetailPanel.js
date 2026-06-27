@@ -70,12 +70,43 @@ export default function DetailPanel({ tile, vertical, onClose }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
-          maxWidth: 720, width: '100%',
-          maxHeight: '85vh', overflow: 'auto',
-          padding: '48px 44px',
+          maxWidth: 920, width: '100%',
+          maxHeight: '88vh', overflow: 'auto',
+          padding: '40px 44px',
           color: '#F2ECDC',
+          display: 'grid',
+          gridTemplateColumns: tile.cover_url ? 'minmax(220px, 320px) 1fr' : '1fr',
+          gap: 36,
+          alignItems: 'start',
         }}
       >
+        {/* Cover art — only renders if a cover_url is set. Square crop
+            with the same per-vertical accent frame as the cylinder tile,
+            so the panel feels like a continuous zoom-in from the tap. */}
+        {tile.cover_url && (
+          <div style={{
+            ...stagger(0),
+            position: 'relative',
+            aspectRatio: '1 / 1',
+            background: '#0a0d14',
+            border: `2px solid ${accent}`,
+            borderRadius: 4,
+            overflow: 'hidden',
+            boxShadow: `0 10px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(${hexToRgb(accent)}, 0.15)`,
+          }}>
+            <img
+              src={tile.cover_url}
+              alt={tile.title}
+              style={{
+                width: '100%', height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          </div>
+        )}
+
+        <div>
         {/* Tag strip */}
         <div style={{
           ...stagger(0),
@@ -191,6 +222,8 @@ export default function DetailPanel({ tile, vertical, onClose }) {
           color: 'rgba(242, 236, 220, 0.4)',
         }}>
           AN TONN · {(vertical || '').toUpperCase()} · curated this week
+        </div>
+        </div>{/* end right column */}
         </div>
       </div>
     </div>
