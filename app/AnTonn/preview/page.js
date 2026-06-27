@@ -1,22 +1,12 @@
-// /AnTonn/preview — list view only (Three.js cylinder disabled).
+// /AnTonn/preview — the cylinder prototype landing page (restored).
 //
-// 2026-06-27: the cylinder was crashing browsers on first load — most
-// likely a fragment-shader compatibility issue on certain GPU/driver
-// combinations (Chrome's "this page couldn't load" tab-crash error,
-// which the React error boundary can't catch because the crash is in
-// the GPU process, not the JS process).
-//
-// To get the URL working RIGHT NOW we render the list view directly as
-// a Server Component — no Three.js, no WebGL, no shader compilation,
-// no client-side hydration risk. Same Week 2 data, same brand language,
-// scrollable cards per vertical, fully accessible. Loads instantly.
-//
-// The Three.js cylinder code stays in the repo (CylinderClient,
-// VortexBackground, etc.) and will come back once we've isolated the
-// shader crash on a fresh branch and confirmed it works on the target
-// devices. For Phase 0 review, list view is the prototype.
+// PreviewShell handles WebGL detection + error boundary internally, so
+// if anything in the Three.js path fails it falls back to ListView
+// client-side rather than showing "this page couldn't load." The
+// previous Server Component static page is no longer rendered here —
+// see git history if a pure-HTML fallback is ever needed again.
 
-import StaticListView from './StaticListView'
+import PreviewShell from './PreviewShell'
 
 export const metadata = {
   title: 'An Tonn · Prototype',
@@ -25,5 +15,5 @@ export const metadata = {
 }
 
 export default function AnTonnPreview() {
-  return <StaticListView />
+  return <PreviewShell />
 }
