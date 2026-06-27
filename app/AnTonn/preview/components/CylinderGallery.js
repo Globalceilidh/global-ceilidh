@@ -1,33 +1,46 @@
 'use client'
 
-// CylinderGallery — v8 architecture.
+// SphereGallery — v9. Replaces the cylinder entirely with a true closed
+// sphere. The user stands inside a complete dome with no openings; tiles
+// are arrayed on the inside surface in an 11×11 lat-long grid.
 //
-// Backdrop: one big CylinderGeometry mesh renders the dark translucent
-// wall behind every tile. Because it's a single continuous cylinder
-// (32 radial segments, smooth shading) there are zero seams between
-// columns — adjacent tiles share the same wall surface, no visible
-// boundary, no double-blending where two BG planes used to overlap.
+// Why this finally fixes the "hexagonal" / "flat tiles on a wall" feel:
 //
-// Per-tile content: each cell is a Tile group that holds only the
-// image + per-vertical accent frame + four corner Gàidhlig labels.
-// No background plane per tile (the cylinder mesh handles that), so
-// there's nothing for adjacent tiles' edges to collide against.
+//   1. The backdrop wall is a single closed SphereGeometry rendered from
+//      the inside (BackSide). No facets, no seams, no openings — you
+//      can no longer see "out" the top or bottom because there's no
+//      top or bottom hole. Smooth curvature everywhere.
+//
+//   2. Each tile is a sphere SEGMENT (a small region of a sphere of
+//      slightly smaller radius) instead of a flat plane. The image
+//      texture maps to the segment's UVs, so the image itself genuinely
+//      curves with the sphere — no more "paintings on a wall." Adjacent
+//      segments share the same sphere surface, so tiles flow into each
+//      other along their boundaries.
+//
+//   3. Camera FOV is bumped to 110° in CylinderClient. Combined with
+//      the curved geometry, tiles at the edges of the viewport visibly
+//      stretch outward (gyrosphere / fisheye effect).
+//
+// Grid layout: 11 longitudes × 11 latitudes, with the latitude range
+// pulled in from the poles by 0.2 rad so the cells near the very top
+// and bottom don't collapse into points.
 
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import Tile from './Tile'
+import SphereTile from './SphereTile'
 
 const RADIUS = 6.0
 const COLS = 11
 const ROWS = 11
-const IMAGE_RATIO = 0.60
-const RADIAL_SEGMENTS = 64       // higher = smoother cylinder curve, no visible flats
+const POLE_INSET = 0.2                          // rad — keep tiles off the very poles
+const IMAGE_FRAC = 0.62                          // image segment as fraction of cell angular span
+const ACCENT_FRAC = 0.66                         // accent ring slightly larger than image
 
-const CELL_W = 2 * RADIUS * Math.sin(Math.PI / COLS)
-const CELL_H = CELL_W
-const ROW_Y_OFFSET = (ROWS - 1) / 2
-const CYLINDER_HEIGHT = ROWS * CELL_H
+const PHI_SPAN = (2 * Math.PI) / COLS            // longitude angle per cell
+const THETA_RANGE = Math.PI - 2 * POLE_INSET     // total latitude angle used
+const THETA_SPAN = THETA_RANGE / ROWS            // latitude angle per cell
 
 function buildItemList(issue) {
   if (!issue) return []
@@ -86,21 +99,18 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
         const item = allItems[idx]
         if (!item) continue
 
-        const angle = (col / COLS) * Math.PI * 2
-        const x = Math.sin(angle) * RADIUS * 0.985  // pull tile content slightly inward
-                                                     // off the cylinder wall so they sit
-                                                     // ON the wall, not embedded in it
-        const z = Math.cos(angle) * RADIUS * 0.985
-        const y = (ROW_Y_OFFSET - row) * CELL_H
-        const yaw = angle + Math.PI
+        const phiCenter = (col / COLS) * Math.PI * 2
+        // Three.js sphere theta: 0 at top, PI at bottom. We want our row
+        // 0 at top, row (ROWS-1) at bottom, with POLE_INSET buffer.
+        const thetaCenter = POLE_INSET + ((row + 0.5) / ROWS) * THETA_RANGE
 
         cells.push({
           key: `${row}-${col}-${item.id}`,
           item,
           vertical: item._vertical,
           isFiller: item._isFiller,
-          position: [x, y, z],
-          rotation: [0, yaw, 0],
+          phiCenter,
+          thetaCenter,
         })
       }
     }
@@ -111,10 +121,12 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
 
   return (
     <group ref={groupRef}>
-      {/* The wall — single continuous cylinder, rendered from the inside
-          via side=BackSide. Zero seams across columns. */}
+      {/* The wall — single closed sphere, rendered from the inside via
+          side=BackSide. Dark and translucent so the vortex glows
+          through. Closed = no holes at top/bottom that the user can
+          "see out" through. */}
       <mesh>
-        <cylinderGeometry args={[RADIUS, RADIUS, CYLINDER_HEIGHT, RADIAL_SEGMENTS, 1, true]} />
+        <sphereGeometry args={[RADIUS, 64, 48]} />
         <meshBasicMaterial
           color="#070b14"
           transparent
@@ -124,16 +136,19 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
         />
       </mesh>
 
-      {/* Per-tile content on top of the wall */}
-      {cells.map(({ key, item, vertical, isFiller, position, rotation }) => (
-        <Tile
+      {/* Per-tile content — sphere segments + corner labels */}
+      {cells.map(({ key, item, vertical, isFiller, phiCenter, thetaCenter }) => (
+        <SphereTile
           key={key}
           item={item}
           vertical={vertical}
-          position={position}
-          rotation={rotation}
-          cellSize={CELL_W}
-          imageRatio={IMAGE_RATIO}
+          phiCenter={phiCenter}
+          thetaCenter={thetaCenter}
+          phiSpan={PHI_SPAN}
+          thetaSpan={THETA_SPAN}
+          imageFrac={IMAGE_FRAC}
+          accentFrac={ACCENT_FRAC}
+          radius={RADIUS}
           focused={focusedId === item.id}
           dimmed={isFiller}
           onSelect={onTileSelect}

@@ -158,14 +158,14 @@ export default function CylinderClient() {
         </div>
       </div>
 
-      {/* The Canvas — FOV bumped to 95° so tiles at the edge of view
+      {/* The Canvas — FOV bumped to 110° so tiles at the edges of view
           genuinely stretch outward like inside a wide-angle bubble.
-          This is what gives the gyrosphere/fisheye feel; combined with
-          the smooth CylinderGeometry wall in CylinderGallery, the
-          polygon look the previous version had is gone. */}
+          Combined with the closed SphereGeometry wall in
+          (cylinder)Gallery, the polygon facets are gone and the
+          gyrosphere fisheye distortion is pronounced. */}
       <Canvas
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
-        camera={{ position: [0, 0, 0.01], fov: 95, near: 0.01, far: 100 }}
+        camera={{ position: [0, 0, 0.01], fov: 110, near: 0.01, far: 100 }}
         style={{ position: 'absolute', inset: 0 }}
       >
         <VortexBackground
