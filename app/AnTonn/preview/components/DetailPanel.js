@@ -224,9 +224,8 @@ export default function DetailPanel({ tile, vertical, onClose }) {
           AN TONN · {(vertical || '').toUpperCase()} · curated this week
         </div>
         </div>{/* end right column */}
-        </div>
-      </div>
-    </div>
+      </div>{/* end grid container */}
+    </div>{/* end overlay */}
   )
 }
 
