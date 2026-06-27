@@ -1,16 +1,18 @@
 'use client'
 
-// Tile — one cell on the inside of the cylinder. v7 uses the curved
-// geometry passed in from CylinderGallery (both `cellGeom` for the
-// translucent dark background and `imageGeom` for the cover art).
-// Each cell follows the cylinder arc rather than sitting flat, so
-// adjacent cells meet seamlessly and the overall cylinder reads as
-// smooth rather than as an 11-sided polygon.
+// Tile — v8. One cell on the cylinder wall. No background plane any more
+// (the parent CylinderGallery's single cylinder mesh handles that).
+// Just the per-vertical accent frame, the image, and four persistent
+// corner labels in Gàidhlig.
 //
-// Cell background opacity dropped from 0.7 → 0.32 so the vortex glows
-// through softly between images — the cell BG is a wash, not a solid
-// frame. Image is smaller (0.60 of cell) leaving more border for the
-// vortex to show through.
+// Corner label layout:
+//   top-left      category Gàidhlig word (CEÒL/LEABHAR/PODCAST/BHIDEO/RÈIDIO)
+//   top-right     creator (artist/author/host/director/station)
+//   bottom-left   title (song name / book title / podcast name / film name)
+//   bottom-right  album (music only — blank for other verticals)
+//
+// All labels render in white at ~6% of cell size — small enough that
+// 121 tiles' worth of labels don't overwhelm the wallpaper effect.
 
 import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
@@ -26,14 +28,30 @@ const VERTICAL_TINT = {
   tours:    '#1F4E6E',
 }
 
+// Gàidhlig category labels — top-left corner of every tile
+const VERTICAL_LABEL_GD = {
+  music:    'CEÒL',
+  books:    'LEABHAR',
+  podcasts: 'PODCAST',
+  film:     'BHIDEO',
+  radio:    'RÈIDIO',
+  tours:    'CUAIRT',
+}
+
+// Bottom-right secondary field per vertical
+function secondaryField(item, vertical) {
+  if (vertical === 'music')    return item.album || ''
+  if (vertical === 'film')     return item.year ? String(item.year) : ''
+  if (vertical === 'podcasts') return item.year ? String(item.year) : ''
+  return ''
+}
+
 export default function Tile({
   item,
   position,
   rotation,
   vertical,
-  cellGeom,
-  imageGeom,
-  cellSize = 3.0,
+  cellSize = 1.7,
   imageRatio = 0.60,
   onSelect,
   hovered,
@@ -72,84 +90,106 @@ export default function Tile({
 
   const tint = VERTICAL_TINT[vertical] || '#888'
   const imageSize = cellSize * imageRatio
+  const labelSize = cellSize * 0.06
+  const labelInset = cellSize * 0.44
+
+  // Per-vertical content for the corner labels
+  const tlLabel = VERTICAL_LABEL_GD[vertical] || ''
+  const trLabel = (item.creator || '').toUpperCase()
+  const blLabel = (item.title || '').toUpperCase()
+  const brLabel = secondaryField(item, vertical).toUpperCase()
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
-      {/* Cell background — curved plane following the cylinder arc.
-          Very translucent so the vortex glows softly through. Cells
-          overlap their neighbours by ~4% so the dark wash reads as
-          continuous wallpaper with no visible seams. */}
-      <mesh geometry={cellGeom} position={[0, 0, -0.02]}>
-        <meshBasicMaterial
-          color="#070b14"
-          transparent
-          opacity={dimmed ? 0.22 : 0.32}
-          depthWrite={false}
-        />
-      </mesh>
-
-      {/* Per-vertical accent ring — thin coloured plane behind the
-          image, slightly larger than the image so it shows as a
-          border. Curved at image scale. */}
-      <mesh geometry={imageGeom} position={[0, 0, -0.005]} scale={[1.06, 1.06, 1]}>
+      {/* Per-vertical accent ring — thin plane behind the image */}
+      <mesh position={[0, 0, 0.001]} scale={[1.06, 1.06, 1]}>
+        <planeGeometry args={[imageSize, imageSize]} />
         <meshBasicMaterial
           color={tint}
           transparent
-          opacity={dimmed ? 0.30 : (internalHover || hovered ? 0.95 : 0.70)}
+          opacity={dimmed ? 0.32 : (internalHover || hovered ? 0.95 : 0.72)}
           depthWrite={false}
         />
       </mesh>
 
-      {/* Image — curved plane carrying the cover texture */}
+      {/* Image — flat plane carrying the cover texture */}
       <mesh
-        geometry={imageGeom}
+        position={[0, 0, 0.005]}
         onPointerOver={(e) => { e.stopPropagation(); setInternalHover(true); document.body.style.cursor = 'pointer' }}
         onPointerOut={() => { setInternalHover(false); document.body.style.cursor = 'auto' }}
         onClick={(e) => { e.stopPropagation(); onSelect?.(item) }}
       >
+        <planeGeometry args={[imageSize, imageSize]} />
         <meshBasicMaterial
           map={texture}
           color={texture ? '#ffffff' : '#1a1f2a'}
           transparent
-          opacity={dimmed ? 0.70 : 1.0}
+          opacity={dimmed ? 0.78 : 1.0}
         />
       </mesh>
 
-      {/* Hover title — drifts above the cell so user gets context
-          before committing to tap. drei <Text> = SDF, crisp at zoom. */}
-      {(internalHover || hovered || focused) && (
-        <>
-          <mesh position={[0, cellSize * 0.50, 0.04]}>
-            <planeGeometry args={[cellSize * 1.4, cellSize * 0.20]} />
-            <meshBasicMaterial color="#020409" transparent opacity={0.78} depthWrite={false} />
-          </mesh>
-          <Text
-            position={[0, cellSize * 0.54, 0.05]}
-            fontSize={cellSize * 0.10}
-            color="#F2ECDC"
-            anchorX="center"
-            anchorY="middle"
-            maxWidth={cellSize * 1.3}
-            outlineColor="#000"
-            outlineWidth={0.005}
-            textAlign="center"
-          >
-            {(item.title || '').toUpperCase()}
-          </Text>
-          <Text
-            position={[0, cellSize * 0.44, 0.05]}
-            fontSize={cellSize * 0.07}
-            color={tint}
-            anchorX="center"
-            anchorY="middle"
-            maxWidth={cellSize * 1.3}
-            outlineColor="#000"
-            outlineWidth={0.003}
-            textAlign="center"
-          >
-            {item.creator || ''}
-          </Text>
-        </>
+      {/* Top-left: Gàidhlig category */}
+      <Text
+        position={[-labelInset, labelInset, 0.01]}
+        fontSize={labelSize}
+        color="#F2ECDC"
+        anchorX="left"
+        anchorY="top"
+        outlineColor="#000"
+        outlineWidth={0.003}
+        fillOpacity={dimmed ? 0.55 : 0.92}
+      >
+        {tlLabel}
+      </Text>
+
+      {/* Top-right: creator/artist/author */}
+      <Text
+        position={[labelInset, labelInset, 0.01]}
+        fontSize={labelSize}
+        color="#F2ECDC"
+        anchorX="right"
+        anchorY="top"
+        maxWidth={cellSize * 0.55}
+        outlineColor="#000"
+        outlineWidth={0.003}
+        fillOpacity={dimmed ? 0.55 : 0.92}
+        textAlign="right"
+      >
+        {trLabel}
+      </Text>
+
+      {/* Bottom-left: title/song name */}
+      <Text
+        position={[-labelInset, -labelInset, 0.01]}
+        fontSize={labelSize}
+        color="#F2ECDC"
+        anchorX="left"
+        anchorY="bottom"
+        maxWidth={cellSize * 0.55}
+        outlineColor="#000"
+        outlineWidth={0.003}
+        fillOpacity={dimmed ? 0.55 : 0.92}
+        textAlign="left"
+      >
+        {blLabel}
+      </Text>
+
+      {/* Bottom-right: album / year / blank */}
+      {brLabel && (
+        <Text
+          position={[labelInset, -labelInset, 0.01]}
+          fontSize={labelSize}
+          color="#F2ECDC"
+          anchorX="right"
+          anchorY="bottom"
+          maxWidth={cellSize * 0.55}
+          outlineColor="#000"
+          outlineWidth={0.003}
+          fillOpacity={dimmed ? 0.55 : 0.85}
+          textAlign="right"
+        >
+          {brLabel}
+        </Text>
       )}
     </group>
   )
