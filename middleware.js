@@ -68,6 +68,17 @@ export default clerkMiddleware((auth, request) => {
   // Bearer token from the client.
   if (isPublic(pathname)) return NextResponse.next();
 
+  // Vercel preview deployments: skip the cookie gate. Vercel's
+  // Deployment Protection (Vercel Authentication: Standard) wraps every
+  // preview URL in an SSO redirect, and that flow strips the ?key=
+  // query string when it bounces back — so users following any
+  // preview-deployment link with ?key=6776 never actually get the
+  // gc_access cookie set, and bounce to "/" forever. On *.vercel.app
+  // hosts the Vercel Auth gate IS the security; the cookie gate is
+  // redundant and harmful. Production (globalceilidh.com) unaffected.
+  const host = request.nextUrl.hostname;
+  if (host.endsWith('.vercel.app')) return NextResponse.next();
+
   // Check cookie for access to the real site
   const cookie = request.cookies.get(COOKIE_NAME);
   if (cookie?.value === GC_KEY) return NextResponse.next();
