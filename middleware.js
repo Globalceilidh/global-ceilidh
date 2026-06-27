@@ -36,9 +36,21 @@ function isPublic(pathname) {
 export default clerkMiddleware((auth, request) => {
   const { pathname, searchParams } = request.nextUrl;
 
-  // If key is in the URL, set the cookie and redirect (stripping the key param)
+  // If key is in the URL, set the cookie and redirect to the originally
+  // requested path (defaulting to /home if the request was for the root).
+  // Other query params survive so utm tags or anchors aren't dropped on
+  // the way through the gate. Cookie gets set so future requests don't
+  // need the ?key= dance.
+  //
+  // Previously this always redirected to /home regardless of where you
+  // came from, which meant /AnTonn?key=6776 unlocked the gate but landed
+  // you on /home — forcing a second click to actually reach /AnTonn.
   if (searchParams.get("key") === GC_KEY) {
-    const dest = new URL('/home', request.url);
+    const targetPath = pathname === '/' ? '/home' : pathname;
+    const dest = new URL(targetPath, request.url);
+    for (const [k, v] of searchParams.entries()) {
+      if (k !== 'key') dest.searchParams.set(k, v);
+    }
     const response = NextResponse.redirect(dest);
     response.cookies.set(COOKIE_NAME, GC_KEY, {
       httpOnly: true,
