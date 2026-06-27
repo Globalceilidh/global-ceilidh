@@ -1,19 +1,18 @@
 'use client'
 
-// Thin client wrapper. Owns three responsibilities:
-//   1. Detect WebGL support synchronously on mount. If unavailable
-//      (Norton TLS interception of script loads, broken GPU, browser
-//      flag disabling hw-accel, etc.) the cylinder will never render,
-//      so we bypass it entirely and show the list view directly.
+// Thin client wrapper. Three responsibilities:
+//   1. WebGL feature detection on mount. If unavailable (Norton TLS
+//      blocking, broken GPU, browser flag disabling hw-accel) the
+//      cylinder will never render, so we render the list view instead.
 //   2. Wrap the cylinder in an error boundary so any runtime crash
-//      (shader compile failure, Three.js init error, anything) falls
-//      back to the list view rather than blanking the page.
+//      (shader compile failure, Three.js init, anything) falls back
+//      to the list view rather than blanking the page.
 //   3. Own the dynamic import of CylinderClient with ssr:false (Next.js
 //      16 disallows this pattern in Server Components).
 //
-// Net effect: the URL ALWAYS shows something useful. WebGL on = cylinder.
-// WebGL off / errored = same data in a scrollable list. No more "this
-// page couldn't load" silent failures.
+// First-paint experience uses /AnTonn/cover.png (the existing
+// AnTonn magazine cover) so users see Sruth-branded imagery during the
+// ~300-500ms WebGL initialise window rather than a generic dark gradient.
 
 import { useEffect, useState, Component } from 'react'
 import dynamic from 'next/dynamic'
@@ -26,18 +25,14 @@ const CylinderClient = dynamic(() => import('./CylinderClient'), {
 })
 
 export default function PreviewShell() {
-  const [webglSupported, setWebglSupported] = useState(null)  // null = still checking
-  const [forceList, setForceList] = useState(false)            // user toggle
-  const [errored, setErrored] = useState(false)                // boundary tripped
+  const [webglSupported, setWebglSupported] = useState(null)
+  const [forceList, setForceList] = useState(false)
+  const [errored, setErrored] = useState(false)
 
   useEffect(() => {
     setWebglSupported(detectWebGL())
   }, [])
 
-  // Decision tree:
-  //   - still detecting → static cover
-  //   - WebGL absent OR user toggled OR boundary errored → list view
-  //   - otherwise → cylinder, wrapped in error boundary
   if (webglSupported === null) return <StaticCoverLoading />
 
   if (!webglSupported || forceList || errored) {
@@ -64,16 +59,12 @@ export default function PreviewShell() {
   )
 }
 
-// ── WebGL detection ────────────────────────────────────────────────────
-
 function detectWebGL() {
   if (typeof window === 'undefined') return false
   try {
     const canvas = document.createElement('canvas')
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
     if (!gl) return false
-    // Probe for fragment shader compile capability — some "supports WebGL"
-    // browsers still fail on custom shaders due to driver bugs.
     const shader = gl.createShader(gl.FRAGMENT_SHADER)
     gl.shaderSource(shader, 'void main() { gl_FragColor = vec4(1.0); }')
     gl.compileShader(shader)
@@ -85,11 +76,7 @@ function detectWebGL() {
   }
 }
 
-// ── ListView wrapper with "Try immersive" affordance ──────────────────
-
 function ListViewWithImmersiveOffer({ issue, immersiveAvailable, onTryImmersive }) {
-  // Stub onClose — when only list view is reachable, the close button
-  // is hidden; when immersive is reachable, it lets the user switch.
   return (
     <>
       {immersiveAvailable && (
@@ -114,13 +101,11 @@ function ListViewWithImmersiveOffer({ issue, immersiveAvailable, onTryImmersive 
       <ListView
         issue={issue}
         onClose={immersiveAvailable ? onTryImmersive : () => {}}
-        onTileSelect={() => { /* Detail panel handled inside ListView in v3 — for now just no-op */ }}
+        onTileSelect={() => {}}
       />
     </>
   )
 }
-
-// ── Error boundary ─────────────────────────────────────────────────────
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -131,30 +116,88 @@ class ErrorBoundary extends Component {
     return { hasError: true }
   }
   componentDidCatch(error, info) {
-    // Console for diagnostic; parent flips state to render list view next.
     console.error('[AnTonn cylinder error boundary]', error, info)
     this.props.onError?.(error)
   }
   render() {
-    // If we caught, render nothing — the parent will re-render with the
-    // list-view path on the next tick (via the onError callback).
     if (this.state.hasError) return null
     return this.props.children
   }
 }
 
-// ── First-paint cover ─────────────────────────────────────────────────
-
+// First-paint cover: the existing AnTonn magazine cover artwork as a
+// full-bleed background with the AN TONN wordmark + tagline layered on
+// top. Replaces what used to be a plain dark radial gradient — gives
+// users something Sruth-branded to look at during the ~300-500ms
+// before the WebGL bundle loads and the shader compiles.
 function StaticCoverLoading() {
   return (
     <div style={{
       position: 'fixed', inset: 0,
-      background: 'radial-gradient(ellipse at center, #0a1a2a 0%, #020409 80%)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#C9A047', fontFamily: 'Cinzel, Georgia, serif',
-      letterSpacing: 6, fontSize: 18,
+      background: '#020409',
+      overflow: 'hidden',
     }}>
-      AN TONN
+      {/* Wave-imagery hero from /AnTonn/cover.png */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: 'url(/AnTonn/cover.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        opacity: 0.55,
+      }} />
+      {/* Dark gradient overlay so text reads against any cover content */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'radial-gradient(ellipse at center, rgba(2,4,9,0.4) 0%, rgba(2,4,9,0.85) 80%)',
+      }} />
+      {/* Centred wordmark */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        color: '#F2ECDC',
+        textAlign: 'center',
+        padding: 24,
+      }}>
+        <div style={{
+          fontFamily: '"IBM Plex Mono", Menlo, monospace',
+          fontSize: 11, letterSpacing: 4, color: '#C9A047',
+          marginBottom: 16,
+        }}>
+          ● AN TONN
+        </div>
+        <div style={{
+          fontFamily: 'Cinzel, Georgia, serif',
+          fontSize: 'clamp(40px, 6vw, 64px)',
+          fontWeight: 600, letterSpacing: 6,
+          marginBottom: 12,
+        }}>
+          AN TONN
+        </div>
+        <div style={{
+          fontFamily: 'EB Garamond, Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: 'clamp(14px, 1.8vw, 18px)',
+          color: 'rgba(242, 236, 220, 0.7)',
+          maxWidth: 480, lineHeight: 1.5,
+        }}>
+          The chronicle of the Gàidhlig current — coming through the wave…
+        </div>
+        {/* Subtle pulse dot */}
+        <div style={{
+          marginTop: 32,
+          width: 8, height: 8, borderRadius: '50%',
+          background: '#C9A047',
+          opacity: 0.8,
+          animation: 'antonn-pulse 1.4s ease-in-out infinite',
+        }} />
+        <style>{`
+          @keyframes antonn-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.85); }
+            50%     { opacity: 1.0; transform: scale(1.15); }
+          }
+        `}</style>
+      </div>
     </div>
   )
 }

@@ -17,6 +17,7 @@
 import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
+import { Text } from '@react-three/drei'
 
 const VERTICAL_TINT = {
   music:    '#C9A047',
@@ -119,6 +120,47 @@ export default function Tile({
           opacity={dimmed ? 0.70 : 1.0}
         />
       </mesh>
+
+      {/* Hover title — drifts in above the tile when pointer is over.
+          At 121 cells you can't tell what each item is at a glance; this
+          gives context before commit-to-tap. Rendered as drei <Text>
+          (SDF-based, crisp at any zoom) anchored above the cell. */}
+      {(internalHover || hovered || focused) && (
+        <>
+          {/* Tiny background slab so the title is readable against the
+              vortex even at low contrast spots */}
+          <mesh position={[0, cellSize * 0.62, 0.04]}>
+            <planeGeometry args={[cellSize * 1.4, cellSize * 0.20]} />
+            <meshBasicMaterial color="#020409" transparent opacity={0.78} depthWrite={false} />
+          </mesh>
+          <Text
+            position={[0, cellSize * 0.66, 0.05]}
+            fontSize={cellSize * 0.10}
+            color="#F2ECDC"
+            anchorX="center"
+            anchorY="middle"
+            maxWidth={cellSize * 1.3}
+            outlineColor="#000"
+            outlineWidth={0.005}
+            textAlign="center"
+          >
+            {(item.title || '').toUpperCase()}
+          </Text>
+          <Text
+            position={[0, cellSize * 0.56, 0.05]}
+            fontSize={cellSize * 0.07}
+            color={tint}
+            anchorX="center"
+            anchorY="middle"
+            maxWidth={cellSize * 1.3}
+            outlineColor="#000"
+            outlineWidth={0.003}
+            textAlign="center"
+          >
+            {item.creator || ''}
+          </Text>
+        </>
+      )}
     </group>
   )
 }
