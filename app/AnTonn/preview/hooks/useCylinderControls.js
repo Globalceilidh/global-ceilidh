@@ -1,41 +1,53 @@
 'use client'
 
 // Drag-to-rotate interaction for the cylinder gallery. Captures mouse and
-// touch input on a wrapper element, translates X movement into Y-axis
-// rotation, decays momentum to a stop. Also reports normalised mouse
-// position for the vortex shader (which subtly tracks the cursor).
+// touch input on a wrapper element. Horizontal drag rotates the cylinder
+// around its Y axis; vertical drag pitches the camera up/down so the
+// viewer can look at upper/lower rows of tiles. Both decay with momentum
+// after release so the scene coasts instead of freezing mid-drag.
 //
 // Returns:
-//   rotation     — current cylinder Y rotation in radians (drives gallery)
-//   mouseUv      — { x, y } in 0..1 (drives vortex shader's mouse uniform)
-//   bind         — props to spread onto the wrapper div
-//   isDragging   — boolean for cursor + UI affordances
+//   rotationY   — cylinder Y rotation in radians (yaw, drives gallery group)
+//   pitch       — camera X rotation in radians, clamped to ±MAX_PITCH
+//   mouseUv     — { x, y } in 0..1 (drives vortex shader's mouse uniform)
+//   bind        — props to spread onto the wrapper div
+//   isDragging  — boolean for cursor + UI affordances
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 
-const ROTATION_PER_PIXEL = 0.005   // how fast a drag rotates the cylinder
-const MOMENTUM_DECAY = 0.94        // velocity multiplier per frame after release
+const ROTATION_PER_PIXEL = 0.005   // horizontal drag → yaw radians
+const PITCH_PER_PIXEL    = 0.004   // vertical drag → pitch radians
+const MOMENTUM_DECAY     = 0.94    // velocity multiplier per frame after release
+const MAX_PITCH          = 0.7     // ~40°, enough to peek at top/bottom rows without going over the top
 
 export function useCylinderControls() {
-  const [rotation, setRotation] = useState(0)
+  const [rotationY, setRotationY] = useState(0)
+  const [pitch, setPitch] = useState(0)
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 })
   const [isDragging, setIsDragging] = useState(false)
 
   const dragStateRef = useRef({
     active: false,
     lastX: 0,
-    velocity: 0,
+    lastY: 0,
+    velocityX: 0,
+    velocityY: 0,
   })
 
-  // Decay momentum after release so the cylinder coasts to a stop rather
-  // than freezing mid-drag.
+  // Decay both yaw and pitch momentum after release.
   useEffect(() => {
     let raf = 0
     const tick = () => {
       const ds = dragStateRef.current
-      if (!ds.active && Math.abs(ds.velocity) > 0.0001) {
-        setRotation((r) => r + ds.velocity)
-        ds.velocity *= MOMENTUM_DECAY
+      if (!ds.active) {
+        if (Math.abs(ds.velocityX) > 0.0001) {
+          setRotationY((r) => r + ds.velocityX)
+          ds.velocityX *= MOMENTUM_DECAY
+        }
+        if (Math.abs(ds.velocityY) > 0.0001) {
+          setPitch((p) => clamp(p + ds.velocityY, -MAX_PITCH, MAX_PITCH))
+          ds.velocityY *= MOMENTUM_DECAY
+        }
       }
       raf = requestAnimationFrame(tick)
     }
@@ -47,9 +59,10 @@ export function useCylinderControls() {
     const ds = dragStateRef.current
     ds.active = true
     ds.lastX = e.clientX
-    ds.velocity = 0
+    ds.lastY = e.clientY
+    ds.velocityX = 0
+    ds.velocityY = 0
     setIsDragging(true)
-    // Capture so we keep getting events even if pointer leaves the element
     e.currentTarget.setPointerCapture?.(e.pointerId)
   }, [])
 
@@ -57,17 +70,22 @@ export function useCylinderControls() {
     const rect = e.currentTarget.getBoundingClientRect()
     setMouseUv({
       x: (e.clientX - rect.left) / rect.width,
-      // Y inverted to match shader expectation (top = 1, bottom = 0)
       y: 1 - (e.clientY - rect.top) / rect.height,
     })
 
     const ds = dragStateRef.current
     if (!ds.active) return
     const dx = e.clientX - ds.lastX
+    const dy = e.clientY - ds.lastY
     ds.lastX = e.clientX
-    const delta = -dx * ROTATION_PER_PIXEL  // negative so left-drag turns left
-    ds.velocity = delta
-    setRotation((r) => r + delta)
+    ds.lastY = e.clientY
+
+    const deltaYaw = -dx * ROTATION_PER_PIXEL  // left-drag turns left
+    const deltaPitch = -dy * PITCH_PER_PIXEL    // drag down → look down (negative pitch)
+    ds.velocityX = deltaYaw
+    ds.velocityY = deltaPitch
+    setRotationY((r) => r + deltaYaw)
+    setPitch((p) => clamp(p + deltaPitch, -MAX_PITCH, MAX_PITCH))
   }, [])
 
   const onPointerUp = useCallback((e) => {
@@ -82,9 +100,7 @@ export function useCylinderControls() {
     onPointerMove,
     onPointerUp,
     onPointerCancel: onPointerUp,
-    onPointerLeave: (e) => {
-      // Don't end the drag on leave — we have pointer capture. But do clear
-      // the mouse-tracking uv when not dragging so the shader settles.
+    onPointerLeave: () => {
       if (!dragStateRef.current.active) {
         setMouseUv({ x: 0.5, y: 0.5 })
       }
@@ -92,5 +108,7 @@ export function useCylinderControls() {
     style: { touchAction: 'none', cursor: isDragging ? 'grabbing' : 'grab' },
   }
 
-  return { rotation, mouseUv, isDragging, bind }
+  return { rotationY, pitch, mouseUv, isDragging, bind }
 }
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)) }

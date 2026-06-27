@@ -8,8 +8,8 @@
 // button all wired up. Filter selections dim non-matching tiles in the
 // cylinder; the vortex compresses when any overlay is open.
 
-import { useState, useEffect, useMemo } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import VortexBackground from './components/VortexBackground'
 import CylinderGallery from './components/CylinderGallery'
 import DetailPanel from './components/DetailPanel'
@@ -19,10 +19,21 @@ import { ListView, SEOMirror } from './components/ListView'
 import { useCylinderControls } from './hooks/useCylinderControls'
 import { issue as week2 } from './data/week-2026-06-23'
 
+// Small Three.js controller — pitches the camera up/down based on the
+// `pitch` prop driven by vertical drag in useCylinderControls. Lerped
+// for smoothness so the camera coasts after a flick instead of snapping.
+function CameraPitch({ pitch }) {
+  const { camera } = useThree()
+  useFrame(() => {
+    camera.rotation.x += (pitch - camera.rotation.x) * 0.12
+  })
+  return null
+}
+
 const EMPTY_FILTERS = () => Object.fromEntries(FILTER_GROUPS.map((g) => [g.id, new Set()]))
 
 export default function CylinderClient() {
-  const { rotation, mouseUv, isDragging, bind } = useCylinderControls()
+  const { rotationY, pitch, mouseUv, isDragging, bind } = useCylinderControls()
   const [focusedTile, setFocusedTile] = useState(null)
   const [focusedVertical, setFocusedVertical] = useState(null)
   const [airOpen, setAirOpen] = useState(false)
@@ -158,9 +169,10 @@ export default function CylinderClient() {
           mouseUv={mouseUv}
           paused={docHidden || reduceMotion}
         />
+        <CameraPitch pitch={pitch} />
         <CylinderGallery
           issue={filteredIssue}
-          rotation={rotation}
+          rotation={rotationY}
           focusedId={focusedTile?.id}
           onTileSelect={(item) => {
             // Look up which vertical contains this item so the panel
@@ -222,7 +234,7 @@ export default function CylinderClient() {
       {/* Help text — temporary while interactions are still being added */}
       {!anyOverlayOpen && (
         <div style={helpStyle}>
-          Drag to rotate · Tap a tile · v2 prototype
+          Drag horizontally to rotate · Drag vertically to look up/down · Move mouse to pull the wave
         </div>
       )}
 
