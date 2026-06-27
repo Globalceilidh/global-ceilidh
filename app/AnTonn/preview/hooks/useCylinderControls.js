@@ -16,9 +16,11 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 
 const ROTATION_PER_PIXEL = 0.005   // horizontal drag → yaw radians
-const PITCH_PER_PIXEL    = 0.004   // vertical drag → pitch radians
+const PITCH_PER_PIXEL    = 0.005   // vertical drag → pitch radians (was 0.004 — bumped a touch)
 const MOMENTUM_DECAY     = 0.94    // velocity multiplier per frame after release
-const MAX_PITCH          = 0.7     // ~40°, enough to peek at top/bottom rows without going over the top
+// No clamp on pitch — Scott explicitly wants full 360° vertical, same as
+// horizontal. Camera flips upside-down past ±90° which is intentional;
+// the marble-inside feel is the goal.
 
 export function useCylinderControls() {
   const [rotationY, setRotationY] = useState(0)
@@ -34,7 +36,8 @@ export function useCylinderControls() {
     velocityY: 0,
   })
 
-  // Decay both yaw and pitch momentum after release.
+  // Decay both yaw and pitch momentum after release. No clamp on pitch —
+  // full freedom to spin all the way around vertically.
   useEffect(() => {
     let raf = 0
     const tick = () => {
@@ -45,7 +48,7 @@ export function useCylinderControls() {
           ds.velocityX *= MOMENTUM_DECAY
         }
         if (Math.abs(ds.velocityY) > 0.0001) {
-          setPitch((p) => clamp(p + ds.velocityY, -MAX_PITCH, MAX_PITCH))
+          setPitch((p) => p + ds.velocityY)
           ds.velocityY *= MOMENTUM_DECAY
         }
       }
@@ -85,7 +88,7 @@ export function useCylinderControls() {
     ds.velocityX = deltaYaw
     ds.velocityY = deltaPitch
     setRotationY((r) => r + deltaYaw)
-    setPitch((p) => clamp(p + deltaPitch, -MAX_PITCH, MAX_PITCH))
+    setPitch((p) => p + deltaPitch)
   }, [])
 
   const onPointerUp = useCallback((e) => {
@@ -110,5 +113,3 @@ export function useCylinderControls() {
 
   return { rotationY, pitch, mouseUv, isDragging, bind }
 }
-
-function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)) }

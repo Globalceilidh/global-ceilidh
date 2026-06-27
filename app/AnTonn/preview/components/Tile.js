@@ -13,8 +13,8 @@ import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useFrame, useLoader } from '@react-three/fiber'
 
-const TILE_W = 2.4
-const TILE_H = 1.6
+const TILE_W = 3.2
+const TILE_H = 2.1
 
 // Per-vertical accent colour — used as the tile's tint when no cover image
 // is supplied, and as the underline / tag glow when one is. Mirrors the
@@ -28,7 +28,7 @@ const VERTICAL_TINT = {
   tours:    '#1F4E6E',  // sea blue (marquee)
 }
 
-export default function Tile({ item, position, rotation, vertical, onSelect, hovered, focused }) {
+export default function Tile({ item, position, rotation, vertical, onSelect, hovered, focused, dimmed = false }) {
   const groupRef = useRef(null)
   const [internalHover, setInternalHover] = useState(false)
 
@@ -67,6 +67,17 @@ export default function Tile({ item, position, rotation, vertical, onSelect, hov
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
+      {/* Tile background — colored "frame" slightly larger than the cover
+          so the per-vertical accent shows as a thick border */}
+      <mesh position={[0, 0, -0.005]}>
+        <planeGeometry args={[TILE_W + 0.18, TILE_H * 0.78 + 0.18]} />
+        <meshBasicMaterial
+          color={tint}
+          transparent
+          opacity={dimmed ? 0.35 : (internalHover || hovered ? 0.95 : 0.78)}
+        />
+      </mesh>
+
       {/* Cover plane */}
       <mesh
         onPointerOver={(e) => { e.stopPropagation(); setInternalHover(true); document.body.style.cursor = 'pointer' }}
@@ -76,9 +87,9 @@ export default function Tile({ item, position, rotation, vertical, onSelect, hov
         <planeGeometry args={[TILE_W, TILE_H * 0.78]} />
         <meshBasicMaterial
           map={texture}
-          color={texture ? '#ffffff' : tint}
+          color={texture ? '#ffffff' : '#0a0d14'}
           transparent
-          opacity={internalHover || hovered ? 1.0 : 0.92}
+          opacity={dimmed ? 0.4 : (internalHover || hovered ? 1.0 : 0.92)}
         />
       </mesh>
 

@@ -11,7 +11,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import VortexBackground from './components/VortexBackground'
-import CylinderGallery from './components/CylinderGallery'
+import SphereGallery from './components/SphereGallery'
 import DetailPanel from './components/DetailPanel'
 import AirAnTonnOverlay from './components/AirAnTonnOverlay'
 import FilterPanel, { FILTER_GROUPS } from './components/FilterPanel'
@@ -170,7 +170,7 @@ export default function CylinderClient() {
           paused={docHidden || reduceMotion}
         />
         <CameraPitch pitch={pitch} />
-        <CylinderGallery
+        <SphereGallery
           issue={filteredIssue}
           rotation={rotationY}
           focusedId={focusedTile?.id}
