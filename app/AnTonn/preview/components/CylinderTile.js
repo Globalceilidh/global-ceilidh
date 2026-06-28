@@ -102,11 +102,19 @@ export default function SphereTileSegment({
     meshRef.current.scale.z = meshRef.current.scale.x
   })
 
-  // Sphere segment for the image. Fills almost the whole cell (98% of
-  // span on both axes) so cells abut with no visible gap. UVs flipped
-  // horizontally so BackSide rendering doesn't mirror the texture.
+  // Sphere segment for the image. 92% fill leaves an 8% translucent
+  // border where the vortex shows through.
+  //
+  // CRITICAL UV FIX: Three.js generates SphereGeometry UVs based on
+  // the FULL sphere's UV layout — so a segment covering 1/11 of phi
+  // gets UVs in roughly [0, 0.09]. With the texture mapped that way,
+  // each tile would sample only the rightmost 9% of the image, which
+  // for most album covers reads as near-white-uniform.
+  //
+  // Fix: rescale each segment's UVs to span the full [0,1] × [0,1]
+  // range. THEN flip U for BackSide rendering.
   const imageGeom = useMemo(() => {
-    const fill = 0.98
+    const fill = 0.92
     const imgPhi = phiSpan * fill
     const imgTheta = thetaSpan * fill
     const g = new THREE.SphereGeometry(
@@ -116,7 +124,22 @@ export default function SphereTileSegment({
       thetaCenter - imgTheta / 2, imgTheta,
     )
     const uv = g.attributes.uv
-    for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i))
+    let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity
+    for (let i = 0; i < uv.count; i++) {
+      const u = uv.getX(i), v = uv.getY(i)
+      if (u < uMin) uMin = u
+      if (u > uMax) uMax = u
+      if (v < vMin) vMin = v
+      if (v > vMax) vMax = v
+    }
+    const uRange = (uMax - uMin) || 1
+    const vRange = (vMax - vMin) || 1
+    for (let i = 0; i < uv.count; i++) {
+      const u = (uv.getX(i) - uMin) / uRange
+      const v = (uv.getY(i) - vMin) / vRange
+      uv.setX(i, 1 - u)   // flip horizontally for BackSide
+      uv.setY(i, v)
+    }
     uv.needsUpdate = true
     return g
   }, [phiCenter, thetaCenter, phiSpan, thetaSpan, radius])
@@ -126,19 +149,22 @@ export default function SphereTileSegment({
   const blLabel = (item.title || '').toUpperCase()
   const brLabel = secondaryField(item, vertical).toUpperCase()
 
-  // Corner positions on the sphere, slightly inside the surface so
-  // they sit just in front of the image rather than co-planar with it.
+  // Two labels per tile, both well inside the tile boundary so they
+  // never collide with adjacent tiles' labels at the grid vertices.
+  //   • Top-left: category (CEÒL or PODCAST)
+  //   • Bottom-left: title
+  // The previous 4-corner layout meant 4 labels converged at every
+  // grid intersection — unreadable.
   const cornerR = radius * 0.99
-  const phiInset = phiSpan * 0.40
-  const thetaInset = thetaSpan * 0.40
+  const phiInset = phiSpan * 0.32
+  const thetaInset = thetaSpan * 0.32
   const tlPos = sphericalToCartesian(cornerR, phiCenter - phiInset, thetaCenter - thetaInset)
-  const trPos = sphericalToCartesian(cornerR, phiCenter + phiInset, thetaCenter - thetaInset)
   const blPos = sphericalToCartesian(cornerR, phiCenter - phiInset, thetaCenter + thetaInset)
-  const brPos = sphericalToCartesian(cornerR, phiCenter + phiInset, thetaCenter + thetaInset)
 
-  // Font size scaled with cell size so labels remain ~1/4 of a cell width.
+  // Font size scaled with cell size so labels remain readable but
+  // small (~6% of the cell width).
   const cellArcAtMidRow = phiSpan * Math.sin(thetaCenter) * radius
-  const fontSize = Math.max(0.04, cellArcAtMidRow * 0.06)
+  const fontSize = Math.max(0.045, cellArcAtMidRow * 0.07)
 
   return (
     <group>
@@ -156,12 +182,8 @@ export default function SphereTileSegment({
         />
       </mesh>
 
-      <SphereLabel position={tlPos} text={tlLabel} fontSize={fontSize} color="#F2ECDC" anchorX="left"  anchorY="top" />
-      <SphereLabel position={trPos} text={trLabel} fontSize={fontSize} color="#F2ECDC" anchorX="right" anchorY="top" />
-      <SphereLabel position={blPos} text={blLabel} fontSize={fontSize} color="#F2ECDC" anchorX="left"  anchorY="bottom" />
-      {brLabel && (
-        <SphereLabel position={brPos} text={brLabel} fontSize={fontSize} color="#F2ECDC" anchorX="right" anchorY="bottom" />
-      )}
+      <SphereLabel position={tlPos} text={tlLabel} fontSize={fontSize * 0.85} color="#F2ECDC" anchorX="left" anchorY="top" />
+      <SphereLabel position={blPos} text={blLabel} fontSize={fontSize}        color="#F2ECDC" anchorX="left" anchorY="bottom" />
     </group>
   )
 }
