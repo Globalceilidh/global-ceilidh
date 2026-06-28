@@ -27,9 +27,11 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 
-// IBM Plex Mono Medium, served from jsDelivr's GitHub CDN. Drei <Text>
-// uses Troika under the hood which accepts WOFF directly.
-const FONT_URL = 'https://cdn.jsdelivr.net/gh/IBM/plex@master/IBM-Plex-Mono/fonts/complete/woff/IBMPlexMono-Medium.woff'
+// IBM Plex Mono Medium, served from /public/fonts. Local-only because
+// (a) we hit Norton TLS interception fetching from CDNs on dev
+// machines, and (b) same-origin loads are immune to that whole class
+// of problem in production too.
+const FONT_URL = '/fonts/IBMPlexMono-Medium.woff'
 
 const TYPE_LABEL = {
   music: 'CEÒL',
