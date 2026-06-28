@@ -1,71 +1,78 @@
 'use client'
 
-// SphereTileSegment — v16. Donut-band wallpaper, not a full sphere.
+// CylinderCell — v17. One cell on the inside of a vertical cylinder.
 //
-// Each cell is a sphere segment (we keep the spherical curvature for the
-// natural perspective stretch) but the gallery only places cells in a
-// narrow latitudinal band around the equator — no polar convergence.
+// Geometry: a CylinderGeometry segment covering this cell's phi range
+// and y range, rendered BackSide so the texture faces the camera at
+// origin. Image fills 2/3 of the cell (centred), the surrounding 1/3
+// is transparent — that's where the vortex shader bleeds through.
 //
-// No perimeter line. The image fills ~85% of the cell so the remaining
-// ~15% gap reads as a dark slot around each tile, with the vortex
-// shader bleeding through. Hover dims neighbours / scales focused cell.
+// Four corner labels:
+//   TL  Type      ("CEÒL" / "PODCAST")
+//   TR  Creator
+//   BL  Title     (shrinks then truncates if too long)
+//   BR  Release date
 //
-// Four corner labels: top-left is the cover filename (truncated); the
-// other three are placeholder words matching the phantom.land reference
-// for visual layout sanity.
+// Font + color match the "ISSUE Nº" line on the AnTonn page header:
+// IBM Plex Mono Medium, #F2ECDC at 0.6 fill opacity, letter-spaced.
+//
+// Vertical wrap: baseY is the cell's "home" Y position on the wall.
+// Each frame we read the shared smoothed yOffset from a ref, wrap the
+// offset position modulo TOTAL_HEIGHT, and write to this group's
+// position.y. When the wall scrolls past TOTAL_HEIGHT/2, the cell
+// teleports to the opposite side so the wall looks infinite.
 
 import { useRef, useState, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 
-// Three.js sphere convention: phi is longitude (XZ plane), theta is from
-// +Y down to -Y. Returns the Cartesian point on a sphere of given radius.
-function sphericalToCartesian(R, phi, theta) {
-  const sinT = Math.sin(theta)
-  return new THREE.Vector3(
-    R * sinT * Math.sin(phi),
-    R * Math.cos(theta),
-    R * sinT * Math.cos(phi),
-  )
+// IBM Plex Mono Medium, served from jsDelivr's GitHub CDN. Drei <Text>
+// uses Troika under the hood which accepts WOFF directly.
+const FONT_URL = 'https://cdn.jsdelivr.net/gh/IBM/plex@master/IBM-Plex-Mono/fonts/complete/woff/IBMPlexMono-Medium.woff'
+
+const TYPE_LABEL = {
+  music: 'CEÒL',
+  podcasts: 'PODCAST',
 }
 
-// Derive the corner label from the cover_url filename. Strips extension,
-// underscores → spaces, uppercases, truncates to one line.
-function fileLabel(coverUrl) {
-  if (!coverUrl) return ''
-  const f = coverUrl.split('/').pop() || ''
-  const decoded = decodeURIComponent(f).replace(/\.[a-z0-9]+$/i, '')
-  return decoded.replace(/_/g, ' ').toUpperCase().slice(0, 20)
+// Cylinder convention (matches Three.js CylinderGeometry):
+//   theta=0 → +Z; theta=π/2 → +X
+function cylinderPoint(R, phi, y) {
+  return new THREE.Vector3(R * Math.sin(phi), y, R * Math.cos(phi))
 }
 
-// Placeholder labels for the other three corners — wording matched to
-// the phantom.land reference until real metadata fields are wired up.
-const PLACEHOLDER_TR = 'EXPERIENCE'
-const PLACEHOLDER_BL = 'TOOL'
-const PLACEHOLDER_BR = '2026'
+// Title length → shrink, then truncate. Up to 14 chars → full size;
+// 15–22 chars → shrink to fit; longer → truncate with ellipsis.
+function fitLabel(text, baseSize) {
+  if (!text) return { text: '', size: baseSize }
+  const full = 14
+  const max = 22
+  if (text.length <= full) return { text, size: baseSize }
+  if (text.length <= max) return { text, size: baseSize * (full / text.length) }
+  return { text: text.slice(0, max - 1) + '…', size: baseSize * (full / max) }
+}
 
-// A small label positioned on the sphere surface, oriented to face the
-// camera at origin. Drei <Text> is double-sided so a single lookAt(0)
-// puts the readable face toward the centre.
-function SphereLabel({ position, text, fontSize, anchorX, anchorY }) {
+function CornerLabel({ position, text, size, anchorX, anchorY }) {
   const ref = useRef(null)
   useEffect(() => {
     if (!ref.current) return
     ref.current.position.set(position.x, position.y, position.z)
     ref.current.lookAt(0, 0, 0)
   }, [position.x, position.y, position.z])
+  if (!text) return null
   return (
     <group ref={ref}>
       <Text
-        fontSize={fontSize}
+        font={FONT_URL}
+        fontSize={size}
         color="#F2ECDC"
         anchorX={anchorX}
         anchorY={anchorY}
         outlineColor="#000"
-        outlineWidth={fontSize * 0.06}
-        fillOpacity={0.92}
-        letterSpacing={0.08}
+        outlineWidth={size * 0.06}
+        fillOpacity={0.6}
+        letterSpacing={0.12}
       >
         {text}
       </Text>
@@ -73,18 +80,20 @@ function SphereLabel({ position, text, fontSize, anchorX, anchorY }) {
   )
 }
 
-export default function SphereTileSegment({
+export default function CylinderCell({
   item,
   vertical,
   radius,
   phiCenter,
-  thetaCenter,
   phiSpan,
-  thetaSpan,
+  baseY,
+  ySpan,
+  totalHeight,
+  smoothedYRef,
   onSelect,
-  hovered,
   focused,
 }) {
+  const groupRef = useRef(null)
   const meshRef = useRef(null)
   const [internalHover, setInternalHover] = useState(false)
   const [texture, setTexture] = useState(null)
@@ -94,32 +103,29 @@ export default function SphereTileSegment({
     let cancelled = false
     const loader = new THREE.TextureLoader()
     loader.setCrossOrigin('anonymous')
-    loader.load(
-      item.cover_url,
-      (tex) => {
-        if (cancelled) return
-        tex.colorSpace = THREE.SRGBColorSpace
-        setTexture(tex)
-      },
-      undefined,
-      () => {},
-    )
+    loader.load(item.cover_url, (tex) => {
+      if (cancelled) return
+      tex.colorSpace = THREE.SRGBColorSpace
+      setTexture(tex)
+    }, undefined, () => {})
     return () => { cancelled = true }
   }, [item?.cover_url])
 
-  // Image segment — 85% fill so the surrounding 15% gap reads as a clean
-  // slot around each cell with the vortex shader bleeding through. UV
-  // rescale + flip for BackSide reads the texture right-way-round.
+  // Image patch — cylinder segment at 2/3 the cell's phi-and-y extent.
+  // CylinderGeometry centers along Y at zero; the parent group's
+  // position.y places it correctly on the wall.
   const imageGeom = useMemo(() => {
-    const fill = 0.85
+    const fill = 2 / 3
     const imgPhi = phiSpan * fill
-    const imgTheta = thetaSpan * fill
-    const g = new THREE.SphereGeometry(
-      radius * 0.996,
-      12, 8,
+    const imgY = ySpan * fill
+    const g = new THREE.CylinderGeometry(
+      radius * 0.998, radius * 0.998,
+      imgY,
+      14, 1, true,
       phiCenter - imgPhi / 2, imgPhi,
-      thetaCenter - imgTheta / 2, imgTheta,
     )
+    // Rescale UVs to [0,1] × [0,1] across this patch, then flip U for
+    // BackSide rendering so the cover reads non-mirrored.
     const uv = g.attributes.uv
     let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity
     for (let i = 0; i < uv.count; i++) {
@@ -137,13 +143,18 @@ export default function SphereTileSegment({
     }
     uv.needsUpdate = true
     return g
-  }, [phiCenter, thetaCenter, phiSpan, thetaSpan, radius])
+  }, [phiCenter, phiSpan, ySpan, radius])
 
-  const hot = internalHover || hovered || focused
-
-  // Hover: tiny scale-up on the image. No border / glow to animate.
+  // Per-frame: wrap this cell's Y so the wall scrolls infinitely.
   useFrame(() => {
+    if (!groupRef.current) return
+    const yo = smoothedYRef?.current ?? 0
+    const raw = baseY + yo
+    const wrapped = ((raw % totalHeight) + totalHeight) % totalHeight
+    groupRef.current.position.y = wrapped > totalHeight / 2 ? wrapped - totalHeight : wrapped
+
     if (meshRef.current) {
+      const hot = internalHover || focused
       const target = hot ? 1.02 : 1.0
       meshRef.current.scale.x += (target - meshRef.current.scale.x) * 0.18
       meshRef.current.scale.y = meshRef.current.scale.x
@@ -151,27 +162,36 @@ export default function SphereTileSegment({
     }
   })
 
-  // Corner positions — pulled deep into the cell so neighboring tiles'
-  // labels can't collide at the seams. 0.30 = label sits 30% from the
-  // center along each axis, well clear of the 50%-from-center cell edge.
-  const cornerR = radius * 0.99
-  const phiInset = phiSpan * 0.30
-  const thetaInset = thetaSpan * 0.30
-  const tlPos = sphericalToCartesian(cornerR, phiCenter - phiInset, thetaCenter - thetaInset)
-  const trPos = sphericalToCartesian(cornerR, phiCenter + phiInset, thetaCenter - thetaInset)
-  const blPos = sphericalToCartesian(cornerR, phiCenter - phiInset, thetaCenter + thetaInset)
-  const brPos = sphericalToCartesian(cornerR, phiCenter + phiInset, thetaCenter + thetaInset)
+  // Corner positions — inside the cell area, in the transparent margin
+  // around the image. 0.38 = label sits ~38% from cell center along
+  // each axis (image is 33% from center → labels just outside the image
+  // edge but inside the cell edge).
+  const cornerR = radius * 0.992
+  const phiInset = phiSpan * 0.38
+  const yInset = ySpan * 0.38
+  const tlPos = cylinderPoint(cornerR, phiCenter - phiInset,  yInset)
+  const trPos = cylinderPoint(cornerR, phiCenter + phiInset,  yInset)
+  const blPos = cylinderPoint(cornerR, phiCenter - phiInset, -yInset)
+  const brPos = cylinderPoint(cornerR, phiCenter + phiInset, -yInset)
 
-  // Much smaller labels than v15 so they don't dominate the cell and so
-  // four-corner layout has room to breathe.
-  const cellArc = phiSpan * Math.sin(thetaCenter) * radius
-  const fontSize = Math.max(0.028, cellArc * 0.032)
+  // Base font size scales with cell arc width so labels feel consistent
+  // across the wall. Tuned roughly to match the AnTonn 10px "ISSUE Nº"
+  // header treatment at the cell center.
+  const arc = phiSpan * radius
+  const baseSize = arc * 0.045
 
-  const tlText = fileLabel(item?.cover_url)
+  const tlText = TYPE_LABEL[vertical] || ''
+  const trText = (item.creator || '').toUpperCase()
+  const blText = (item.title || '').toUpperCase()
+  const brText = item.year ? String(item.year) : ''
+
+  const tlFit = { text: tlText, size: baseSize }
+  const trFit = fitLabel(trText, baseSize)
+  const blFit = fitLabel(blText, baseSize)
+  const brFit = { text: brText, size: baseSize }
 
   return (
-    <group>
-      {/* Image — sphere segment with the cover texture, BackSide */}
+    <group ref={groupRef}>
       <mesh
         ref={meshRef}
         geometry={imageGeom}
@@ -186,13 +206,10 @@ export default function SphereTileSegment({
         />
       </mesh>
 
-      {/* Corner labels */}
-      {tlText && (
-        <SphereLabel position={tlPos} text={tlText}            fontSize={fontSize}        anchorX="left"  anchorY="top" />
-      )}
-      <SphereLabel   position={trPos} text={PLACEHOLDER_TR}    fontSize={fontSize * 0.85} anchorX="right" anchorY="top" />
-      <SphereLabel   position={blPos} text={PLACEHOLDER_BL}    fontSize={fontSize * 0.85} anchorX="left"  anchorY="bottom" />
-      <SphereLabel   position={brPos} text={PLACEHOLDER_BR}    fontSize={fontSize * 0.85} anchorX="right" anchorY="bottom" />
+      <CornerLabel position={tlPos} text={tlFit.text} size={tlFit.size} anchorX="left"  anchorY="top" />
+      <CornerLabel position={trPos} text={trFit.text} size={trFit.size} anchorX="right" anchorY="top" />
+      <CornerLabel position={blPos} text={blFit.text} size={blFit.size} anchorX="left"  anchorY="bottom" />
+      <CornerLabel position={brPos} text={brFit.text} size={brFit.size} anchorX="right" anchorY="bottom" />
     </group>
   )
 }

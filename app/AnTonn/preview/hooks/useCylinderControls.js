@@ -1,31 +1,27 @@
 'use client'
 
-// Drag-to-rotate interaction for the cylinder gallery. Captures mouse and
-// touch input on a wrapper element. Horizontal drag rotates the cylinder
-// around its Y axis; vertical drag pitches the camera up/down so the
-// viewer can look at upper/lower rows of tiles. Both decay with momentum
-// after release so the scene coasts instead of freezing mid-drag.
+// Camera is locked. Only the wall moves.
 //
-// Returns:
-//   rotationY   — cylinder Y rotation in radians (yaw, drives gallery group)
-//   pitch       — camera X rotation in radians, clamped to ±MAX_PITCH
-//   mouseUv     — { x, y } in 0..1 (drives vortex shader's mouse uniform)
-//   bind        — props to spread onto the wrapper div
-//   isDragging  — boolean for cursor + UI affordances
+// Click + drag in any direction translates the wall: horizontal drag
+// rotates the cylinder around its Y axis (yaw → rotationY), vertical
+// drag slides the wall up/down the cylinder axis (yOffset). Both axes
+// have natural inertia decay after release; both wrap (rotation via
+// the cylinder's natural 2π wrap, yOffset via per-cell modulo in the
+// gallery).
+//
+// `mouseUv` tracks the bare cursor position for the vortex shader so the
+// background reacts to hover without click.
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 
-const ROTATION_PER_PIXEL = 0.005   // horizontal drag → yaw radians (FREE — full 360°)
-const PITCH_PER_PIXEL    = 0.005   // vertical drag → pitch radians
-const MOMENTUM_DECAY     = 0.94    // velocity multiplier per frame after release
-// Sphere: pitch clamp generous because there are no caps, just polar
-// thin bands beyond the tile rings. Past ~70° tiles get upside-down.
-const MAX_PITCH = 1.25             // ~72°
+const ROTATION_PER_PIXEL = 0.005
+const Y_PER_PIXEL        = 0.018
+const MOMENTUM_DECAY     = 0.94
 
 export function useCylinderControls() {
   const [rotationY, setRotationY] = useState(0)
-  const [pitch, setPitch] = useState(0)
-  const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 })
+  const [yOffset, setYOffset]     = useState(0)
+  const [mouseUv, setMouseUv]     = useState({ x: 0.5, y: 0.5 })
   const [isDragging, setIsDragging] = useState(false)
 
   const dragStateRef = useRef({
@@ -36,8 +32,6 @@ export function useCylinderControls() {
     velocityY: 0,
   })
 
-  // Decay both yaw and pitch momentum after release. Pitch is clamped
-  // so tiles never flip upside-down.
   useEffect(() => {
     let raf = 0
     const tick = () => {
@@ -48,7 +42,7 @@ export function useCylinderControls() {
           ds.velocityX *= MOMENTUM_DECAY
         }
         if (Math.abs(ds.velocityY) > 0.0001) {
-          setPitch((p) => clamp(p + ds.velocityY, -MAX_PITCH, MAX_PITCH))
+          setYOffset((y) => y + ds.velocityY)
           ds.velocityY *= MOMENTUM_DECAY
         }
       }
@@ -79,15 +73,20 @@ export function useCylinderControls() {
     const ds = dragStateRef.current
     if (!ds.active) return
     const dx = e.clientX - ds.lastX
+    const dy = e.clientY - ds.lastY
     ds.lastX = e.clientX
     ds.lastY = e.clientY
 
-    // Camera is locked to the horizon — only horizontal drag does work.
-    // Vertical drag is intentionally ignored (no pitch, no gyroscope).
+    // Drag right → wall moves right (rotation around +Y negative because
+    // of the cylinder convention; matches earlier behaviour).
     const deltaYaw = -dx * ROTATION_PER_PIXEL
+    // Drag down → wall moves down (yOffset positive shifts cells +Y,
+    // which is "up" in world; so we negate dy to make down feel right).
+    const deltaY   = -dy * Y_PER_PIXEL
     ds.velocityX = deltaYaw
-    ds.velocityY = 0
+    ds.velocityY = deltaY
     setRotationY((r) => r + deltaYaw)
+    setYOffset((y) => y + deltaY)
   }, [])
 
   const onPointerUp = useCallback((e) => {
@@ -110,7 +109,7 @@ export function useCylinderControls() {
     style: { touchAction: 'none', cursor: isDragging ? 'grabbing' : 'grab' },
   }
 
-  return { rotationY, pitch, mouseUv, isDragging, bind }
+  // `pitch` kept in the returned shape so CylinderClient's existing
+  // <CameraPitch> prop wiring keeps compiling — value is always 0.
+  return { rotationY, yOffset, pitch: 0, mouseUv, isDragging, bind }
 }
-
-function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)) }

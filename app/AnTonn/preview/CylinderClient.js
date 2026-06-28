@@ -35,7 +35,7 @@ function CameraPitch() {
 const EMPTY_FILTERS = () => Object.fromEntries(FILTER_GROUPS.map((g) => [g.id, new Set()]))
 
 export default function CylinderClient() {
-  const { rotationY, pitch, mouseUv, isDragging, bind } = useCylinderControls()
+  const { rotationY, yOffset, pitch, mouseUv, isDragging, bind } = useCylinderControls()
   const [focusedTile, setFocusedTile] = useState(null)
   const [focusedVertical, setFocusedVertical] = useState(null)
   const [airOpen, setAirOpen] = useState(false)
@@ -179,6 +179,7 @@ export default function CylinderClient() {
         <CylinderGallery
           issue={filteredIssue}
           rotation={rotationY}
+          yOffset={yOffset}
           focusedId={focusedTile?.id}
           onTileSelect={(item) => {
             // Look up which vertical contains this item so the panel
@@ -240,7 +241,7 @@ export default function CylinderClient() {
       {/* Help text — temporary while interactions are still being added */}
       {!anyOverlayOpen && (
         <div style={helpStyle}>
-          Drag horizontally for full 360° · Move mouse to pull the wave
+          Drag in any direction to scroll the wall · Move mouse to pull the wave
         </div>
       )}
 
