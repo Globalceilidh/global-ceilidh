@@ -19,13 +19,15 @@ import { ListView, SEOMirror } from './components/ListView'
 import { useCylinderControls } from './hooks/useCylinderControls'
 import { issue as week2 } from './data/week-2026-06-23'
 
-// Small Three.js controller — pitches the camera up/down based on the
-// `pitch` prop driven by vertical drag in useCylinderControls. Lerped
-// for smoothness so the camera coasts after a flick instead of snapping.
-function CameraPitch({ pitch }) {
+// Camera is locked to the horizontal. The viewer is inside a tube and
+// can spin in place (yaw) but cannot look up or down. This component
+// holds the camera pitch at 0 every frame in case anything else nudges
+// it. The `pitch` prop is ignored on purpose — kept in the signature so
+// the rest of the file stays untouched while we lock it.
+function CameraPitch() {
   const { camera } = useThree()
   useFrame(() => {
-    camera.rotation.x += (pitch - camera.rotation.x) * 0.12
+    camera.rotation.x += (0 - camera.rotation.x) * 0.2
   })
   return null
 }
@@ -165,7 +167,7 @@ export default function CylinderClient() {
           gyrosphere fisheye distortion is pronounced. */}
       <Canvas
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
-        camera={{ position: [0, 0, 0.01], fov: 90, near: 0.01, far: 100 }}
+        camera={{ position: [0, 0, 0.01], fov: 105, near: 0.01, far: 100 }}
         style={{ position: 'absolute', inset: 0 }}
       >
         <VortexBackground
@@ -173,7 +175,7 @@ export default function CylinderClient() {
           mouseUv={mouseUv}
           paused={docHidden || reduceMotion}
         />
-        <CameraPitch pitch={pitch} />
+        <CameraPitch />
         <CylinderGallery
           issue={filteredIssue}
           rotation={rotationY}
@@ -238,7 +240,7 @@ export default function CylinderClient() {
       {/* Help text — temporary while interactions are still being added */}
       {!anyOverlayOpen && (
         <div style={helpStyle}>
-          Drag horizontally for full 360° · Drag vertically to look up/down · Move mouse to pull the wave
+          Drag horizontally for full 360° · Move mouse to pull the wave
         </div>
       )}
 

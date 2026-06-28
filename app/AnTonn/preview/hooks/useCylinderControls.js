@@ -79,16 +79,15 @@ export function useCylinderControls() {
     const ds = dragStateRef.current
     if (!ds.active) return
     const dx = e.clientX - ds.lastX
-    const dy = e.clientY - ds.lastY
     ds.lastX = e.clientX
     ds.lastY = e.clientY
 
-    const deltaYaw = -dx * ROTATION_PER_PIXEL  // left-drag turns left
-    const deltaPitch = -dy * PITCH_PER_PIXEL    // drag down → look down (negative pitch)
+    // Camera is locked to the horizon — only horizontal drag does work.
+    // Vertical drag is intentionally ignored (no pitch, no gyroscope).
+    const deltaYaw = -dx * ROTATION_PER_PIXEL
     ds.velocityX = deltaYaw
-    ds.velocityY = deltaPitch
+    ds.velocityY = 0
     setRotationY((r) => r + deltaYaw)
-    setPitch((p) => clamp(p + deltaPitch, -MAX_PITCH, MAX_PITCH))
   }, [])
 
   const onPointerUp = useCallback((e) => {

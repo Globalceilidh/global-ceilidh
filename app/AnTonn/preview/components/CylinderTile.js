@@ -1,21 +1,23 @@
 'use client'
 
-// SphereTileSegment — v15. Phantom.land-style sphere wallpaper.
+// SphereTileSegment — v16. Donut-band wallpaper, not a full sphere.
 //
-// Each cell is a sphere segment rendered BackSide (we're inside the sphere).
-// On top of the image we draw a thin white perimeter line that traces the
-// segment's edges along the sphere surface. A second, thicker line behind
-// it is the "hover glow" — colored from the cover art's dominant tone,
-// fades in when the cell is hovered/focused.
+// Each cell is a sphere segment (we keep the spherical curvature for the
+// natural perspective stretch) but the gallery only places cells in a
+// narrow latitudinal band around the equator — no polar convergence.
 //
-// Four corner labels: top-left is the cover filename (truncated), the
-// other three are placeholders. All four labels are positioned on the
-// sphere surface and oriented to face the camera at origin.
+// No perimeter line. The image fills ~85% of the cell so the remaining
+// ~15% gap reads as a dark slot around each tile, with the vortex
+// shader bleeding through. Hover dims neighbours / scales focused cell.
+//
+// Four corner labels: top-left is the cover filename (truncated); the
+// other three are placeholder words matching the phantom.land reference
+// for visual layout sanity.
 
 import { useRef, useState, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { Text, Line } from '@react-three/drei'
+import { Text } from '@react-three/drei'
 
 // Three.js sphere convention: phi is longitude (XZ plane), theta is from
 // +Y down to -Y. Returns the Cartesian point on a sphere of given radius.
@@ -26,50 +28,6 @@ function sphericalToCartesian(R, phi, theta) {
     R * Math.cos(theta),
     R * sinT * Math.cos(phi),
   )
-}
-
-// Sample the perimeter of a sphere segment as a closed polyline. Each
-// edge runs along the sphere surface (constant phi or constant theta),
-// so the line stays glued to the sphere instead of cutting through it
-// like 4 straight chords would.
-function buildPerimeter(R, phiC, thetaC, phiSpan, thetaSpan, samplesPerEdge = 8) {
-  const phi0 = phiC - phiSpan / 2
-  const phi1 = phiC + phiSpan / 2
-  const theta0 = thetaC - thetaSpan / 2
-  const theta1 = thetaC + thetaSpan / 2
-  const pts = []
-  for (let i = 0; i <= samplesPerEdge; i++) {
-    const t = i / samplesPerEdge
-    pts.push(sphericalToCartesian(R, phi0 + t * phiSpan, theta0))
-  }
-  for (let i = 1; i <= samplesPerEdge; i++) {
-    const t = i / samplesPerEdge
-    pts.push(sphericalToCartesian(R, phi1, theta0 + t * thetaSpan))
-  }
-  for (let i = 1; i <= samplesPerEdge; i++) {
-    const t = i / samplesPerEdge
-    pts.push(sphericalToCartesian(R, phi1 - t * phiSpan, theta1))
-  }
-  for (let i = 1; i <= samplesPerEdge; i++) {
-    const t = i / samplesPerEdge
-    pts.push(sphericalToCartesian(R, phi0, theta1 - t * thetaSpan))
-  }
-  return pts
-}
-
-// Pull a dominant color from the cover image by averaging it down to a
-// 1×1 pixel. Cheap, runs once per texture, gives the hover glow its hue.
-function deriveDominantColor(image) {
-  try {
-    const c = document.createElement('canvas')
-    c.width = 1; c.height = 1
-    const ctx = c.getContext('2d')
-    ctx.drawImage(image, 0, 0, 1, 1)
-    const d = ctx.getImageData(0, 0, 1, 1).data
-    return new THREE.Color(d[0] / 255, d[1] / 255, d[2] / 255)
-  } catch {
-    return new THREE.Color('#C9A047')
-  }
 }
 
 // Derive the corner label from the cover_url filename. Strips extension,
@@ -128,11 +86,8 @@ export default function SphereTileSegment({
   focused,
 }) {
   const meshRef = useRef(null)
-  const glowRef = useRef(null)
-  const borderRef = useRef(null)
   const [internalHover, setInternalHover] = useState(false)
   const [texture, setTexture] = useState(null)
-  const [dominantColor, setDominantColor] = useState(() => new THREE.Color('#C9A047'))
 
   useEffect(() => {
     if (!item?.cover_url) return
@@ -145,9 +100,6 @@ export default function SphereTileSegment({
         if (cancelled) return
         tex.colorSpace = THREE.SRGBColorSpace
         setTexture(tex)
-        if (tex.image) {
-          setDominantColor(deriveDominantColor(tex.image))
-        }
       },
       undefined,
       () => {},
@@ -155,11 +107,11 @@ export default function SphereTileSegment({
     return () => { cancelled = true }
   }, [item?.cover_url])
 
-  // Image segment — 92% fill so the surrounding 8% gap reads as the
-  // white border + a sliver of the vortex behind it. UV rescale + flip
-  // for BackSide reads the texture right-way-round.
+  // Image segment — 85% fill so the surrounding 15% gap reads as a clean
+  // slot around each cell with the vortex shader bleeding through. UV
+  // rescale + flip for BackSide reads the texture right-way-round.
   const imageGeom = useMemo(() => {
-    const fill = 0.92
+    const fill = 0.85
     const imgPhi = phiSpan * fill
     const imgTheta = thetaSpan * fill
     const g = new THREE.SphereGeometry(
@@ -187,18 +139,9 @@ export default function SphereTileSegment({
     return g
   }, [phiCenter, thetaCenter, phiSpan, thetaSpan, radius])
 
-  // White border at 95% fill — sits in the gap just outside the image.
-  // The hover glow line shares this same path; widthwise difference is
-  // what makes the glow extend visibly around the white core.
-  const borderPoints = useMemo(() => buildPerimeter(
-    radius * 0.998,
-    phiCenter, thetaCenter,
-    phiSpan * 0.95, thetaSpan * 0.95,
-  ), [phiCenter, thetaCenter, phiSpan, thetaSpan, radius])
-
   const hot = internalHover || hovered || focused
 
-  // Smooth hover state — glow opacity and a tiny image-segment scale-up.
+  // Hover: tiny scale-up on the image. No border / glow to animate.
   useFrame(() => {
     if (meshRef.current) {
       const target = hot ? 1.02 : 1.0
@@ -206,29 +149,23 @@ export default function SphereTileSegment({
       meshRef.current.scale.y = meshRef.current.scale.x
       meshRef.current.scale.z = meshRef.current.scale.x
     }
-    if (glowRef.current?.material) {
-      const target = hot ? 0.85 : 0.0
-      glowRef.current.material.opacity += (target - glowRef.current.material.opacity) * 0.15
-    }
-    if (borderRef.current?.material) {
-      const target = hot ? 0.95 : 0.55
-      borderRef.current.material.opacity += (target - borderRef.current.material.opacity) * 0.15
-    }
   })
 
-  // Corner positions — pulled in from the segment edges so the labels sit
-  // visibly inside the cell rather than at the seam with neighbors.
+  // Corner positions — pulled deep into the cell so neighboring tiles'
+  // labels can't collide at the seams. 0.30 = label sits 30% from the
+  // center along each axis, well clear of the 50%-from-center cell edge.
   const cornerR = radius * 0.99
-  const phiInset = phiSpan * 0.40
-  const thetaInset = thetaSpan * 0.40
+  const phiInset = phiSpan * 0.30
+  const thetaInset = thetaSpan * 0.30
   const tlPos = sphericalToCartesian(cornerR, phiCenter - phiInset, thetaCenter - thetaInset)
   const trPos = sphericalToCartesian(cornerR, phiCenter + phiInset, thetaCenter - thetaInset)
   const blPos = sphericalToCartesian(cornerR, phiCenter - phiInset, thetaCenter + thetaInset)
   const brPos = sphericalToCartesian(cornerR, phiCenter + phiInset, thetaCenter + thetaInset)
 
-  // Scale font with cell arc length so labels are readable but small.
+  // Much smaller labels than v15 so they don't dominate the cell and so
+  // four-corner layout has room to breathe.
   const cellArc = phiSpan * Math.sin(thetaCenter) * radius
-  const fontSize = Math.max(0.04, cellArc * 0.055)
+  const fontSize = Math.max(0.028, cellArc * 0.032)
 
   const tlText = fileLabel(item?.cover_url)
 
@@ -248,35 +185,6 @@ export default function SphereTileSegment({
           side={THREE.BackSide}
         />
       </mesh>
-
-      {/* Hover glow — wide colored line on the same path as the border.
-          renderOrder=0 so it draws BEFORE the white core line; depthTest
-          off so it isn't occluded by the slightly-deeper border line. */}
-      <Line
-        ref={glowRef}
-        points={borderPoints}
-        color={dominantColor}
-        lineWidth={9}
-        transparent
-        opacity={0}
-        depthWrite={false}
-        depthTest={false}
-        renderOrder={0}
-      />
-
-      {/* White perimeter border — thin core line, draws on top of the
-          glow so the halo bleeds outward around a crisp white stroke. */}
-      <Line
-        ref={borderRef}
-        points={borderPoints}
-        color="#ffffff"
-        lineWidth={1.4}
-        transparent
-        opacity={0.55}
-        depthWrite={false}
-        depthTest={false}
-        renderOrder={1}
-      />
 
       {/* Corner labels */}
       {tlText && (

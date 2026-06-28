@@ -13,12 +13,19 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import SphereTileSegment from './CylinderTile'
 
+// v16 — donut-band, not sphere. The viewer is at the center of a tube
+// (think: standing inside a donut hole), so cells only exist in a
+// narrow latitudinal band around the equator. No poles, no convergence
+// points — vertical drag is locked, the camera only yaws.
 const RADIUS = 6.0
-const COLS = 11
-const ROWS = 11
+const COLS = 16
+const ROWS = 6
 
-const THETA_START = Math.PI * 0.06
-const THETA_END   = Math.PI * 0.94
+// Equator is at theta = π/2. We allocate a ±32° band around it so the
+// top and bottom of the visible viewport land in empty space (the void
+// behind the wall) rather than at polar convergence points.
+const THETA_START = Math.PI * 0.32
+const THETA_END   = Math.PI * 0.68
 const THETA_SPAN  = (THETA_END - THETA_START) / ROWS
 const PHI_SPAN    = (Math.PI * 2) / COLS
 
