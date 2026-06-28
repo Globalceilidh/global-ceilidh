@@ -208,10 +208,6 @@ export default function CylinderCell({
         />
       </mesh>
 
-      <CornerLabel position={tlPos} text={tlFit.text} size={tlFit.size} anchorX="left"  anchorY="top" />
-      <CornerLabel position={trPos} text={trFit.text} size={trFit.size} anchorX="right" anchorY="top" />
-      <CornerLabel position={blPos} text={blFit.text} size={blFit.size} anchorX="left"  anchorY="bottom" />
-      <CornerLabel position={brPos} text={brFit.text} size={brFit.size} anchorX="right" anchorY="bottom" />
     </group>
   )
 }
