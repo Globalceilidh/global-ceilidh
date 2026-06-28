@@ -14,11 +14,11 @@ import { useFrame } from '@react-three/fiber'
 import SphereTileSegment from './CylinderTile'
 
 const RADIUS = 6.0
-const COLS = 12
-const ROWS = 8
+const COLS = 11
+const ROWS = 11
 
-const THETA_START = Math.PI * 0.08
-const THETA_END   = Math.PI * 0.92
+const THETA_START = Math.PI * 0.06
+const THETA_END   = Math.PI * 0.94
 const THETA_SPAN  = (THETA_END - THETA_START) / ROWS
 const PHI_SPAN    = (Math.PI * 2) / COLS
 
