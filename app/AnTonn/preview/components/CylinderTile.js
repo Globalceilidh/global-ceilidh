@@ -1,17 +1,11 @@
 'use client'
 
-// CylinderTile — v12. Flat square plane that faces the camera at the
-// centre of the sphere. No per-tile curved geometry (avoids the
-// distortion v9 produced with sphere segments). Identical shape on every
-// tile, fixed inward orientation via the position+rotation passed in
-// from SphereGallery's lookAt math.
-//
-// Composition:
-//   • accent ring   — slightly larger flat plane behind, per-vertical tint
-//   • image         — flat plane with cover texture
-//   • 4 corner labels at small font in tile-local space
+// CylinderTile — v13 revert. Cylinder segments curved to the wall arc.
+// All meshes at full opacity, side=DoubleSide so orientation can never
+// hide a tile. UVs flipped on every segment so textures read correctly
+// from the inside of the cylinder.
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
@@ -41,17 +35,48 @@ function secondaryField(item, vertical) {
   return ''
 }
 
+function cylinderPoint(R, theta, y) {
+  return new THREE.Vector3(R * Math.sin(theta), y, R * Math.cos(theta))
+}
+
+function CylinderLabel({ position, text, fontSize, color, anchorX, anchorY }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!ref.current) return
+    ref.current.position.set(position.x, position.y, position.z)
+    ref.current.lookAt(0, 0, 0)
+    ref.current.rotateY(Math.PI)
+  }, [position.x, position.y, position.z])
+  return (
+    <group ref={ref}>
+      <Text
+        fontSize={fontSize}
+        color={color}
+        anchorX={anchorX}
+        anchorY={anchorY}
+        outlineColor="#000"
+        outlineWidth={fontSize * 0.06}
+        fillOpacity={0.92}
+      >
+        {text}
+      </Text>
+    </group>
+  )
+}
+
 export default function CylinderTile({
   item,
   vertical,
-  position,
-  rotation,
-  size = 1.5,
+  radius,
+  yCenter,
+  thetaStart,
+  thetaArc,
+  cellHeight,
   onSelect,
   hovered,
   focused,
 }) {
-  const groupRef = useRef(null)
+  const imageRef = useRef(null)
   const [internalHover, setInternalHover] = useState(false)
   const [texture, setTexture] = useState(null)
 
@@ -74,94 +99,95 @@ export default function CylinderTile({
   }, [item?.cover_url])
 
   useFrame(() => {
-    if (!groupRef.current) return
-    const target = (internalHover || hovered || focused) ? 1.06 : 1.0
-    groupRef.current.scale.x += (target - groupRef.current.scale.x) * 0.18
-    groupRef.current.scale.y = groupRef.current.scale.x
-    groupRef.current.scale.z = groupRef.current.scale.x
+    if (!imageRef.current) return
+    const target = (internalHover || hovered || focused) ? 1.05 : 1.0
+    imageRef.current.scale.x += (target - imageRef.current.scale.x) * 0.18
+    imageRef.current.scale.y = imageRef.current.scale.x
+    imageRef.current.scale.z = imageRef.current.scale.x
   })
 
-  const tint = VERTICAL_TINT[vertical] || '#888'
-  const imageSize = size * 0.92      // image is most of the tile
-  const accentSize = size * 1.0      // accent ring matches outer edge
-  const labelFont = size * 0.04      // ~1/4 of v8 label size
-  const labelInset = size * 0.45
+  // Cylinder segment for the image — curved with the wall, UVs flipped
+  // so the texture reads correctly from inside (BackSide rendering
+  // would otherwise mirror it).
+  const imageGeom = useMemo(() => {
+    const imgArc = thetaArc * 0.78
+    const imgH = cellHeight * 0.78
+    const g = new THREE.CylinderGeometry(
+      radius * 0.998, radius * 0.998, imgH,
+      8, 1, true,
+      thetaStart + (thetaArc - imgArc) / 2, imgArc,
+    )
+    g.translate(0, yCenter, 0)
+    const uv = g.attributes.uv
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i))
+    uv.needsUpdate = true
+    return g
+  }, [radius, yCenter, thetaStart, thetaArc, cellHeight])
 
+  const accentGeom = useMemo(() => {
+    const accArc = thetaArc * 0.88
+    const accH = cellHeight * 0.88
+    const g = new THREE.CylinderGeometry(
+      radius * 0.996, radius * 0.996, accH,
+      8, 1, true,
+      thetaStart + (thetaArc - accArc) / 2, accArc,
+    )
+    g.translate(0, yCenter, 0)
+    const uv = g.attributes.uv
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i))
+    uv.needsUpdate = true
+    return g
+  }, [radius, yCenter, thetaStart, thetaArc, cellHeight])
+
+  const tint = VERTICAL_TINT[vertical] || '#888'
   const tlLabel = VERTICAL_LABEL_GD[vertical] || ''
   const trLabel = (item.creator || '').toUpperCase()
   const blLabel = (item.title || '').toUpperCase()
   const brLabel = secondaryField(item, vertical).toUpperCase()
 
+  const cornerR = radius * 0.992
+  const yTop = yCenter + cellHeight * 0.42
+  const yBot = yCenter - cellHeight * 0.42
+  const thetaL = thetaStart + thetaArc * 0.08
+  const thetaR = thetaStart + thetaArc * 0.92
+  const tlPos = cylinderPoint(cornerR, thetaL, yTop)
+  const trPos = cylinderPoint(cornerR, thetaR, yTop)
+  const blPos = cylinderPoint(cornerR, thetaL, yBot)
+  const brPos = cylinderPoint(cornerR, thetaR, yBot)
+
+  const fontSize = 0.04
+
   return (
-    <group ref={groupRef} position={position} rotation={rotation}>
-      {/* Accent frame — per-vertical tint behind the image */}
-      <mesh position={[0, 0, -0.005]}>
-        <planeGeometry args={[accentSize, accentSize]} />
+    <group>
+      {/* Accent ring — full opacity, double-sided */}
+      <mesh geometry={accentGeom}>
         <meshBasicMaterial
           color={tint}
-          transparent
-          opacity={internalHover || hovered ? 1.0 : 0.78}
+          side={THREE.DoubleSide}
           depthWrite={false}
         />
       </mesh>
 
-      {/* Image — flat plane with cover texture. Full opacity on all
-          tiles (no dimmed-filler look). */}
+      {/* Image — full opacity, double-sided */}
       <mesh
+        ref={imageRef}
+        geometry={imageGeom}
         onPointerOver={(e) => { e.stopPropagation(); setInternalHover(true); document.body.style.cursor = 'pointer' }}
         onPointerOut={() => { setInternalHover(false); document.body.style.cursor = 'auto' }}
         onClick={(e) => { e.stopPropagation(); onSelect?.(item) }}
       >
-        <planeGeometry args={[imageSize, imageSize]} />
         <meshBasicMaterial
           map={texture}
           color={texture ? '#ffffff' : '#1a1f2a'}
+          side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Corner labels — small white text in tile-local frame */}
-      <Text
-        position={[-labelInset, labelInset, 0.01]}
-        fontSize={labelFont}
-        color="#F2ECDC"
-        anchorX="left" anchorY="top"
-        outlineColor="#000" outlineWidth={labelFont * 0.06}
-      >
-        {tlLabel}
-      </Text>
-      <Text
-        position={[labelInset, labelInset, 0.01]}
-        fontSize={labelFont}
-        color="#F2ECDC"
-        anchorX="right" anchorY="top"
-        maxWidth={size * 0.55}
-        outlineColor="#000" outlineWidth={labelFont * 0.06}
-        textAlign="right"
-      >
-        {trLabel}
-      </Text>
-      <Text
-        position={[-labelInset, -labelInset, 0.01]}
-        fontSize={labelFont}
-        color="#F2ECDC"
-        anchorX="left" anchorY="bottom"
-        maxWidth={size * 0.55}
-        outlineColor="#000" outlineWidth={labelFont * 0.06}
-      >
-        {blLabel}
-      </Text>
+      <CylinderLabel position={tlPos} text={tlLabel} fontSize={fontSize} color="#F2ECDC" anchorX="left"  anchorY="top" />
+      <CylinderLabel position={trPos} text={trLabel} fontSize={fontSize} color="#F2ECDC" anchorX="right" anchorY="top" />
+      <CylinderLabel position={blPos} text={blLabel} fontSize={fontSize} color="#F2ECDC" anchorX="left"  anchorY="bottom" />
       {brLabel && (
-        <Text
-          position={[labelInset, -labelInset, 0.01]}
-          fontSize={labelFont}
-          color="#F2ECDC"
-          anchorX="right" anchorY="bottom"
-          maxWidth={size * 0.55}
-          outlineColor="#000" outlineWidth={labelFont * 0.06}
-          textAlign="right"
-        >
-          {brLabel}
-        </Text>
+        <CylinderLabel position={brPos} text={brLabel} fontSize={fontSize} color="#F2ECDC" anchorX="right" anchorY="bottom" />
       )}
     </group>
   )

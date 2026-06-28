@@ -1,24 +1,15 @@
 'use client'
 
-// SphereGallery (kept under CylinderGallery filename for the import) —
-// v12. Final answer on this question after too many iterations:
+// CylinderGallery — v13 revert. Going back to the v11 cylinder
+// architecture that was working: 11×11 cells on a closed cylinder with
+// dark disk caps top and bottom, the vortex shader showing through
+// between tiles. Two fixes from v11 issues:
 //
-//   • Tiles are distributed on a SPHERE using Fibonacci point spacing
-//     (no lat-long pole distortion that v9's grid sphere had).
-//   • Each tile is a FLAT plane sized to roughly fill its Fibonacci
-//     neighbourhood. Flat tiles = identical shape every time, no
-//     stretching from per-tile sphere-segment geometry.
-//   • Tiles face inward toward the camera at origin via Object3D
-//     lookAt + rotateY(π) — this is the orientation fix v4 missed.
-//     Front face (with the image) always points at the viewer; text
-//     reads correctly on every tile.
-//   • NO backdrop — the vortex shader is the wall. Tiles float in
-//     vortex space, sphere shape implied by the positions.
-//   • NO dimming on fillers. Every tile renders at full opacity. The
-//     user explicitly said "no empty panels"; v11 dimmed-filler effect
-//     was reading as empty.
-//   • Coprime-stride filler distribution + neighbour-aware swap so no
-//     two cells in adjacent positions hold the same cover.
+//   1. NO MORE DIMMING. Every tile renders at full opacity, including
+//      filler music duplicates. The previous "dim fillers to mark them
+//      as repeats" effect was making panels read as empty.
+//   2. Double-sided materials on tiles so orientation errors can never
+//      produce invisible faces.
 
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
@@ -26,21 +17,14 @@ import * as THREE from 'three'
 import CylinderTile from './CylinderTile'
 
 const RADIUS = 6.0
-const TILE_COUNT = 121               // 11×11 worth — Scott's spec
-const TILE_SIZE = 1.5                // world-space side length of each tile plane
-const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))  // ≈ 2.39996
+const COLS = 11
+const ROWS = 11
 
-// Fibonacci sphere — evenly distributed points on a unit sphere
-function fibonacciPoints(n) {
-  const pts = []
-  for (let i = 0; i < n; i++) {
-    const y = 1 - (i / (n - 1)) * 2
-    const r = Math.sqrt(1 - y * y)
-    const theta = GOLDEN_ANGLE * i
-    pts.push(new THREE.Vector3(Math.cos(theta) * r, y, Math.sin(theta) * r))
-  }
-  return pts
-}
+const CELL_ARC = (Math.PI * 2) / COLS
+const CELL_W   = 2 * RADIUS * Math.sin(Math.PI / COLS)
+const CELL_H   = CELL_W
+const TOTAL_H  = ROWS * CELL_H
+const Y_TOP    = TOTAL_H / 2
 
 function buildItemList(issue) {
   if (!issue) return []
@@ -65,9 +49,7 @@ function chooseCoprime(n, hint) {
   return 1
 }
 
-// Pad up to targetCount with duplicates from the largest pool (music),
-// chosen via coprime stride so the same item doesn't appear back-to-back.
-function padItems(items, issue, targetCount) {
+function padItems(items, issue, targetCount, cols) {
   if (items.length >= targetCount) return items.slice(0, targetCount)
   const sizes = ['music', 'books', 'podcasts', 'film', 'radio']
     .map((v) => ({ v, n: (issue[v] || []).length }))
@@ -77,7 +59,7 @@ function padItems(items, issue, targetCount) {
   if (fillerPool.length === 0) return items
 
   const out = [...items]
-  const stride = chooseCoprime(fillerPool.length, 7)
+  const stride = chooseCoprime(fillerPool.length, cols)
   let i = 0
   while (out.length < targetCount) {
     const src = fillerPool[(i * stride) % fillerPool.length]
@@ -89,25 +71,24 @@ function padItems(items, issue, targetCount) {
     })
     i++
   }
-  return out
-}
-
-// Build position + rotation for each Fibonacci point so that a flat
-// plane placed there with that rotation faces the origin (+Z toward
-// the camera at 0,0,0) and has world up as its local up.
-function buildTransforms(points, radius) {
-  const dummy = new THREE.Object3D()
-  return points.map((p) => {
-    const pos = p.clone().multiplyScalar(radius)
-    dummy.position.copy(pos)
-    dummy.lookAt(0, 0, 0)            // -Z toward origin
-    dummy.rotateY(Math.PI)           // flip so +Z (front) toward origin
-    dummy.updateMatrix()
-    return {
-      position: [pos.x, pos.y, pos.z],
-      rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z],
+  // No-adjacent-duplicates swap pass
+  for (let pos = items.length; pos < out.length; pos++) {
+    const row = Math.floor(pos / cols)
+    const col = pos % cols
+    const leftBase = col > 0 ? out[pos - 1]?.id?.split('__')[0] : null
+    const upBase = row > 0 ? out[pos - cols]?.id?.split('__')[0] : null
+    const myBase = out[pos].id.split('__')[0]
+    if ((leftBase && myBase === leftBase) || (upBase && myBase === upBase)) {
+      for (let swap = pos + 1; swap < out.length; swap++) {
+        const swapBase = out[swap].id.split('__')[0]
+        if (swapBase !== leftBase && swapBase !== upBase) {
+          ;[out[pos], out[swap]] = [out[swap], out[pos]]
+          break
+        }
+      }
     }
-  })
+  }
+  return out
 }
 
 export default function CylinderGallery({ issue, focusedId, onTileSelect, rotation = 0 }) {
@@ -118,33 +99,63 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
     groupRef.current.rotation.y += (rotation - groupRef.current.rotation.y) * 0.12
   })
 
-  const tiles = useMemo(() => {
-    const real = buildItemList(issue)
-    if (real.length === 0) return []
-    const all = padItems(real, issue, TILE_COUNT)
-    const points = fibonacciPoints(TILE_COUNT)
-    const transforms = buildTransforms(points, RADIUS)
-    return all.map((item, idx) => ({
-      key: `${idx}-${item.id}`,
-      item,
-      vertical: item._vertical,
-      position: transforms[idx].position,
-      rotation: transforms[idx].rotation,
-    }))
+  const cells = useMemo(() => {
+    const realItems = buildItemList(issue)
+    if (realItems.length === 0) return []
+    const targetCount = ROWS * COLS
+    const allItems = padItems(realItems, issue, targetCount, COLS)
+
+    const cells = []
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const idx = row * COLS + col
+        const item = allItems[idx]
+        if (!item) continue
+
+        const yCenter = Y_TOP - (row + 0.5) * CELL_H
+        const thetaStart = col * CELL_ARC
+
+        cells.push({
+          key: `${row}-${col}-${item.id}`,
+          item,
+          vertical: item._vertical,
+          yCenter,
+          thetaStart,
+          thetaArc: CELL_ARC,
+          cellHeight: CELL_H,
+        })
+      }
+    }
+    return cells
   }, [issue])
 
-  if (tiles.length === 0) return null
+  if (cells.length === 0) return null
 
   return (
     <group ref={groupRef}>
-      {tiles.map(({ key, item, vertical, position, rotation }) => (
+      {/* Top cap — dark disk closes off the cylinder so the user can't
+          see "out" when looking up past the top row. */}
+      <mesh position={[0, Y_TOP + 0.001, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[RADIUS * 1.01, 128]} />
+        <meshBasicMaterial color="#020409" side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Bottom cap */}
+      <mesh position={[0, -Y_TOP - 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[RADIUS * 1.01, 128]} />
+        <meshBasicMaterial color="#020409" side={THREE.DoubleSide} />
+      </mesh>
+
+      {cells.map(({ key, item, vertical, yCenter, thetaStart, thetaArc, cellHeight }) => (
         <CylinderTile
           key={key}
           item={item}
           vertical={vertical}
-          position={position}
-          rotation={rotation}
-          size={TILE_SIZE}
+          radius={RADIUS}
+          yCenter={yCenter}
+          thetaStart={thetaStart}
+          thetaArc={thetaArc}
+          cellHeight={cellHeight}
           focused={focusedId === item.id}
           onSelect={onTileSelect}
         />
