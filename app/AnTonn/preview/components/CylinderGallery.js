@@ -1,28 +1,31 @@
 'use client'
 
-// CylinderGallery — v17. Genuine cylinder (no longer a sphere with a
-// pinched equatorial band). 11 columns wrap horizontally, 11 rows scroll
-// vertically with wraparound. The wall is the only thing that moves;
-// the camera at the centre is fixed.
+// DomeGallery (file still called CylinderGallery so imports don't move) — v18.
 //
-// Layout:
-//   • Cell width  = 2πR / COLS                 (arc length at the cylinder)
-//   • Cell height = cell width                 (square in world units at the wall)
-//   • Total height = ROWS × cell height        (wraps vertically via per-cell modulo)
+// Geometry: a single conceptual sphere of radius R with the camera at its
+// centre. Cells are NOT placed at fixed lat/lon — they live in a view-space
+// 11×11 angular grid, and each cell's spherical position is recomputed
+// every frame from (gridR, gridC) + the drag offset.
 //
-// Latin-rectangle selection guarantees no image repeats in the same row
-// or the same column, regardless of source pool size (provided pool ≥ 11).
+// Key consequence: there are no poles. The grid is finite (11×11) and
+// wraps modulo grid size in both axes, so scrolling the wall in any
+// direction cycles through the source pool with the same off-screen
+// buffer on every side. No empty squares ever appear.
+//
+// Pool stride (7,1) over a 25-item music+podcast pool guarantees no
+// duplicate image inside any 7×3 viewport-sized window — see
+// pickItem() for the math.
 
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import CylinderCell from './CylinderTile'
+import DomeTile from './CylinderTile'
 
-const RADIUS = 6.0
 const COLS = 11
 const ROWS = 11
-const PHI_SPAN = (2 * Math.PI) / COLS
-const Y_SPAN = (2 * Math.PI * RADIUS) / COLS  // square cells at the wall
-const TOTAL_HEIGHT = Y_SPAN * ROWS
+const RADIUS = 4.0
+const STEP = 0.22            // radians per cell, ≈ 12.6°
+const ROW_STRIDE = 7         // pick stride; 7 rows × 1 col guarantees 21 distinct items per 7×3 window
+const COL_STRIDE = 1
 
 function buildSourcePool(issue) {
   if (!issue) return []
@@ -35,24 +38,10 @@ function buildSourcePool(issue) {
   return pool
 }
 
-// (r + c) mod N — distinct images within any row of ≤N and any column
-// of ≤N. With N = 25 and grid 11×11 we never collide.
-function buildGrid(pool) {
-  if (pool.length === 0) return []
-  const N = pool.length
-  const out = []
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const src = pool[(r + c) % N]
-      out.push({
-        ...src,
-        _row: r,
-        _col: c,
-        id: `${src.id}__r${r}c${c}`,
-      })
-    }
-  }
-  return out
+function pickItem(pool, r, c) {
+  if (pool.length === 0) return null
+  const n = pool.length
+  return pool[((r * ROW_STRIDE + c * COL_STRIDE) % n + n) % n]
 }
 
 export default function CylinderGallery({
@@ -63,53 +52,53 @@ export default function CylinderGallery({
   yOffset = 0,
 }) {
   const groupRef = useRef(null)
-  const smoothedYRef = useRef(0)
+  // Drag accumulators are in radians (one cell ≈ STEP rad). Smooth them
+  // to a ref so 121 child cells can read without re-rendering.
+  const smoothedURef = useRef(0)
+  const smoothedVRef = useRef(0)
 
   useFrame(() => {
-    smoothedYRef.current += (yOffset - smoothedYRef.current) * 0.12
-    if (groupRef.current) {
-      groupRef.current.rotation.y += (rotation - groupRef.current.rotation.y) * 0.12
-    }
+    smoothedURef.current += (rotation - smoothedURef.current) * 0.12
+    smoothedVRef.current += (yOffset  - smoothedVRef.current) * 0.12
   })
 
-  const cells = useMemo(() => {
+  const cellList = useMemo(() => {
     const pool = buildSourcePool(issue)
     if (pool.length === 0) return []
-    const items = buildGrid(pool)
-    const result = []
+    const list = []
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        const idx = r * COLS + c
-        const item = items[idx]
+        const item = pickItem(pool, r, c)
         if (!item) continue
-        result.push({
+        list.push({
           key: `${r}-${c}`,
-          item,
-          vertical: item._vertical,
-          phiCenter: c * PHI_SPAN + PHI_SPAN / 2,
-          baseY: -TOTAL_HEIGHT / 2 + (r + 0.5) * Y_SPAN,
+          // Make each instance's id unique so React keys + focus tracking don't collide
+          item: { ...item, id: `${item.id}__r${r}c${c}` },
+          // Recenter grid around 0 so wrap math is symmetric
+          gridR: r - (ROWS - 1) / 2,
+          gridC: c - (COLS - 1) / 2,
         })
       }
     }
-    return result
+    return list
   }, [issue])
 
-  if (cells.length === 0) return null
+  if (cellList.length === 0) return null
 
   return (
     <group ref={groupRef}>
-      {cells.map(({ key, item, vertical, phiCenter, baseY }) => (
-        <CylinderCell
+      {cellList.map(({ key, item, gridR, gridC }) => (
+        <DomeTile
           key={key}
           item={item}
-          vertical={vertical}
+          gridR={gridR}
+          gridC={gridC}
           radius={RADIUS}
-          phiCenter={phiCenter}
-          phiSpan={PHI_SPAN}
-          baseY={baseY}
-          ySpan={Y_SPAN}
-          totalHeight={TOTAL_HEIGHT}
-          smoothedYRef={smoothedYRef}
+          step={STEP}
+          rows={ROWS}
+          cols={COLS}
+          smoothedURef={smoothedURef}
+          smoothedVRef={smoothedVRef}
           focused={focusedId === item.id}
           onSelect={onTileSelect}
         />

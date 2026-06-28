@@ -167,7 +167,7 @@ export default function CylinderClient() {
           gyrosphere fisheye distortion is pronounced. */}
       <Canvas
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
-        camera={{ position: [0, 0, 0.01], fov: 105, near: 0.01, far: 100 }}
+        camera={{ position: [0, 0, 0.01], fov: 125, near: 0.01, far: 100 }}
         style={{ position: 'absolute', inset: 0 }}
       >
         <VortexBackground
