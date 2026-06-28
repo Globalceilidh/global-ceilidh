@@ -22,8 +22,8 @@ import DomeTile from './CylinderTile'
 
 const COLS = 11
 const ROWS = 11
-const RADIUS = 4.0
-const STEP = 0.22            // radians per cell, ≈ 12.6°
+const RADIUS = 3.0           // closer = more contact-lens curvature feel
+const STEP = 0.30            // radians per cell, ≈ 17.2°; with FOV 115° → ~6–7 cells horizontal
 const ROW_STRIDE = 7         // pick stride; 7 rows × 1 col guarantees 21 distinct items per 7×3 window
 const COL_STRIDE = 1
 

@@ -109,8 +109,10 @@ export default function DomeTile({
     const effR = wrap(gridR + dragV, rows)
 
     // Yaw around Y axis (horizontal), pitch around X axis (vertical).
-    // Grid R positive means "up the screen," so pitch needs to be negative.
-    meshRef.current.rotation.y = effC * step
+    // Sign convention: gridC negative → cell on LEFT of view → positive yaw
+    // around Y (which rotates local -Z toward -X = left). gridR negative →
+    // cell at TOP → positive pitch (rotates local -Z toward +Y = up).
+    meshRef.current.rotation.y = -effC * step
     meshRef.current.rotation.x = -effR * step
 
     const hot = internalHover || focused
