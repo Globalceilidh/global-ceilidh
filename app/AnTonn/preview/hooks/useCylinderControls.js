@@ -18,10 +18,10 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 const ROTATION_PER_PIXEL = 0.005   // horizontal drag → yaw radians (FREE — full 360°)
 const PITCH_PER_PIXEL    = 0.005   // vertical drag → pitch radians
 const MOMENTUM_DECAY     = 0.94    // velocity multiplier per frame after release
-// Tight pitch clamp so the user can comfortably see top and bottom rows
-// but never peek past the closed cylinder caps. Yaw stays fully free
-// (true 360° horizontal).
-const MAX_PITCH = 0.95             // ~54°
+// On a sphere with tiles distributed everywhere, we can pitch further
+// up and down without losing tiles — but past ~80° tiles get
+// upside-down because the camera roll inverts. Cap there.
+const MAX_PITCH = 1.35             // ~77°
 
 export function useCylinderControls() {
   const [rotationY, setRotationY] = useState(0)
