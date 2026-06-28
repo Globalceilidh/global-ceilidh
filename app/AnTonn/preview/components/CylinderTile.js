@@ -122,6 +122,12 @@ export default function CylinderTile({
 
   // Image segment — 60% of cell arc and height, centred. Sits a hair
   // inside the wall so it doesn't z-fight with the cylinder mesh.
+  //
+  // U-coordinate flip: CylinderGeometry's UVs are laid out for viewing
+  // from the OUTSIDE. When rendered with side=BackSide (we're inside
+  // the cylinder) the texture appears mirrored horizontally — text
+  // reads backwards. Flipping U (u → 1-u) on every vertex cancels the
+  // mirror so images read correctly from the viewer's position.
   const imageGeom = useMemo(() => {
     const imgArc = thetaArc * 0.62
     const imgH = cellHeight * 0.62
@@ -131,6 +137,9 @@ export default function CylinderTile({
       thetaStart + (thetaArc - imgArc) / 2, imgArc,
     )
     g.translate(0, yCenter, 0)
+    const uv = g.attributes.uv
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i))
+    uv.needsUpdate = true
     return g
   }, [radius, yCenter, thetaStart, thetaArc, cellHeight])
 
@@ -144,6 +153,9 @@ export default function CylinderTile({
       thetaStart + (thetaArc - accArc) / 2, accArc,
     )
     g.translate(0, yCenter, 0)
+    const uv = g.attributes.uv
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i))
+    uv.needsUpdate = true
     return g
   }, [radius, yCenter, thetaStart, thetaArc, cellHeight])
 

@@ -47,7 +47,12 @@ function buildItemList(issue) {
   return items
 }
 
-function padItems(items, issue, targetCount) {
+// Pad real items out to targetCount with filler duplicates from the
+// largest pool (typically music). Fillers are placed with a per-row
+// shift so adjacent cells (left/right and up/down) carry different
+// images even when the filler pool is small — no two copies of the
+// same cover ever appear next to each other.
+function padItems(items, issue, targetCount, cols) {
   if (items.length >= targetCount) return items.slice(0, targetCount)
   const sizes = ['music', 'books', 'podcasts', 'film', 'radio']
     .map((v) => ({ v, n: (issue[v] || []).length }))
@@ -57,9 +62,15 @@ function padItems(items, issue, targetCount) {
   if (fillerPool.length === 0) return items
 
   const out = [...items]
+  // Use a coprime stride relative to the filler pool size so the
+  // sequence cycles through every item without repeating the same one
+  // in adjacent positions.
+  const poolSize = fillerPool.length
+  const stride = chooseCoprime(poolSize, cols)
   let i = 0
   while (out.length < targetCount) {
-    const src = fillerPool[i % fillerPool.length]
+    const idx = (i * stride) % poolSize
+    const src = fillerPool[idx]
     out.push({
       ...src,
       _vertical: fillerVertical,
@@ -68,8 +79,39 @@ function padItems(items, issue, targetCount) {
     })
     i++
   }
+  // Final pass: if any cell ends up with the same id as its left or
+  // upper neighbour, swap it with a later filler that doesn't conflict.
+  for (let pos = items.length; pos < out.length; pos++) {
+    const row = Math.floor(pos / cols)
+    const col = pos % cols
+    const leftId = col > 0 ? out[pos - 1]?.id?.split('__')[0] : null
+    const upId = row > 0 ? out[pos - cols]?.id?.split('__')[0] : null
+    if ((leftId && out[pos].id.split('__')[0] === leftId) ||
+        (upId && out[pos].id.split('__')[0] === upId)) {
+      for (let swap = pos + 1; swap < out.length; swap++) {
+        const swapBase = out[swap].id.split('__')[0]
+        if (swapBase !== leftId && swapBase !== upId) {
+          ;[out[pos], out[swap]] = [out[swap], out[pos]]
+          break
+        }
+      }
+    }
+  }
   return out
 }
+
+function chooseCoprime(n, hint) {
+  // Pick a number close to `hint` that's coprime with n. Falls back to
+  // hint-1, hint+1, ... until a coprime is found.
+  for (let delta = 0; delta < n; delta++) {
+    for (const sign of [1, -1]) {
+      const candidate = hint + delta * sign
+      if (candidate > 0 && candidate < n && gcd(candidate, n) === 1) return candidate
+    }
+  }
+  return 1
+}
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b) }
 
 export default function CylinderGallery({ issue, focusedId, onTileSelect, rotation = 0 }) {
   const groupRef = useRef(null)
@@ -83,7 +125,7 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
     const realItems = buildItemList(issue)
     if (realItems.length === 0) return []
     const targetCount = ROWS * COLS
-    const allItems = padItems(realItems, issue, targetCount)
+    const allItems = padItems(realItems, issue, targetCount, COLS)
 
     const cells = []
     for (let row = 0; row < ROWS; row++) {
@@ -116,30 +158,19 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
 
   return (
     <group ref={groupRef}>
-      {/* The wall — single continuous cylinder rendered from the inside.
-          High radial segment count for a smooth circular cross-section.
-          Translucent dark wash so the vortex glows through where the
-          tiles don't sit. */}
-      <mesh>
-        <cylinderGeometry args={[RADIUS, RADIUS, TOTAL_H, 128, 1, true]} />
-        <meshBasicMaterial
-          color="#070b14"
-          transparent
-          opacity={0.42}
-          side={THREE.BackSide}
-          depthWrite={false}
-        />
-      </mesh>
+      {/* No wall mesh — the vortex shows clean through where there are
+          no tiles. Cylinder shape is implied entirely by the tile
+          positions. Disk caps still close off top/bottom so the user
+          can't see "out" past the top/bottom rows. */}
 
       {/* Top cap — dark disk that closes the cylinder so the user can't
-          see "out" when looking up past the top row. Renders facing
-          down (into the cylinder interior). */}
+          see "out" when looking up past the top row. */}
       <mesh position={[0, Y_TOP + 0.001, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <circleGeometry args={[RADIUS * 1.01, 128]} />
         <meshBasicMaterial color="#020409" side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Bottom cap — same, mirrored */}
+      {/* Bottom cap */}
       <mesh position={[0, -Y_TOP - 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[RADIUS * 1.01, 128]} />
         <meshBasicMaterial color="#020409" side={THREE.DoubleSide} />
