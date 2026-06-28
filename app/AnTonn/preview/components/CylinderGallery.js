@@ -1,41 +1,36 @@
 'use client'
 
-// CylinderGallery — v13 revert. Going back to the v11 cylinder
-// architecture that was working: 11×11 cells on a closed cylinder with
-// dark disk caps top and bottom, the vortex shader showing through
-// between tiles. Two fixes from v11 issues:
+// SphereGallery — v14. Genuine sphere this time, with images facing
+// inward (BackSide + UV flip). NO accent borders. Every cell filled.
+// Source pool restricted to music covers + podcasts only.
 //
-//   1. NO MORE DIMMING. Every tile renders at full opacity, including
-//      filler music duplicates. The previous "dim fillers to mark them
-//      as repeats" effect was making panels read as empty.
-//   2. Double-sided materials on tiles so orientation errors can never
-//      produce invisible faces.
+// Grid: 12 columns × 8 latitude rings = 96 cells.
+// Latitudes span theta ∈ [0.18π, 0.82π] so the polar caps are
+// excluded — that's where sphere-segment distortion gets ugly. The
+// remaining band is most of the visible interior.
 
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import CylinderTile from './CylinderTile'
+import SphereTileSegment from './CylinderTile'
 
 const RADIUS = 6.0
-const COLS = 11
-const ROWS = 11
+const COLS = 12
+const ROWS = 8
 
-const CELL_ARC = (Math.PI * 2) / COLS
-const CELL_W   = 2 * RADIUS * Math.sin(Math.PI / COLS)
-const CELL_H   = CELL_W
-const TOTAL_H  = ROWS * CELL_H
-const Y_TOP    = TOTAL_H / 2
+const THETA_START = Math.PI * 0.08
+const THETA_END   = Math.PI * 0.92
+const THETA_SPAN  = (THETA_END - THETA_START) / ROWS
+const PHI_SPAN    = (Math.PI * 2) / COLS
 
-function buildItemList(issue) {
+function buildSourcePool(issue) {
   if (!issue) return []
-  const verticals = ['music', 'books', 'podcasts', 'film', 'radio']
-  const items = []
-  for (const v of verticals) {
+  const pool = []
+  for (const v of ['music', 'podcasts']) {
     for (const item of issue[v] || []) {
-      items.push({ ...item, _vertical: v, _isFiller: false })
+      pool.push({ ...item, _vertical: v })
     }
   }
-  return items
+  return pool
 }
 
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b) }
@@ -49,39 +44,26 @@ function chooseCoprime(n, hint) {
   return 1
 }
 
-function padItems(items, issue, targetCount, cols) {
-  if (items.length >= targetCount) return items.slice(0, targetCount)
-  const sizes = ['music', 'books', 'podcasts', 'film', 'radio']
-    .map((v) => ({ v, n: (issue[v] || []).length }))
-    .sort((a, b) => b.n - a.n)
-  const fillerVertical = sizes[0]?.v || 'music'
-  const fillerPool = issue[fillerVertical] || []
-  if (fillerPool.length === 0) return items
-
-  const out = [...items]
-  const stride = chooseCoprime(fillerPool.length, cols)
-  let i = 0
-  while (out.length < targetCount) {
-    const src = fillerPool[(i * stride) % fillerPool.length]
-    out.push({
-      ...src,
-      _vertical: fillerVertical,
-      _isFiller: true,
-      id: `${src.id}__filler_${i}`,
-    })
-    i++
+function buildGrid(pool, totalCells, cols) {
+  if (pool.length === 0) return []
+  const stride = chooseCoprime(pool.length, cols)
+  const out = []
+  for (let i = 0; i < totalCells; i++) {
+    const src = pool[(i * stride) % pool.length]
+    out.push({ ...src, _instance: i, id: `${src.id}__${i}` })
   }
-  // No-adjacent-duplicates swap pass
-  for (let pos = items.length; pos < out.length; pos++) {
+  // No-adjacent-duplicate swap pass — left and up neighbours
+  const baseId = (x) => x.id.split('__')[0]
+  for (let pos = 0; pos < out.length; pos++) {
     const row = Math.floor(pos / cols)
     const col = pos % cols
-    const leftBase = col > 0 ? out[pos - 1]?.id?.split('__')[0] : null
-    const upBase = row > 0 ? out[pos - cols]?.id?.split('__')[0] : null
-    const myBase = out[pos].id.split('__')[0]
+    const leftBase = col > 0 ? baseId(out[pos - 1]) : null
+    const upBase = row > 0 ? baseId(out[pos - cols]) : null
+    const myBase = baseId(out[pos])
     if ((leftBase && myBase === leftBase) || (upBase && myBase === upBase)) {
       for (let swap = pos + 1; swap < out.length; swap++) {
-        const swapBase = out[swap].id.split('__')[0]
-        if (swapBase !== leftBase && swapBase !== upBase) {
+        const sb = baseId(out[swap])
+        if (sb !== leftBase && sb !== upBase) {
           ;[out[pos], out[swap]] = [out[swap], out[pos]]
           break
         }
@@ -100,62 +82,49 @@ export default function CylinderGallery({ issue, focusedId, onTileSelect, rotati
   })
 
   const cells = useMemo(() => {
-    const realItems = buildItemList(issue)
-    if (realItems.length === 0) return []
-    const targetCount = ROWS * COLS
-    const allItems = padItems(realItems, issue, targetCount, COLS)
+    const pool = buildSourcePool(issue)
+    if (pool.length === 0) return []
+    const total = ROWS * COLS
+    const items = buildGrid(pool, total, COLS)
 
-    const cells = []
+    const result = []
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
         const idx = row * COLS + col
-        const item = allItems[idx]
+        const item = items[idx]
         if (!item) continue
 
-        const yCenter = Y_TOP - (row + 0.5) * CELL_H
-        const thetaStart = col * CELL_ARC
+        const phiCenter = col * PHI_SPAN + PHI_SPAN / 2
+        const thetaCenter = THETA_START + row * THETA_SPAN + THETA_SPAN / 2
 
-        cells.push({
+        result.push({
           key: `${row}-${col}-${item.id}`,
           item,
           vertical: item._vertical,
-          yCenter,
-          thetaStart,
-          thetaArc: CELL_ARC,
-          cellHeight: CELL_H,
+          phiCenter,
+          thetaCenter,
+          phiSpan: PHI_SPAN,
+          thetaSpan: THETA_SPAN,
         })
       }
     }
-    return cells
+    return result
   }, [issue])
 
   if (cells.length === 0) return null
 
   return (
     <group ref={groupRef}>
-      {/* Top cap — dark disk closes off the cylinder so the user can't
-          see "out" when looking up past the top row. */}
-      <mesh position={[0, Y_TOP + 0.001, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[RADIUS * 1.01, 128]} />
-        <meshBasicMaterial color="#020409" side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Bottom cap */}
-      <mesh position={[0, -Y_TOP - 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[RADIUS * 1.01, 128]} />
-        <meshBasicMaterial color="#020409" side={THREE.DoubleSide} />
-      </mesh>
-
-      {cells.map(({ key, item, vertical, yCenter, thetaStart, thetaArc, cellHeight }) => (
-        <CylinderTile
+      {cells.map(({ key, item, vertical, phiCenter, thetaCenter, phiSpan, thetaSpan }) => (
+        <SphereTileSegment
           key={key}
           item={item}
           vertical={vertical}
           radius={RADIUS}
-          yCenter={yCenter}
-          thetaStart={thetaStart}
-          thetaArc={thetaArc}
-          cellHeight={cellHeight}
+          phiCenter={phiCenter}
+          thetaCenter={thetaCenter}
+          phiSpan={phiSpan}
+          thetaSpan={thetaSpan}
           focused={focusedId === item.id}
           onSelect={onTileSelect}
         />
