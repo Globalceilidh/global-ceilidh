@@ -45,10 +45,14 @@ const initialViewport = () => ({
   h: typeof window !== 'undefined' ? window.innerHeight : 1080,
 })
 
-// Modulo-wrap that returns a value centered around 0
-function modWrap(v, period) {
-  const r = ((v % period) + period) % period
-  return r > period / 2 ? r - period : r
+// Modulo-wrap that returns a value in (-period/2, +period/2]. Applied
+// to dragOffset on every update so the offset never grows unbounded;
+// because the mosaic is periodic with exactly this period, the wrap
+// jump is visually invisible — every tile lands in an identical
+// neighbour position.
+function wrap(v, period) {
+  const half = period / 2
+  return ((((v + half) % period) + period) % period) - half
 }
 
 export default function WallClient() {
@@ -187,7 +191,10 @@ export default function WallClient() {
     let curVx = vx
     let curVy = vy
     const tick = () => {
-      setDragOffset((prev) => ({ x: prev.x + curVx, y: prev.y + curVy }))
+      setDragOffset((prev) => ({
+        x: wrap(prev.x + curVx, periodX),
+        y: wrap(prev.y + curVy, periodY),
+      }))
       curVx *= MOMENTUM_FRICTION
       curVy *= MOMENTUM_FRICTION
       if (Math.abs(curVx) < MOMENTUM_MIN_VELOCITY && Math.abs(curVy) < MOMENTUM_MIN_VELOCITY) {
@@ -197,7 +204,7 @@ export default function WallClient() {
       momentumRaf.current = requestAnimationFrame(tick)
     }
     momentumRaf.current = requestAnimationFrame(tick)
-  }, [])
+  }, [periodX, periodY])
 
   const onPointerDown = (e) => {
     if (viewport.w && viewport.h) {
@@ -226,7 +233,10 @@ export default function WallClient() {
     if (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX) {
       wasDraggingRef.current = true
     }
-    setDragOffset({ x: dragStart.current.ox + dx, y: dragStart.current.oy + dy })
+    setDragOffset({
+      x: wrap(dragStart.current.ox + dx, periodX),
+      y: wrap(dragStart.current.oy + dy, periodY),
+    })
 
     const now = performance.now()
     velSamples.current.push({ t: now, x: e.clientX, y: e.clientY })
@@ -283,11 +293,9 @@ export default function WallClient() {
     )
   }
 
-  // Modulo-wrapped displayed offset. Surface drifts by exactly one grid
-  // period when this snaps back across zero — invisible because every
-  // 11-stretch of tiles is identical.
-  const visX = modWrap(dragOffset.x, periodX)
-  const visY = modWrap(dragOffset.y, periodY)
+  // dragOffset is wrapped in setters → use directly.
+  const visX = dragOffset.x
+  const visY = dragOffset.y
 
   return (
     <div style={containerStyle}>
@@ -325,7 +333,6 @@ export default function WallClient() {
             top: '50%',
             transform: `translate3d(-50%, -50%, 0) translate3d(${visX}px, ${visY}px, 0)`,
             transformStyle: 'preserve-3d',
-            transition: isDragging ? 'none' : 'transform 60ms linear',
             willChange: 'transform',
             display: 'grid',
             gridTemplateColumns: `repeat(${RENDER_COLS}, ${TILE_W}px)`,
