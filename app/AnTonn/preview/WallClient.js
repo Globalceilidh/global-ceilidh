@@ -2,8 +2,9 @@
 
 // Flat CSS-perspective wall (replaces the v1-v18 3D geometry track —
 // see git log). The vortex shader stays exactly as it was; only the
-// tile presentation is being collapsed back to a flat grid with subtle
-// CSS perspective + mouseX-driven rotateY lean.
+// tile presentation is a flat 11×11 grid that wraps infinitely in
+// every direction. No clamp, no rubber-band — drag any direction,
+// natural inertia, content tiles seamlessly.
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
@@ -14,28 +15,29 @@ import FilterPanel, { FILTER_GROUPS } from './components/FilterPanel'
 import { ListView } from './components/ListView'
 import { issue as week2 } from './data/week-2026-06-23'
 
-// Grid sizing — wall extends well beyond viewport on BOTH axes so drag has
-// real range in any direction (Phantom-style). Bigger gaps so the vortex
-// behind shows through between tiles instead of being walled off.
+// Logical grid is 11×11 (121 cells, wraps both axes). We render a 3×3
+// mosaic (33×33 = 1089 cells) so the surface always covers the viewport
+// no matter where drag has scrolled it; modulo on the wrap period keeps
+// the surface from drifting off forever, and because every 11-cell
+// stretch is identical, the wrap is invisible.
+const COLS = 11
+const ROWS = 11
+const MOSAIC = 3
+const RENDER_COLS = COLS * MOSAIC
+const RENDER_ROWS = ROWS * MOSAIC
+
 const TILE_W = 240
 const TILE_H = 320
-const GAP_DESKTOP = 36
-const GAP_MOBILE = 16
-const ROWS = 12
-const COLS_DESKTOP = 9
-const COLS_TABLET = 5
-const COLS_MOBILE = 3
+const GAP = 36
 
-// Drag / perspective tuning
-const RUBBER_FACTOR = 0.32
-const MOMENTUM_FRICTION = 0.94
-const MOMENTUM_MIN_VELOCITY = 0.4
-const ROTATE_MAX_DEG = 8         // mouseX → rotateY lean (left/right)
-const PERSPECTIVE_PX = 900
+// Drag tuning
+const MOMENTUM_FRICTION = 0.95
+const MOMENTUM_MIN_VELOCITY = 0.3
+const ROTATE_MAX_DEG = 8          // mouseX → rotateY lean
+const PERSPECTIVE_PX = 1100
 const DRAG_THRESHOLD_PX = 5
 
 const EMPTY_FILTERS = () => Object.fromEntries(FILTER_GROUPS.map((g) => [g.id, new Set()]))
-
 const VERTICALS = ['music', 'books', 'podcasts', 'film', 'radio']
 
 const initialViewport = () => ({
@@ -43,28 +45,29 @@ const initialViewport = () => ({
   h: typeof window !== 'undefined' ? window.innerHeight : 1080,
 })
 
+// Modulo-wrap that returns a value centered around 0
+function modWrap(v, period) {
+  const r = ((v % period) + period) % period
+  return r > period / 2 ? r - period : r
+}
+
 export default function WallClient() {
-  // Mouse position (normalised 0..1) — feeds both vortex shader and rotateY lean
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 })
 
-  // Overlays
   const [focusedTile, setFocusedTile] = useState(null)
   const [focusedVertical, setFocusedVertical] = useState(null)
   const [airOpen, setAirOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState(EMPTY_FILTERS)
 
-  // Drag state — translate(x, y) applied to the grid container
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
 
-  // Environment
   const [reduceMotion, setReduceMotion] = useState(false)
   const [docHidden, setDocHidden] = useState(false)
   const [listMode, setListMode] = useState(false)
   const [viewport, setViewport] = useState(initialViewport)
 
-  // Mutable refs
   const dragStart = useRef(null)
   const wasDraggingRef = useRef(false)
   const velSamples = useRef([])
@@ -83,14 +86,12 @@ export default function WallClient() {
     return () => mq.removeEventListener?.('change', handler)
   }, [])
 
-  // Tab-hidden — pause vortex shader for battery
   useEffect(() => {
     const handler = () => setDocHidden(document.hidden)
     document.addEventListener('visibilitychange', handler)
     return () => document.removeEventListener('visibilitychange', handler)
   }, [])
 
-  // Track viewport size
   useEffect(() => {
     const update = () => setViewport({ w: window.innerWidth, h: window.innerHeight })
     update()
@@ -98,39 +99,19 @@ export default function WallClient() {
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  // Cleanup any in-flight momentum on unmount
   useEffect(() => {
     return () => {
       if (momentumRaf.current) cancelAnimationFrame(momentumRaf.current)
     }
   }, [])
 
-  // Responsive column / gap
-  const { cols, gap } = useMemo(() => {
-    if (viewport.w < 768) return { cols: COLS_MOBILE, gap: GAP_MOBILE }
-    if (viewport.w < 1280) return { cols: COLS_TABLET, gap: GAP_DESKTOP }
-    return { cols: COLS_DESKTOP, gap: GAP_DESKTOP }
-  }, [viewport.w])
+  // Wrap period: 11 cells worth of (tile + gap). Moving by this exact
+  // amount slides the mosaic by one full grid copy — content looks
+  // identical so the modulo jump is invisible.
+  const periodX = COLS * (TILE_W + GAP)
+  const periodY = ROWS * (TILE_H + GAP)
 
-  const gridWidth = cols * TILE_W + (cols - 1) * gap
-  const gridHeight = ROWS * TILE_H + (ROWS - 1) * gap
-
-  // Clamp range — wall is centered, can drag ±half the overflow in each axis
-  const clampX = useMemo(() => {
-    if (gridWidth <= viewport.w) return { min: 0, max: 0 }
-    const half = (gridWidth - viewport.w) / 2 + 32
-    return { min: -half, max: half }
-  }, [gridWidth, viewport.w])
-
-  const clampY = useMemo(() => {
-    if (gridHeight <= viewport.h) return { min: 0, max: 0 }
-    const half = (gridHeight - viewport.h) / 2 + 32
-    return { min: -half, max: half }
-  }, [gridHeight, viewport.h])
-
-  // Lifted from CylinderClient: filter-application logic. Returns a Set of
-  // matched item IDs (null = no filter active → everything matches). The
-  // grid renderer dims tiles whose id isn't in the set.
+  // Filter matching — produces a Set of matched IDs (null = no filter)
   const matchedIds = useMemo(() => {
     const verticalSet = filters.vertical
     const regionSet = filters.region
@@ -170,8 +151,7 @@ export default function WallClient() {
     return matched
   }, [filters])
 
-  // Pool of tiles that actually have cover art (20 music + 5 podcasts = 25).
-  // Cycled to fill the wall cells.
+  // Pool of tiles with cover art (20 music + 5 podcast = 25)
   const tilePool = useMemo(() => {
     const all = []
     for (const v of VERTICALS) {
@@ -182,10 +162,9 @@ export default function WallClient() {
     return all
   }, [])
 
-  const totalCells = ROWS * cols
+  const poolSize = tilePool.length || 1
 
-  // Lifted from CylinderClient: vortex intensity driver. Pulses on
-  // drag and overlay-open; calms when reading a focused tile.
+  // Vortex intensity driver
   const intensity = useMemo(() => {
     if (focusedTile) return 0.08
     if (airOpen || filterOpen) return 0.65
@@ -193,15 +172,8 @@ export default function WallClient() {
     return 0.18
   }, [isDragging, focusedTile, airOpen, filterOpen])
 
-  // mouseX → rotateY lean. Cursor at viewport-left → +8deg (left edge
-  // tilts toward viewer); cursor center → 0deg; right → -8deg.
+  // mouseX → rotateY lean
   const rotateY = reduceMotion ? 0 : (0.5 - mouseUv.x) * (ROTATE_MAX_DEG * 2)
-
-  const rubberClamp = useCallback((v, { min, max }) => {
-    if (v < min) return min - (min - v) * RUBBER_FACTOR
-    if (v > max) return max + (v - max) * RUBBER_FACTOR
-    return v
-  }, [])
 
   const cancelMomentum = useCallback(() => {
     if (momentumRaf.current) {
@@ -210,61 +182,23 @@ export default function WallClient() {
     }
   }, [])
 
-  const snapBackToClamp = useCallback(() => {
-    setDragOffset((prev) => {
-      const targetX = Math.min(Math.max(prev.x, clampX.min), clampX.max)
-      const targetY = Math.min(Math.max(prev.y, clampY.min), clampY.max)
-      if (Math.abs(targetX - prev.x) < 0.5 && Math.abs(targetY - prev.y) < 0.5) {
-        return { x: targetX, y: targetY }
-      }
-      let curX = prev.x
-      let curY = prev.y
-      const step = () => {
-        curX += (targetX - curX) * 0.18
-        curY += (targetY - curY) * 0.18
-        if (Math.abs(targetX - curX) < 0.3 && Math.abs(targetY - curY) < 0.3) {
-          setDragOffset({ x: targetX, y: targetY })
-          momentumRaf.current = null
-        } else {
-          setDragOffset({ x: curX, y: curY })
-          momentumRaf.current = requestAnimationFrame(step)
-        }
-      }
-      momentumRaf.current = requestAnimationFrame(step)
-      return prev
-    })
-  }, [clampX, clampY])
-
   const startMomentum = useCallback((vx, vy) => {
     let curVx = vx
     let curVy = vy
     const tick = () => {
-      let stopped = false
-      setDragOffset((prev) => {
-        let nx = prev.x + curVx
-        let ny = prev.y + curVy
-        nx = rubberClamp(nx, clampX)
-        ny = rubberClamp(ny, clampY)
-        return { x: nx, y: ny }
-      })
+      setDragOffset((prev) => ({ x: prev.x + curVx, y: prev.y + curVy }))
       curVx *= MOMENTUM_FRICTION
       curVy *= MOMENTUM_FRICTION
       if (Math.abs(curVx) < MOMENTUM_MIN_VELOCITY && Math.abs(curVy) < MOMENTUM_MIN_VELOCITY) {
-        stopped = true
-      }
-      if (stopped) {
         momentumRaf.current = null
-        snapBackToClamp()
-      } else {
-        momentumRaf.current = requestAnimationFrame(tick)
+        return
       }
+      momentumRaf.current = requestAnimationFrame(tick)
     }
     momentumRaf.current = requestAnimationFrame(tick)
-  }, [clampX, clampY, rubberClamp, snapBackToClamp])
+  }, [])
 
-  // ── Pointer handlers ───────────────────────────────────────────
   const onPointerDown = (e) => {
-    // Update mouseUv on the very first frame too (in case it was stale)
     if (viewport.w && viewport.h) {
       setMouseUv({ x: e.clientX / viewport.w, y: e.clientY / viewport.h })
     }
@@ -291,9 +225,7 @@ export default function WallClient() {
     if (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX) {
       wasDraggingRef.current = true
     }
-    const nx = rubberClamp(dragStart.current.ox + dx, clampX)
-    const ny = rubberClamp(dragStart.current.oy + dy, clampY)
-    setDragOffset({ x: nx, y: ny })
+    setDragOffset({ x: dragStart.current.ox + dx, y: dragStart.current.oy + dy })
 
     const now = performance.now()
     velSamples.current.push({ t: now, x: e.clientX, y: e.clientY })
@@ -316,13 +248,10 @@ export default function WallClient() {
       const vy = ((last.y - first.y) / dt) * 16
       if (Math.abs(vx) >= MOMENTUM_MIN_VELOCITY || Math.abs(vy) >= MOMENTUM_MIN_VELOCITY) {
         startMomentum(vx, vy)
-        return
       }
     }
-    snapBackToClamp()
   }
 
-  // ── Tile click (suppressed if a drag just happened) ────────────
   const onTileClick = (tile) => {
     if (wasDraggingRef.current) return
     setFocusedVertical(tile._vertical)
@@ -331,7 +260,6 @@ export default function WallClient() {
 
   const anyOverlayOpen = airOpen || filterOpen || !!focusedTile
 
-  // Reduced-motion or user-toggled list view replaces the whole surface
   if (listMode) {
     return (
       <>
@@ -354,12 +282,16 @@ export default function WallClient() {
     )
   }
 
+  // Modulo-wrapped displayed offset. Surface drifts by exactly one grid
+  // period when this snaps back across zero — invisible because every
+  // 11-stretch of tiles is identical.
+  const visX = modWrap(dragOffset.x, periodX)
+  const visY = modWrap(dragOffset.y, periodY)
+
   return (
     <div style={containerStyle}>
-      {/* Hover styles for tiles — scoped via a fixed class name */}
       <style>{TILE_CSS}</style>
 
-      {/* Vortex shader — stays exactly as it was */}
       <div style={canvasLayerStyle}>
         <Canvas
           gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
@@ -374,7 +306,6 @@ export default function WallClient() {
         </Canvas>
       </div>
 
-      {/* The wall — CSS perspective + drag */}
       <div
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -391,18 +322,21 @@ export default function WallClient() {
             position: 'absolute',
             left: '50%',
             top: '50%',
-            width: gridWidth,
-            transform: `translate3d(calc(-50% + ${dragOffset.x}px), calc(-50% + ${dragOffset.y}px), 0) rotateY(${rotateY}deg)`,
+            transform: `translate3d(-50%, -50%, 0) translate3d(${visX}px, ${visY}px, 0) rotateY(${rotateY}deg)`,
             transformStyle: 'preserve-3d',
-            transition: isDragging ? 'none' : 'transform 80ms linear',
+            transition: isDragging ? 'none' : 'transform 60ms linear',
             willChange: 'transform',
             display: 'grid',
-            gridTemplateColumns: `repeat(${cols}, ${TILE_W}px)`,
-            gap: `${gap}px`,
+            gridTemplateColumns: `repeat(${RENDER_COLS}, ${TILE_W}px)`,
+            gridAutoRows: `${TILE_H}px`,
+            gap: `${GAP}px`,
           }}
         >
-          {Array.from({ length: totalCells }, (_, i) => {
-            const tile = tilePool[i % tilePool.length]
+          {Array.from({ length: RENDER_COLS * RENDER_ROWS }, (_, i) => {
+            const xi = i % RENDER_COLS
+            const yi = Math.floor(i / RENDER_COLS)
+            const tileIdx = (((yi % ROWS) * COLS + (xi % COLS)) % poolSize + poolSize) % poolSize
+            const tile = tilePool[tileIdx]
             const matched = matchedIds === null || matchedIds.has(tile.id)
             return (
               <TileCard
@@ -416,7 +350,6 @@ export default function WallClient() {
         </div>
       </div>
 
-      {/* Top-left meta */}
       <div style={topLeftStyle}>
         <div style={{ fontFamily: 'Cinzel, Georgia, serif', fontWeight: 600, letterSpacing: 4, fontSize: 14 }}>
           AN TONN
@@ -426,7 +359,6 @@ export default function WallClient() {
         </div>
       </div>
 
-      {/* Top-right dateline */}
       <div style={topRightStyle}>
         <div style={{ fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 10, opacity: 0.6, letterSpacing: 2 }}>
           ISSUE Nº {String(week2.number).padStart(3, '0')}
@@ -439,7 +371,6 @@ export default function WallClient() {
         </div>
       </div>
 
-      {/* Bottom-center pills */}
       <div style={bottomNavStyle}>
         <button style={pillPrimaryStyle} onClick={() => setAirOpen(true)}>
           Air an Tonn
@@ -452,12 +383,10 @@ export default function WallClient() {
         </button>
       </div>
 
-      {/* Filter (bottom-right) */}
       <button style={filterBtnStyle} onClick={() => setFilterOpen(true)}>
         Filter
       </button>
 
-      {/* List view toggle (bottom-left) */}
       <button
         style={listViewBtnStyle}
         onClick={() => setListMode(true)}
@@ -467,14 +396,12 @@ export default function WallClient() {
         ⊞
       </button>
 
-      {/* Help text */}
       {!anyOverlayOpen && (
         <div style={helpStyle}>
-          Drag in any direction · Move mouse to lean the wall
+          Drag in any direction · The wall wraps forever
         </div>
       )}
 
-      {/* Overlays */}
       {focusedTile && (
         <DetailPanel
           tile={focusedTile}
@@ -518,6 +445,7 @@ function TileCard({ tile, dimmed, onClick }) {
         src={tile.cover_url}
         alt={tile.title}
         draggable={false}
+        loading="lazy"
         style={{
           width: '100%',
           height: '100%',
@@ -530,7 +458,7 @@ function TileCard({ tile, dimmed, onClick }) {
       <div className="antonn-tile-overlay">
         <div style={{
           fontFamily: 'Cinzel, Georgia, serif',
-          fontSize: 15, fontWeight: 600,
+          fontSize: 14, fontWeight: 600,
           color: '#F2ECDC',
           marginBottom: 2,
           lineHeight: 1.2,
@@ -548,8 +476,6 @@ function TileCard({ tile, dimmed, onClick }) {
     </button>
   )
 }
-
-// ── CSS ─────────────────────────────────────────────────────────────────
 
 const TILE_CSS = `
   .antonn-tile {
@@ -575,50 +501,27 @@ const TILE_CSS = `
   }
 `
 
-// ── Styles ─────────────────────────────────────────────────────────────
-
 const containerStyle = {
-  position: 'fixed',
-  inset: 0,
+  position: 'fixed', inset: 0,
   background: '#020409',
   overflow: 'hidden',
 }
-
-const canvasLayerStyle = {
-  position: 'absolute',
-  inset: 0,
-  zIndex: 0,
-}
-
+const canvasLayerStyle = { position: 'absolute', inset: 0, zIndex: 0 }
 const wallLayerStyle = {
-  position: 'absolute',
-  inset: 0,
-  zIndex: 10,
-  touchAction: 'none',
-  userSelect: 'none',
+  position: 'absolute', inset: 0, zIndex: 10,
+  touchAction: 'none', userSelect: 'none',
 }
-
-const topLeftStyle = {
-  position: 'absolute', top: 24, left: 28, zIndex: 15,
-  color: '#F2ECDC', pointerEvents: 'none',
-}
-
-const topRightStyle = {
-  position: 'absolute', top: 24, right: 28, zIndex: 15,
-  color: '#F2ECDC', textAlign: 'right', pointerEvents: 'none',
-}
-
+const topLeftStyle = { position: 'absolute', top: 24, left: 28, zIndex: 15, color: '#F2ECDC', pointerEvents: 'none' }
+const topRightStyle = { position: 'absolute', top: 24, right: 28, zIndex: 15, color: '#F2ECDC', textAlign: 'right', pointerEvents: 'none' }
 const bottomNavStyle = {
   position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
   display: 'flex', gap: 10, zIndex: 20,
   flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90vw',
 }
-
 const pillStyle = {
   padding: '10px 22px', borderRadius: 999,
   background: 'rgba(20, 25, 40, 0.55)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
+  backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
   border: '1px solid rgba(242, 236, 220, 0.18)',
   color: '#F2ECDC',
   fontFamily: '"IBM Plex Mono", Menlo, monospace',
@@ -626,7 +529,6 @@ const pillStyle = {
   cursor: 'pointer',
   transition: 'background 200ms ease, border-color 200ms ease',
 }
-
 const pillPrimaryStyle = {
   ...pillStyle,
   padding: '12px 28px',
@@ -637,12 +539,7 @@ const pillPrimaryStyle = {
   fontSize: 14, letterSpacing: 2,
   textTransform: 'none',
 }
-
-const filterBtnStyle = {
-  ...pillStyle,
-  position: 'absolute', bottom: 28, right: 28, zIndex: 20,
-}
-
+const filterBtnStyle = { ...pillStyle, position: 'absolute', bottom: 28, right: 28, zIndex: 20 }
 const listViewBtnStyle = {
   ...pillStyle,
   position: 'absolute', bottom: 28, left: 28, zIndex: 20,
@@ -650,7 +547,6 @@ const listViewBtnStyle = {
   fontSize: 18, lineHeight: 1,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 }
-
 const helpStyle = {
   position: 'absolute', bottom: 80, left: '50%', transform: 'translateX(-50%)',
   fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 10,
