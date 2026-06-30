@@ -172,8 +172,9 @@ export default function WallClient() {
     return 0.18
   }, [isDragging, focusedTile, airOpen, filterOpen])
 
-  // mouseX → rotateY lean
-  const rotateY = reduceMotion ? 0 : (0.5 - mouseUv.x) * (ROTATE_MAX_DEG * 2)
+  // (mouseX → rotateY lean removed — was reading as a forward/back tilt
+  // and fighting the content. Wall stays flat to camera at all times.
+  // mouseUv still drives the vortex shader behind, unchanged.)
 
   const cancelMomentum = useCallback(() => {
     if (momentumRaf.current) {
@@ -322,7 +323,7 @@ export default function WallClient() {
             position: 'absolute',
             left: '50%',
             top: '50%',
-            transform: `translate3d(-50%, -50%, 0) translate3d(${visX}px, ${visY}px, 0) rotateY(${rotateY}deg)`,
+            transform: `translate3d(-50%, -50%, 0) translate3d(${visX}px, ${visY}px, 0)`,
             transformStyle: 'preserve-3d',
             transition: isDragging ? 'none' : 'transform 60ms linear',
             willChange: 'transform',
