@@ -1,5 +1,7 @@
 # GlobalCeilidh — Master Project Briefing
 
+_Last refreshed 2026-06-29._
+
 ## WHO I AM
 I'm Whitey, building GlobalCeilidh.com and LewisHighlandGroup.com under Lewis Highland Group LLC.
 Both sites are live on Vercel connected to GitHub.
@@ -9,16 +11,24 @@ GlobalCeilidh.com is a Scottish Gaelic language learning platform — think Duol
 Highland culture, diaspora identity, and community. The lesson engine is called **Abair De**.
 The flagship lesson location is **An Cafaidh Balla Cloiche** (The Stone Wall Café).
 
-**Sruth** is a companion project: a Scottish Gaelic culture & language newsletter app with an
-Electron admin tool and FastAPI backend. "Sruth" = stream/flow in Gaelic.
+**Sruth** is a companion project: a Scottish Gaelic culture & language newsletter (Sruth has shipped
+through Nº 011 as of 2026-06-09; cadence is now weekly+).
+
+**An Tonn** is a Sruth-adjacent weekly culture chronicle — magazine layout at `/AnTonn` and a 3D
+fisheye-dome prototype at `/AnTonn/preview`.
+
+**An Saoghal** is the interactive Gàidhlig world map at `/saoghal` (100 documented place-name pins).
+
+**Ceilidh Rooms** is the WebRTC video room layer (`/rooms/an-cidsin` is live, public-access MVP).
 
 ---
 
 ## HOW TO WORK WITH ME
-- I lose context between sessions — always start from this file
-- Don't ask me to recreate lost conversation — move forward
-- Be direct, concise, decisive — I want to get things DONE
-- Aileen is my AI design consultant voice — her feedback carries weight
+- I lose context between sessions — always start from this file and `C:\Dev\GC_Master.md`.
+- Don't ask me to recreate lost conversation — move forward.
+- Be direct, concise, decisive — I want to get things DONE.
+- Aileen is my AI design consultant voice — her feedback carries weight.
+- ADHD-style: I context-switch between projects fluidly. Don't push linear single-track sessions.
 
 ---
 
@@ -26,123 +36,147 @@ Electron admin tool and FastAPI backend. "Sruth" = stream/flow in Gaelic.
 
 | Project | Path | Type | Stack |
 |---------|------|------|-------|
-| **global-ceilidh** | `C:\Dev\global-ceilidh` | Next.js web | Next.js, Clerk, Supabase, Vercel |
-| **gc-app** | `C:\Dev\gc-app` | Expo mobile | Expo, React Native, Supabase |
-| **sruth-backend** | `C:\Dev\sruth-backend` | FastAPI API | Python, FastAPI, Celery, Claude API |
-| **sruth-admin** | `C:\Dev\sruth-admin` | Electron desktop | Electron, React, Vite |
+| **global-ceilidh** | `C:\Dev\global-ceilidh` | Next.js web | Next.js 16 (App Router), Clerk, Supabase, MapLibre, R3F, LiveKit, Vercel |
+| **gc-app** | `C:\Dev\gc-app` | Expo mobile | Expo SDK 54, RN 0.81, React 19, Supabase |
+| **sruth-backend** | `C:\Dev\sruth-backend` | FastAPI API | Python, FastAPI, APScheduler, Anthropic + Gemini + OpenAI, Resend, faster-whisper |
+| **sruth-admin** | `C:\Dev\sruth-admin` | Electron + Vercel web | Electron 33, React 18, Vite, Clerk |
+| **cuilidh** | `C:\Dev\cuilidh` | Electron desktop (local-only) | Electron, React, Vite, Anthropic SDK |
+| **gaidhlig-tts** | `C:\Dev\gaidhlig-tts` | Local corpus + recording (no git yet) | Python stdlib, Audacity |
 
-All share a **Supabase PostgreSQL** database and use the **Anthropic Claude API**.
+All app projects share a **Supabase PostgreSQL** database and use **Anthropic Claude API**. Clerk
+production keys are live across global-ceilidh, sruth-admin, and sruth-backend as of 2026-06-19;
+sruth-admin's Vercel build fully Clerk-gated as of 2026-06-25.
 
 ---
 
-## ACTIVE DEADLINES (as of 2026-05-03)
+## ACTIVE DEADLINES (as of 2026-06-29)
 
-- **2026-05-15** — Sruth Issue 1 ships (countdown live on `globalceilidh.com/sruth`) — **12 days out**
-- **Pitch deck** — Lorg na Càraidean (gc-app) needs to feel finished for screenshots/recording
-- **EIST Edinburgh STT** — Phase 1 + 2 shipped 2026-05-03 (service module + ingestion pipeline); Phase 3 (FastAPI `/transcribe` router for Cùilidh / GC.com / gc-app) pending
-- ✅ **2026-05-02** — ACGA meeting on Gàidhlig + AI; EIST integration approved, go-ahead given
+- ✅ **2026-05-02** — ACGA meeting on Gàidhlig + AI; EIST integration approved
+- ✅ **2026-05-15** — Sruth Issue 1 shipped
+- ✅ Sruth has shipped through Nº 011 (2026-06-09); cadence weekly+
+- **Open** — Rooms MVP needs Clerk re-attached (currently public-access only — see landmines)
+- **Open** — `gc-app` in-flight rewrite (uncommitted on disk since 2026-06-20) — finish or commit
+- **Open** — Cùilidh Phase 1 RAG (paused; roadmap in `C:\Dev\cuilidh\ROADMAP.md`)
+- **Pitch deck** — Lorg na Càraidean needs to feel finished for screenshots/recording
 
 ---
 
 ## PROJECT 1 — global-ceilidh (Next.js Web App)
 
 ### GitHub
-`Globalceilidh/global-ceilidh` — deployed to Vercel
+`Globalceilidh/global-ceilidh` — deployed to Vercel; apex `globalceilidh.com` is Production (www
+307-redirects to apex).
 
 ### Tech Stack
-- **Next.js** (App Router), **Tailwind CSS**
-- **Clerk** auth + webhook syncing users to Supabase
-- **Supabase** (database + RLS)
-- **Vercel** analytics + speed insights
+- **Next.js 16** App Router (plain JS, no TypeScript), **Tailwind CSS**
+- **Clerk 7** auth (`pk_live_`) + webhook syncing users to Supabase
+- **Supabase JS 2.103** (service-role direct)
+- **MapLibre GL 5.24** — globe-projection map for `/saoghal`
+- **@react-three/fiber 9.x** on React 19 + Three.js — `/AnTonn/preview` 3D dome
+- **LiveKit Cloud** + `@livekit/components-react` — `/rooms`
+- **Resend 6.12** — welcome emails via `/api/subscribe`
+- **Svix 1.90** — webhook signature verification
+- **Vercel Analytics** + **Speed Insights**
 
-### What's Built and Working
-- Supabase schema live, Migrations 001 & 002 applied
+### Live surfaces
+- `/` — coming-soon hero with JS-measured hotspots (desktop + mobile portrait); top → `/sruth`, bottom → text block
+- `/sruth` — signup form + (expired) countdown to May 15
+- `/sruth/archive` — Supabase-direct ISR archive (`html_archive` column on `sruth_newsletters`)
+- `/sruth/archive/[slug]` — issue iframe with `<base target="_blank">`
+- `/news` — three-density-tier news feed from `sruth_website_queue`
+- `/news/feed.xml` — RSS
+- `/feisean` — Highland Games + fèisean (ASGF static + Sruth-detected merge)
+- `/coming-soon-features` — roadmap placeholder
+- `/AnTonn` — magazine cover hub (PNG + hotspot map)
+- `/AnTonn/this-week` — full weekly issue
+- `/AnTonn/{music,books,podcasts,film,radio,archive,vote,methodology}` — per-vertical pages
+- `/AnTonn/preview` — **3D fisheye-dome prototype** (R3F; rebuilt 2026-06-27/28, v1 → v18.1)
+- `/saoghal` — MapLibre globe of the Gàidhlig world (100 pins, gold heat layer, EN/GD toggle)
+- `/rooms/an-cidsin` — LiveKit WebRTC room (MVP, public access, **Clerk gate currently off**)
+- `/home` — gated home (Aileen video, mission, features)
+- `/ionnsaich` — Learn hub + Abair Dè
+- `/coimhearsnachd`, `/meadhanan`, `/tachartasan`, `/naidheachd` — community / media / events / news
+
+### Pre-launch gate (middleware.js)
+- Public prefixes: `/sruth`, `/feisean`, `/coming-soon-features`, `/api/`, `/_next/`, `/favicon`
+- Gated: `/home`, `/ionnsaich`, `/news`, `/AnTonn`, `/saoghal`, `/rooms` (auth disabled for MVP)
+- `?key=6776` sets a 30-day `gc_access` cookie → redirects to `/home`
+- **Vercel preview hosts (`*.vercel.app`) skip the gate** (added 2026-06-27 so An Tonn preview testing works without setting the cookie)
+
+### What's built and working (cumulative)
+- Supabase schema, Migrations 001 / 002 applied
 - RLS protecting user data
-- Clerk auth (PRODUCTION instance — pk_live_ keys) with webhook at `/api/webhooks/clerk`
-- LessonEngine connected to Supabase — pulling live phrases, phonetics, grammar notes
-  for Unit 1 / An Cafaidh / Toiseachadh level
-- Learn tab working end to end
+- Clerk auth on production instance (pk_live_); webhook at `/api/webhooks/clerk` syncs users
+- LessonEngine connected to Supabase — pulling live phrases, phonetics, grammar notes for Unit 1 / An Cafaidh / Toiseachadh level
+- Sruth signup → `/api/subscribe` (rate-limited 5/IP/hour, email regex + MX lookup, 32-byte unsubscribe token, Resend welcome email)
+- One-click unsubscribe at `/api/unsubscribe/[token]`
+- `/news` editorial feed (bilingual renderer, three density tiers, RSS)
+- `/feisean` festivals & games (Phase 2d: merges published `sruth_festivals` with ASGF static)
+- `/saoghal` — globe-projection MapLibre map, 45 weighted heat points + 100 cream pins (minzoom 5, fade 5→6), labels symbol layer (fade 6→7, dark halo), side panel with bilingual longform on 6 Wisconsin entries (Argyle, Caledonia, Rock Prairie, Milwaukee, Scotch Lane, Decorah Prairie + Glasgow Cemetery pin), EN/GD toggle (shared `LanguageContext`), keyboard (R reset, Esc close), NavigationControl + Reset button
+- `/AnTonn` magazine — cover PNG hotspots, full `/this-week` issue, per-section pages, pilot data `data/week-2026-06-09.js`
+- `/AnTonn/preview` — Three.js fisheye dome, drag-to-scroll wall (both axes wrap), vortex shader background pulled by mouse, filter panel + detail panel + Air an Tonn overlay, WebGL detect + error boundary + list-view fallback, prefers-reduced-motion auto-list, tab-hidden pause, off-screen SEO mirror, IBM Plex Mono served locally. Pilot data `data/week-2026-06-23.js`. Cover art for 20 music + 5 podcast tiles.
+- `/rooms/an-cidsin` — LiveKit WebRTC room (MVP; **public access; auth temporarily off — see landmine**)
+- All security keys rotated April 26 2026 (post Vercel breach); Sensitive flag set in Vercel
 - Vercel deployed, analytics + Speed Insights live
-- Coming soon page at `/` with JS-measured hotspots (desktop + mobile portrait)
-  - Top hotspot → `/sruth`, bottom hotspot → text block
-  - Plain `<a href>` links (not onClick) — required for Android compatibility
-- Sruth signup page at `/sruth` with working email form → Supabase `sruth_subscribers`
-  - Countdown timer to May 15 2026 7:00 AM EDT
-  - Desktop: form card + countdown side by side; Mobile: stacked
-- Real home page at `/home` (was lost, restored from git history, moved to app/(main)/home/)
-- Access gate: `?key=6776` sets 30-day cookie → redirects to `/home`
-- `/api/subscribe` rate-limited: 5 requests per IP per hour
-- All security keys rotated April 26 2026 (post Vercel breach)
-- First subscriber: nancywhite17@outlook.com (April 26 2026)
 
-### Security Status (as of April 26 2026)
-- Clerk on PRODUCTION instance — pk_live_ / sk_live_ keys
-- All Supabase + Clerk + webhook keys rotated and marked Sensitive in Vercel
-- Old dev keys deleted at source
-- Bitwarden installed for password management
-- Rate limiting on `/api/subscribe`
-- Clerk webhook error rate was 83.3% on dev instance — new production webhook created,
-  needs monitoring to confirm it's healthy
+### Known landmine — Clerk on `/rooms`
+Clerk's live instance uses Account Portal `accounts.globalceilidh.com`. Cross-subdomain session
+handshake doesn't propagate `__session` cookies from `accounts.*` to `.globalceilidh.com`, so
+server-side `auth()` returns null on www/apex even when signed in. Client-side `useAuth().isSignedIn`
+returns false for the same reason. Tried: server-side `redirectToSignIn`, middleware
+`auth.protect()`, client `<SignedIn>/<SignedOut>`, `useAuth()` hook, Bearer-token-to-API.
+**Current state:** Clerk auth disabled on `/rooms`; LiveKit JWTs minted only for
+`access_tier='public'` rooms; group/paid tiers return 403. **Right fix next session:**
+embed Clerk `<SignIn />` in a `/sign-in` route on the app domain, OR add `www.globalceilidh.com`
+as a Clerk satellite domain (Pro feature).
 
-### What's NOT Built Yet
+### What's NOT built yet
 - Practice and Challenge tabs (pedagogy not finalised)
 - User progress tracking (`lesson_sessions`, `question_attempts`)
 - Migration 003 (community chat schema)
-- Units 2–10 content
+- Units 2–10 lesson content
 - Cosmetic redesign (warm, circular, spatial — approved but not started)
-- CAPTCHA on subscribe form (Cloudflare Turnstile — next security layer)
-- Email validation / double opt-in for subscribers
+- CAPTCHA on subscribe form (Cloudflare Turnstile)
 - Supabase RLS policy on `sruth_subscribers`
-
-### Curriculum Structure
-- 4 levels: Toiseachadh, Meadhanach, Adhartach, Fileanta
-- 10 units per level
-- 3 tabs per lesson: Learn, Practice, Challenge
-- 5 flag figures: Scotland (F), Canada (M), USA (F), Australia (M), New Zealand (F)
-- Spirals replace hearts as the lives/currency system
-- Speech via Web Speech API is the core differentiator
-
-### Design Direction (approved, not built)
-- Kill the grey/corporate feel
-- Warm, circular spatial language — the swirl is the UI logic
-- Café bleeds into the lesson (no hard cut from photo to app)
-- Circular level selector, slight arc/asymmetry
-- Conversation feels spoken, not tabulated
-
-### Immediate Priorities
-1. Lock the pedagogy — lesson flow, question counts per level
-2. Build Practice and Challenge tabs
-3. Wire user progress tracking
-4. Migration 003
-5. Cosmetic pass (after structure is stable)
-6. Add CAPTCHA to subscribe form (Cloudflare Turnstile)
-7. Supabase RLS policy on sruth_subscribers
-8. Confirm Clerk production webhook is healthy (was 83.3% error on dev)
+- Sgrùdadh native-speaker QA queue at `/sgrùdadh` (first content type = 100 `/saoghal` places)
 
 ### Key Files
 ```
-app/layout.js                    Root layout with providers
-app/page.js                      Coming soon page (JS hotspots, desktop+mobile images)
-app/sruth/page.js                Sruth signup page (form, countdown timer)
-app/(main)/home/page.js          Real GC home page (AileenVideo, hero, stats)
-app/ionnsaich/page.js            Learn page
-app/naidheachd/page.js           News page
-app/tachartasan/page.js          Events page
-app/coimhearsnachd/page.js       Community page
-app/meadhanan/page.js            Media page
-app/api/webhooks/clerk/route.js  Clerk → Supabase user sync webhook
-app/api/subscribe/route.js       Sruth email signup (rate-limited, regex-validated)
-components/LessonEngine.js       Interactive lesson player (core feature)
-components/Navigation.js         Top nav
-components/Footer.js             Footer
-context/LanguageContext.js       EN/Gaelic toggle & translation system
-lib/supabase.js                  Supabase client
-middleware.js                    Clerk auth + access key gate (cookie-based)
-supabase/rls_policies.sql        Row-level security policies
-public/GC-Comingsoon_2.png           Coming soon desktop (1920×1080)
-public/GC-Comingsoon_2_mobile.png    Coming soon mobile portrait (1080×1920)
-public/sruth_sign_up_2.png           Sruth signup desktop (1920×1080)
-public/sruth_sign_up_2_mobile.png    Sruth signup mobile portrait (1080×1920)
+app/layout.js                    Root layout: Clerk, LanguageProvider, fonts
+app/page.js                      Coming soon (hotspot overlays)
+app/sruth/page.js                Sruth signup page (form, countdown)
+app/sruth/archive/page.js        Archive list (ISR 5 min)
+app/sruth/archive/[slug]/page.js Issue iframe
+app/(main)/home/page.js          Real GC home (AileenVideo, hero, stats)
+app/(main)/ionnsaich/page.js     Learn hub
+app/news/page.js                 News feed + category filters
+app/news/[slug]/page.js          News permalink
+app/feisean/page.js              Festivals & Games
+app/saoghal/page.js              MapLibre globe (100 pins + heat + side panel)
+app/saoghal/heat.js              45 weighted HEAT_POINTS
+app/saoghal/places.js            100 Gàidhlig place-name entries (6 with bilingual longform)
+app/AnTonn/page.js               Cover hotspot map
+app/AnTonn/this-week/page.js     Full weekly issue
+app/AnTonn/preview/page.js       R3F fisheye dome shell
+app/AnTonn/preview/PreviewShell.js   WebGL detect + error boundary + ListView fallback
+app/AnTonn/preview/CylinderClient.js Canvas + vortex + cylinder gallery + overlays
+app/AnTonn/preview/components/   CylinderGallery, CylinderTile, SphereGallery, SphereTile,
+                                 Tile, VortexBackground, vortex.glsl.js, DetailPanel,
+                                 FilterPanel, AirAnTonnOverlay, CloseButton, ListView
+app/AnTonn/preview/hooks/useCylinderControls.js
+app/AnTonn/preview/data/week-2026-06-23.js
+app/rooms/an-cidsin/page.js      LiveKit room
+app/api/subscribe/route.js       Email signup (rate-limited)
+app/api/unsubscribe/[token]/route.js
+app/api/webhooks/clerk/route.js  Clerk → Supabase users sync
+app/api/preview/welcome|announcement/route.js  Email previews
+components/LessonEngine.js       Interactive lesson player
+components/Navigation.js, Footer.js, AileenVideo.js, SruthSignupModal.js
+context/LanguageContext.js       en/gd toggle
+lib/supabase.js                  Service-role client
+middleware.js                    Pre-launch gate (cookie key); skips on *.vercel.app
+public/fonts/IBMPlexMono-Medium.woff   Self-hosted for An Tonn
+public/AnTonn/cover.png          Cover hub hotspot canvas
 ```
 
 ### Environment Variables (.env.local)
@@ -153,6 +187,8 @@ SUPABASE_SERVICE_ROLE_KEY
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 CLERK_SECRET_KEY
 CLERK_WEBHOOK_SECRET
+RESEND_API_KEY
+LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL  # for /rooms
 ```
 
 ---
@@ -166,136 +202,52 @@ characters (Alba, U, Maple, GB, Awzi, Paddy, Nuwz, Siobhan, Piper, Sasha, Ruadh)
 by level. Designed around the Sniomh (swirl) motif. Codebase identifiers stay `gc-app`; only the
 in-product brand and `app.json` display name carry the new game name.
 
-### What's Built and Working
-- 10 levels, all 4×4 grid (8 pairs), difficulty scales via flip speed + emoji hints + vocab unit
-- Sniomh SVG spiral on card backs (SniomhCard component)
-- Card flip animation (rotateY spring)
-- Match celebration: cards spin 1260° (3.5 rotations) then back reveals background image portion
+### Status (2026-06-29)
+- 2 commits on `main`, both 2026-04-24 (initial scaffold + full matching game)
+- **Active rewrite uncommitted since 2026-06-20**: `App.js` +182, `MatchingGame.js` +581, `app/index.js` removed, `package.json` restructured, lockfile rewritten (-1617 / +1028 net). Substantial in-flight rework.
+- Decision: pick this up to a stopping point and commit, OR shelve cleanly. Two-week-old uncommitted rewrite is risky.
+
+### What's built and working (committed state)
+- 10 levels, all 4×4 grid (8 pairs); difficulty scales via flip speed + emoji hints + vocab unit
+- Sniomh SVG spiral on card backs; per-phase static stone-card backgrounds (videos retired for perf)
+- Card flip animation (rotateY spring); match celebration spin (1260°) reveals bg image portion
 - Green → yellow → red phase system: 3 misses per phase, 1 swirl lost per exhausted phase
-- 3 swirls total — lose all 3 = game over overlay
-- Stone counter (🪨) tracks misses within current phase (visual only, resets on phase advance)
-- Swirl counter (🌀) tracks lives (3 total, 1 lost per exhausted phase)
-- Level select screen with GC Kids avatar (Alba), 10 tiles, lock/star system
-- Level unlock: completing a level unlocks the next one (fixed Map.keys() bug)
-- Blurred background image per level (different photo each level)
-- GC Kids character rotates by level: 1=Alba, 2=U, 3=Maple, 4=GB, 5=Awzi, 6=Paddy, 7=Nuwz, 8=Alba, 9=U, 10=Maple
-- Voice (expo-speech) removed — text bubbles only
-- Sound effects fully wired: match, wrong, complete, gameover (.mp3 in assets/sounds/)
-  - complete.mp3 / gameover.mp3: composed in Suno
-  - match.mp3 / wrong.mp3: sourced from freesound.org
-- Win sequence on level complete:
-  1. All pairs matched → celebration spin (1800ms)
-  2. Full background image shown fullscreen as prize (3500ms)
-  3. GC-Kids Super Hero Landing.mp4 plays fullscreen (complete sound fires here)
-  4. Score overlay: star rating + Play Again / ← Levels
-- Vocab loads from Supabase for Unit 1; fallback vocab defined per unit in App.js
-- All 5 vocab units defined in App.js UNIT_VOCAB
+- 3 swirls total → game over
+- Per-level win reveal: image + Pika-rendered video override (`revealImage` / `revealVideo` per level)
+- Sound effects fully wired: match, wrong, complete, gameover (.mp3 in `assets/sounds/`)
+- Vocab loads from Supabase for Unit 1; fallback vocab hardcoded in App.js for Units 2–5
+- Splash screen `SgiobaCeilidh_LNC_Splash.png`; tap-to-start advances to LevelSelect
 
-### Added 2026-05-02 (Lorg na Càraidean session)
-- **In-product brand**: `app.json` display name → "Lorg na Càraidean" (slug remains `gc-app`)
-- **Splash screen** on launch: `SgiobaCeilidh_LNC_Splash.png` fullscreen, tap-to-start advances to LevelSelect
-- **Stone card backs** per phase (static PNGs, swapped from videos for performance):
-  `green_card_static.png` / `yellow_card_static.png` / `red_card_static.png`.
-  `SniomhCard` SVG remains as fallback only. Original `*_card.mp4` videos still on disk
-  but no longer referenced — running 16 simultaneous `<Video>` instances on a 4×4 grid
-  was too slow on phones.
-- **Per-level win reveal system**: any level entry in `lib/levels.js` can set `revealImage` +
-  `revealVideo` to override the default `level.bg` celebration and global `WIN_VIDEO`.
-  Wired for levels 1, 2, 3. Naming convention: `level_N_reveal_image.png` + `level_N_reveal_video.mp4`
-- **Custom card art** via `CARD_ASSETS` map in `components/MatchingGame.js` keyed by Gaelic word.
-  Each pair has `dealbh` (picture side) + `facal` (word side). Lookup is exact-match on Gaelic
-  string — accents matter (e.g. `'Cù'`, `'Bò'`, `'Càise'`)
-  - **Unit 1 (animals/nature)**: all 8 pairs — Cù, Taigh, Bò, Cat, Eun, Iasg, Craobh, Muir
-  - **Unit 2 (café)**: 6 of 8 — Cofaidh, Tì, Arán, Im, Bainne, Càise (missing Brot, Uisge)
-  - **Unit 5 (landscape)**: 1 of 8 — Abhainn (Speur has typo'd dealbh `_dealabh.png` only)
-- **Bug fixes**:
-  - Added `Maple` to `SILHOUETTES` map (level 3 was silently falling back to Alba's silhouette)
-  - Corrected U character path: `sammy.png` → `Sammy_1.png`
-- **Character roster** expanded beyond original 7: Siobhan, Piper, Sasha, Ruadh added.
-  In-game silhouette mapping now: Alba(1), U/Sammy(2), Maple(3), Awzi(4), Siobhan(5), Piper(6),
-  GB1(7), Sasha(8), Nuwz(9), Ruadh(10)
-- **File naming locked** for reveal assets: `level_N_reveal_image.png` + `level_N_reveal_video.mp4`
-  (renamed all existing files to match)
-
-### What's NOT Built Yet
-- Vocab units 2–5 in Supabase (fallback hardcoded in App.js works fine for now)
+### What's NOT built yet
+- Finish (or shelve cleanly) the 2026-06-20 rewrite
+- Vocab Units 2–5 in Supabase (fallback works for now)
 - Win reveal image + video for levels 4–10
-- Card art remaining:
-  - Unit 2 — Brot, Uisge (dealbh + facal pairs)
-  - Unit 3 (colours) — all 8 pairs
-  - Unit 4 (family) — all 8 pairs
-  - Unit 5 (landscape) — 7 remaining + fix Speur typo (`_dealabh` → `_dealbh`)
-- PWA version for globalceilidh.com
-- Web version (mobile-first was correct call)
-- Replace `picsum.photos` URL on levels 3 & 4 `bg` field — only matters as fallback when `revealImage` isn't set on a level
+- Card art remaining: Unit 2 (Brot, Uisge), Unit 3 (colours, 8 pairs), Unit 4 (family, 8 pairs), Unit 5 (landscape, 7 of 8 + Speur typo fix `_dealabh` → `_dealbh`)
+- PWA version for globalceilidh.com; web version of matching game
+- EAS build (currently Expo Go only); persistent score storage; analytics; auth
 
 ### Key Files
 ```
-App.js                         Root: splash → vocab loading → level select → game; UNIT_VOCAB
-index.js                       Entry point (registerRootComponent)
-app.json                       Expo config (orientation: landscape, name: "Lorg na Càraidean")
-components/MatchingGame.js     Core game: flip cards, match logic, lives, phases, overlays, win sequence
-                               + CARD_ASSETS map (per-Gaelic-word dealbh/facal art)
-                               + PHASE_VIDEOS array (green/yellow/red card-back loops)
-                               + per-level revealImage / revealVideo overrides
-components/LevelSelect.js      Level picker: 10 tiles, lock/star, GC Kids bubble
-components/SniomhCard.js       SVG Sniomh spiral — fallback for card backs only
-lib/levels.js                  10 level definitions + CHARACTERS + SILHOUETTES maps
-lib/supabase.js                Supabase client (requires react-native-url-polyfill)
-lib/sounds.js                  expo-av sound effects (match, wrong, complete, gameover)
-lib/speech.js                  expo-speech wrapper (kept but not used in game)
-
-# Branding
-assets/images/SgiobaCeilidh_LNC_Splash.png       In-app splash screen (tap to start)
-
-# Stone card backs (static images by phase — videos retired for perf)
-assets/images/green_card_static.png              Phase 0
-assets/images/yellow_card_static.png             Phase 1
-assets/images/red_card_static.png                Phase 2
-# (original videos still on disk: green__card.mp4 / yellow_card.mp4 / red_card.mp4)
-
-# Per-level win reveal (image + Pika video)
-assets/images/level_{1,2,3}_reveal_image.png
-assets/images/level_{1,2,3}_reveal_video.mp4
-
-# Card art — keyed by Gaelic word in CARD_ASSETS (MatchingGame.js)
-assets/images/{cu,taigh,bo,cat,eun,iasg,craobh,muir}_{dealbh,facal}.png   Unit 1 (full)
-assets/images/{cofaidh,Ti,aran,im,bainne,caise}_dealbh.png + _facal.png   Unit 2 (6 of 8)
-assets/images/abhainn_{dealbh,facal}.png                                  Unit 5 (1 of 8)
-
-# Characters (CHARACTERS = portraits for LevelSelect; SILHOUETTES = in-game)
-assets/images/{Alba,U,Maple,G.B.,Awzi,Paddy,Nuwz}.png                     Portraits
-assets/images/{alba_1,Sammy_1,Maple_1,G.B._1,Awzi_1,siobhan_1,Piper_1,Sasha_1,ruadh_1}.png   Silhouettes (Nuwz silhouette TODO)
-
-assets/images/GC-Kids Super Hero Landing.mp4    Default win video (fallback when no revealVideo)
+App.js                         Root: splash → vocab load → level select → game (UNIT_VOCAB)
+app.json                       Expo config (landscape, name: "Lorg na Càraidean")
+components/MatchingGame.js     Core game + CARD_ASSETS map + per-level reveals
+components/LevelSelect.js      10-tile picker, GC Kids bubble
+components/SniomhCard.js       SVG spiral (card-back fallback)
+lib/levels.js                  10 level defs + CHARACTERS + SILHOUETTES maps
+lib/{supabase,sounds,speech}.js
+assets/images/...              Splash, stone backs, character art, reveal images
 assets/sounds/{match,wrong,complete,gameover}.mp3
 ```
 
-### Game Mechanics Summary
-- **Phase system**: 3 misses = 1 swirl lost + phase colour advances (Green→Yellow→Red). 3 swirls = 9 total misses before game over.
-- **Stone counter**: visual only, resets on phase advance
-- **Swirl counter**: 3 lives, 1 lost per exhausted phase
-- **Celebration**: matched cards spin 1260° then back reveals bg image portion
-- **Win sequence**: celebration → prize picture (3.5s) → win video → score overlay
-- **roundKey**: increments on restart to force FlipCard remount (clears stale animation state)
-- **Level unlock**: `Math.max(...completed.keys()) + 1` — completing level N unlocks N+1
-
-### Vocabulary by Unit (App.js UNIT_VOCAB)
+### Vocabulary by Unit
 ```
-Unit 1: Cù, Taigh, Bò, Cat, Eun, Iasg, Craobh, Muir (animals/nature) — also loaded from Supabase
+Unit 1: Cù, Taigh, Bò, Cat, Eun, Iasg, Craobh, Muir (animals/nature) — loaded from Supabase
 Unit 2: Cofaidh, Tì, Brot, Arán, Im, Bainne, Uisge, Càise (café food/drink)
 Unit 3: Dearg, Gorm, Uaine, Buidhe, Geal, Dubh, Orains, Pinc (colours)
 Unit 4: Athair, Màthair, Bràthair, Piuthar, Mac, Nighean, Bodach, Cailleach (family)
 Unit 5: Grian, Gealach, Reul, Sneachda, Gaoth, Speur, Abhainn, Eilean (landscape/weather)
-```
 
-### Level → Vocab Unit Mapping
-```
-Levels 1–3:  Unit 1 (animals/nature)
-Levels 4–5:  Unit 2 (café food/drink)
-Levels 6–7:  Unit 3 (colours)
-Levels 8–9:  Unit 4 (family)
-Level 10:    Unit 5 (landscape/weather)
+Level → Unit: 1–3=Unit 1, 4–5=Unit 2, 6–7=Unit 3, 8–9=Unit 4, 10=Unit 5
 ```
 
 ### Environment
@@ -309,138 +261,257 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY
 ## PROJECT 3 — sruth-backend (FastAPI)
 
 ### What It Is
-Backend for the Sruth newsletter. Ingests Scottish Gaelic content from RSS feeds and
-scraped sites, processes it with Claude, composes newsletters, and sends via Resend.
-Tracks API costs per operation.
+Backend for the Sruth newsletter + GlobalCeilidh editorial pipeline. Ingests Scottish Gaelic content
+from 60+ RSS / Playwright web / Facebook public sources; classifies and scores relevance; composes
+editorial newsletters; manages subscriber lists; provides admin API. Hosted on **Railway** with
+APScheduler running in-process crons.
 
-### What's Built and Working
-- FastAPI with CORS, daily scheduled ingestion (APScheduler)
-- Supabase PostgreSQL via SQLAlchemy
-- RSS ingestion (feedparser) + Playwright web scraping
-- Claude API integration for blurb generation and content refinement
-- Newsletter HTML email template (V19): Fraunces + IBM Plex Mono, umber accent (#6B4E1F)
-- Wordmark as hosted PNG (rendered via Puppeteer in sruth-admin, hosted on Supabase Storage)
-- Story thumbnails (96×64px) in "The Current" section
-- Resend API for email delivery
-- Cost tracking: `sruth_costs` table, logs Anthropic + Resend costs per operation
-- File upload endpoint: `POST /assets/upload` → Supabase Storage `assets/stories/`
-- Costs summary endpoint: `GET /costs/summary`
-- Celery + Redis/Upstash for async task queue
+### Tech Stack
+- **FastAPI 0.115**, Uvicorn, **APScheduler** (Europe/London tz)
+- **Supabase Postgres** (SQLAlchemy + service-role), **Upstash Redis** (Celery broker, mostly unused in prod)
+- **Anthropic SDK 0.34** (Opus 4.7), **OpenAI** (GPT-5-mini for Council), **Gemini 2.5 Flash** (classification + Council + grounded discovery)
+- **faster-whisper 1.0.3** + EIST Edinburgh `whisper-large-v3-turbo-gaelic-ct2-v2` (Phase 1 STT)
+- **Playwright** (headless Chromium, Windows Proactor loop), **feedparser**, **httpx**
+- **Resend 2.4**; **Clerk JWT** validation + legacy X-Admin-Key
+- **Celery 5.4** (kept for local docker-compose; not used in prod)
 
-### Added 2026-05-03 (Scottish Gaelic STT — Phases 1 & 2)
-- **EIST Edinburgh Whisper-large-v3-turbo Gaelic CT2 fine-tune** integrated via `faster-whisper`. CPU-safe defaults (Railway-friendly, no GPU assumed).
-- **`app/services/stt_service.py`** — lazy-loaded `WhisperModel` singleton, `transcribe_audio_file()` returns `{text, language, model, duration_seconds, confidence}`. Reads `STT_*` env vars directly via `os.environ` (decoupled from `app.config.Settings`) so local testing doesn't require Supabase/Upstash/Anthropic keys.
-- **`app/services/audio_ingest.py`** — `pick_audio_url(item)` walks `enclosure → media_url → url` with feedparser-shape coercion (string / dict / list); `transcribe_url()` does temp-file download via `httpx` + `asyncio.to_thread(...)` so the ingestion event loop isn't blocked.
-- **`app/workers/ingestion.py`** — when an item has audio, the transcript is folded into `body_text` so the existing `classify_and_summarize()` pass picks it up. STT failures log `"STT failed …"` and the item ingests without a transcript (no schema change required).
-- **`scripts/test_stt.py`** — local CLI: `python scripts/test_stt.py audio.mp3`. Auto-loads `.env` if `python-dotenv` is present.
-- **Env vars added**: `STT_ENABLED` (default true), `STT_MODEL`, `STT_DEVICE` (default cpu), `STT_COMPUTE_TYPE` (default int8).
-- **Deps added**: `faster-whisper==1.0.3`, `huggingface-hub==0.25.2`.
-- **Gotcha**: `language="gd"` is rejected by faster-whisper (not in base Whisper language set). Auto-detect is safe because the EIST model is fine-tuned exclusively on Scottish Gaelic; output language is hardcoded to `"gd"`.
+### What's built and working
+- Daily 06:00 London ingestion (APScheduler) — fetch all active sources (concurrency 5), dedupe by content hash, insert raw items
+- 05:45 London article-search pipeline (Gemini-grounded, link-resolved, per-source capped, section-gate contract)
+- Classify pass (Gemini fallback) → relevance / category / summaries; route to morning brief / newsletter queue / website queue
+- Auto-draft 06:30 London — single Opus call pre-builds morning issue
+- Festival detection in-line with processing; daily 00:00 UTC expiry
+- News archive 03:00 London — hides items >30 days
+- STT Phase 1+2 wired: audio enclosures auto-transcribed into `body_text` before classify
+- AI Council of Elrond (`/workbench/council`) — parallel fan-out across Anthropic Haiku + GPT-5-mini + Gemini Flash, Sonnet 4.6 synthesis; budget gate hard-stops at daily $5; web search enabled 2026-06-25
+- Council clarification round (`POST /workbench/councils/{id}/refine`) — Sonnet pass over Scott's answers to open questions
+- Council read-ahead: `build_council_system()` reads `projects-status.md` + `globalceilidh-stack.md` + `workbench.md` from `app/llm/council_context/` at every fan-out
+- Editor Review workflow (migration 025) — editor-facing API under `/editor/*`; admin endpoints `send-for-review`, `close-review`, `corrections` list/apply/reject; Principal extended with email claim
+- Resend webhook ingest (`/webhooks/resend`, Svix-signed, idempotent on `(resend_email_id, event_type, occurred_at)`) → per-issue engagement (opens / clicks / bounces / recipients)
+- Newsletter HTML template (V19+): Fraunces + IBM Plex Mono, umber accent (#6B4E1F), wordmark as hosted PNG, 96×64 story thumbs, per-image width override (200–600px), `html_archive` written on real send only
+- Section types: Fàilte · Facal an Là / An t-Abairt · Òran · Diaspora · Cidsin · GC Update · Reviews · Mixer · Image · Na Sàraichean · Best Of · Rach a-muigh agus cluich · Parting Shot · Partner
+- Article-archive `GET` + `PATCH /newsletter/issues/{id}/archive-html` lets admin edit past-issue HTML
+- Newsletter send: per-recipient (no list leak), throttled ≤5 req/s, per-recipient failures returned, `/resend-to` for retries, `/bulk-unsubscribe` for hard-bounce cleanup
+- Cost tracking: `sruth_costs` table, `/costs/summary` aggregates Anthropic + OpenAI + Gemini + Resend per operation
+- Discovery v2 (Gemini-grounded, capped 10/run, gold flag + WordPress sub-feed cascade)
+- File upload `POST /assets/upload` → Supabase Storage `assets/stories/`
+- Ceilidh Rooms schema (migration 024_rooms.sql): `gc_rooms`, `gc_groups`, `gc_group_members`, `gc_room_access_grants`, `gc_room_payments`
 
-### What's NOT Built Yet
-- Issue number auto-increment (currently hardcoded to 1)
-- Story selection persistence in admin (navigating away loses selection)
-- Several dead RSS source URLs (LearnGaelic, Speak Gaelic, Tobar an Dualchais, Kim Carnie, Julie Fowlis)
+### Migrations index
+- `001` core sruth schema
+- `002` subscribers
+- `003` archive
+- `004` sections
+- `005` brief flags
+- `020` send-event tracking
+- `021` workbench (`gc_workbench_*`, `gc_editors`, `gc_review_items`)
+- `022` workbench governance (Owner→Board→Council→Builders→Reviewers; codex_scope CHECK constraint)
+- `023` council clarification (clarifications + final_brief on `gc_workbench_councils`)
+- `024` rooms
+- `025` editor review
+
+### What's NOT built yet
+- STT Phase 3 — `POST /transcribe` (multipart audio + admin auth) so Cùilidh / GC.com / gc-app share one model deployment
+- Optional: dedicated `transcript_text` column on `sruth_raw_items` (currently folded into `body_text`)
+- Pessimistic edit-locking (`sruth_draft_locks` + take-over flow) — deferred until first real conflict
+- Per-section signoff grid + send-gate (deferred from migration 025; you're the gate today)
+- Auto-apply corrections back into `sections_config` (deferred; manual today)
+- Editor management UI (use Supabase SQL editor today)
 - Migration 003 (community chat schema — for global-ceilidh, not Sruth)
-- **STT Phase 3**: FastAPI `POST /transcribe` (multipart audio + admin auth) so Cùilidh / GlobalCeilidh.com / gc-app can share one model deployment. ~half-day; not blocking Issue 1.
-- Optional: dedicated `transcript_text` column on `sruth_raw_items` (currently folded into `body_text` — works, but loses audio-vs-text distinction for analytics)
-- Railway: persistent volume mount at `~/.cache/huggingface/` so the EIST model isn't re-downloaded on every cold start
+- Persistent Railway volume mount at `~/.cache/huggingface/` (EIST model re-downloads on cold start)
 
 ### Key Files
 ```
 app/main.py                    FastAPI setup, CORS, scheduler, router registration
-app/config.py                  Pydantic settings & env loading
-app/database.py                Supabase PostgreSQL connection (SQLAlchemy)
-app/redis_client.py            Upstash Redis client
-app/models/newsletter.py       Newsletter model
-app/models/newsletter_queue.py Queued newsletters
-app/models/source.py           RSS/scrape source config
-app/models/raw_item.py         Raw ingested items
-app/models/website_queue.py    Website publishing queue
-app/routers/brief.py           Morning brief generation (Claude)
-app/routers/newsletter.py      Newsletter creation + Resend sending
-app/routers/sources.py         Manage sources
-app/routers/assets.py          Image upload (multipart → Supabase Storage) + costs summary
-app/routers/auth.py            Admin auth (secret key)
-app/llm/claude.py              Anthropic API calls
-app/llm/costs.py               Token cost tracking (ANTHROPIC: $15/MTok in, $75/MTok out; RESEND: $0.0008/email)
-app/scrapers/rss.py            RSS feed parsing
-app/scrapers/playwright_scraper.py  Web scraping
-app/workers/celery_app.py      Celery setup
-app/workers/ingestion.py       Content fetch & ingest task
-app/workers/processing.py      Content processing task
-app/email/template.py          Email HTML builder (V19 — full inline CSS, PNG wordmark)
-migrations/001_sruth_schema.sql  Initial schema
-migrations/002_subscribers.sql   Subscriber tables
+app/config.py                  Pydantic settings (env vars, Clerk, STT config)
+app/database.py                Supabase client factory
+app/routers/{brief,newsletter,sources,assets,auth,article_search,
+             events,website_queue,festivals,discovery,webhooks,
+             editor_review,workbench}.py
+app/workers/{ingestion,processing,festival_detection,auto_draft,
+             events_import,article_search,section_gates,celery_app}.py
+app/services/{stt_service,audio_ingest}.py
+app/scrapers/{rss,playwright_scraper,discovery_validate,events/*}.py
+app/llm/{claude,gemini,openai,workbench,costs,budget}.py
+app/llm/council_context/{projects-status,globalceilidh-stack,workbench,GC_Master}.md
+app/email/template.py          Newsletter HTML builder (V19+)
+app/auth/                      Clerk JWT (JWKS 10-min cache) + legacy key
+migrations/001..025_*.sql
+scripts/{export_subscribers,test_stt,transcribe_audio}.py
+SETUP_EDITORS.md               Editor Review deploy runbook
+DEPLOYMENT.md, DISASTER_RECOVERY.md
 ```
 
 ### Pricing Constants (app/llm/costs.py)
 ```python
-ANTHROPIC_INPUT_PER_MTK  = 15.00   # per million tokens
+ANTHROPIC_INPUT_PER_MTK  = 15.00
 ANTHROPIC_OUTPUT_PER_MTK = 75.00
 RESEND_PER_EMAIL = 0.0008
 ```
 
-### Environment Variables
+### Environment Variables (Railway)
 ```
-UPSTASH_REDIS_REST_URL
-UPSTASH_REDIS_REST_TOKEN
-SUPABASE_URL
-SUPABASE_SERVICE_KEY
-ANTHROPIC_API_KEY
+SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY
 RESEND_API_KEY
-ADMIN_SECRET
+CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
+ADMIN_SECRET_KEY                 # legacy X-Admin-Key (still accepted)
+PUBLIC_BASE_URL
+UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
+STT_ENABLED=true, STT_MODEL=eist-edinburgh/whisper-large-v3-turbo-gaelic-ct2-v2,
+STT_DEVICE=cpu, STT_COMPUTE_TYPE=int8
+TZ=Europe/London
 ```
 
 ---
 
-## PROJECT 4 — sruth-admin (Electron Desktop App)
+## PROJECT 4 — sruth-admin (Electron Desktop + Vercel Web)
 
 ### What It Is
-Editorial dashboard for the Sruth newsletter. Runs locally (not deployed).
-Used to compose morning briefs, build issues, manage sources, track costs.
+Editorial control surface for Sruth. Dual deploy: Electron desktop locally + Vercel web at
+`https://admin.globalceilidh.com`. React 18 + Vite + Clerk; falls back to `X-Admin-Key` only on the
+Electron / local dev path (web build had the admin key removed from env 2026-06-25).
 
-### What's Built and Working
-- Electron + React + Vite desktop app
-- Sidebar navigation (Brief, Issue Builder, Sources, Subscribers, History, Costs)
-- Morning brief editor (compose, preview, publish via Claude)
-- Issue builder (select stories, arrange sections, preview)
-- Source manager (add/edit/delete RSS feeds and scrapers)
-- Subscriber list
-- Cost tracking page: stat cards (total, by API), tables by operation + recent 30 calls
-- Gaelic keyboard (floats bottom-right when text input focused)
-  - 10 accented vowels: à è ì ò ù + uppercase
-  - Uses onMouseDown + preventDefault to avoid stealing focus
-- Story creation from scratch with file upload (not just URL)
-- Wordmark PNG generator script (Puppeteer → Fraunces italic bold → crops to element)
+### What's built and working
+- All editorial pages: Morning Brief, Issue Builder (14 section types), Sources, Discover Sources, Events Review, News Review, Festivals Review (+ Expired tab), Subscribers, History, Costs, **Workbench** (AI Council), **EditorCorrections** (admin reviews editor markups)
+- **EditorShell** layout for users with `publicMetadata.role=editor` — no sidebar, only `/editor` + `/editor/issue/:id` reachable; admins get the full App
+- **Workbench page** (`/workbench`) — multi-LLM fan-out UI: question + context + project area + model toggles → three opinion cards + Sonnet synthesis + "Copy as brief for Claude Code" button; answer form + final brief for clarification round; Past Councils panel
+- **History engagement panel** — per-issue opens / clicks / bounces / recipients (opens column hides when tracking is off)
+- **History edit-archive button** — `HtmlCodeField` syntax-highlighted HTML editor for past-issue corrections
+- **Mixer** — syntax-highlighted HTML editor + Format button + "Convert commas → ⚜" (incl. back-to-back `</a><a>`); fleur-de-lis separator instead of comma
+- **Festivals Review** Phase 3 — Expired tab
+- **Best Of**, **GC Update** (4-tile layout, max 3 images each, vertical stacking variant), **An t-Abairt**, **Na Sàraichean** renderers
+- **Rach a-muigh agus cluich** section (closer image)
+- **Gaelic keyboard** (10 accented vowels: à è ì ò ù + caps) — onMouseDown + preventDefault to avoid stealing focus; native input value setter so React controlled inputs keep fada chars
+- **Send to Editors** button on IssueBuilder
+- **Sign Out** button (always renders with fallback for non-Clerk path)
+- API client (~60 methods) with cache-busting GETs, Clerk Bearer → fallback X-Admin-Key
+- Vercel rewrites: `/api/*` → Railway, `/(.*)` → SPA
+- Wordmark PNG generator (Puppeteer → Fraunces italic bold → crops to element)
 
-### What's NOT Built Yet
+### Clerk status (2026-06-29)
+- **Web build (admin.globalceilidh.com): fully Clerk-gated.** `VITE_ADMIN_KEY` removed from Vercel env 2026-06-25 (was being baked into the public bundle, granting admin access to anyone hitting the URL). `VITE_CLERK_PUBLISHABLE_KEY` set; `AppWithClerk.getToken({ template: 'session' })` carries `public_metadata.role`; tokenGetter registered during render to dodge the page-load 401 burst.
+- **Electron / local dev**: still uses `VITE_ADMIN_KEY` legacy path.
+- **Action remaining**: confirm in Clerk dashboard that the GlobalCeilidh app (`pk_live_Y2xlcmsuZ2xvYmFsY2VpbGlkaC5jb20k`) is what's wired up — NOT the orphaned Sruth Admin app. Smoke-test: sign in as `globalceilidh@gmail.com` (role:admin), confirm sidebar visible. Sign in as Lewis/Joe, confirm EditorShell.
+
+### What's NOT built yet
 - Issue number auto-increment (hardcoded)
 - Story selection persistence when navigating back from Issue Builder
+- AI Council Past Councils detail-view page (history endpoint exists, list page exists, detail-rerun page next)
+- Editor management UI (use Supabase SQL today)
+- Editor Council per-section signoff grid + send-gate (deferred from migration 025 design)
 
 ### Key Files
 ```
-src/main/index.js              Electron main process (window, menu, devtools)
-src/main/preload.js            IPC security bridge
-src/renderer/App.jsx           Root router + sidebar
-src/renderer/main.jsx          React entry
-src/renderer/pages/Brief.jsx   Morning brief editor
-src/renderer/pages/IssueBuilder.jsx  Newsletter issue builder
-src/renderer/pages/Sources.jsx       Source management
-src/renderer/pages/Subscribers.jsx   Subscriber list
-src/renderer/pages/History.jsx       Published history + analytics
-src/renderer/pages/Costs.jsx         API cost dashboard
-src/renderer/components/GaelicKeyboard.jsx  Virtual Gaelic keyboard
-src/renderer/api/client.js           HTTP client for backend calls
-scripts/generate-wordmark.js         Puppeteer wordmark PNG generator
-scripts/generate-icon.js             App icon builder (jimp)
-vite.config.js                       Vite build config
+src/main/{index.js,preload.js}              Electron main + IPC bridge
+src/renderer/main.jsx                       Clerk provider + router tree (web entry)
+src/renderer/AppWithClerk.jsx               Role → EditorShell or App; getToken bridge
+src/renderer/App.jsx                        Admin sidebar + routes
+src/renderer/EditorShell.jsx                Minimal editor layout
+src/renderer/api/client.js                  ~60 API methods, cache-bust GETs
+src/renderer/pages/{Brief,IssueBuilder,Sources,DiscoverSources,
+                    EventsReview,NewsReview,FestivalsReview,
+                    Subscribers,History,Costs,Workbench,
+                    EditorQueue,EditorReview,EditorCorrections}.jsx
+src/renderer/components/GaelicKeyboard.jsx  Floating fada picker
+scripts/{generate-icon,generate-wordmark}.js
+vercel.json                                 Rewrites + no-store /api/* headers
 ```
 
 ### Environment (.env)
 ```
 VITE_API_URL=http://localhost:8000
-VITE_ADMIN_SECRET=...
+VITE_CLERK_PUBLISHABLE_KEY=...      # canonical name — must match GlobalCeilidh Clerk app
+VITE_ADMIN_KEY=...                  # Electron/local only; REMOVED from Vercel
+```
+
+---
+
+## PROJECT 5 — Cùilidh (Personal Gaelic Tutor)
+
+### What It Is
+**Cùilidh — Tìdsear Pearsanta** ("Personal Tutor") — Scott's personal Scottish Gaelic tutoring app
+at `C:\Dev\cuilidh`. Electron desktop app that ingests Gaelic learning materials (PDFs) and uses
+them as context for one-on-one conversational tutoring with Claude. Tracks sessions, generates AI
+tutor notes, monitors API spend with prompt caching.
+
+**Standalone** — does NOT call sruth-backend, Supabase, or any other component of the GlobalCeilidh
+stack. Personal local-only tool.
+
+### Tech Stack
+- Electron 33 + React 18 + Vite (dev port 4747) + HashRouter
+- `@anthropic-ai/sdk` 0.36.0 — Claude API client
+  - **Opus 4.7** for ingestion + session summaries
+  - **Sonnet 4.6** for chat
+  - Two-block prompt caching: static docs + session notes (90% read discount after first message)
+  - SDK v0.36 still uses `node-fetch` v2 internally (relevant to TLS landmine below)
+- `pdf-parse` 1.1.1 — PDF text extraction
+- `electron-store` 8.2 — persistent local data at `%APPDATA%\cuilidh\cuilidh-data.json`
+- `win-ca` 3.x — installed 2026-06-24 as part of Norton TLS fix attempt; **currently inert** (not `require`d)
+
+### Pages
+1. **Tutor (`/`)** — chat header with live indicator, message thread, textarea. START → tutor greeting in Gaelic. END → Claude generates 3–5 sentence tutor notes
+2. **Library (`/library`)** — upload PDFs; on upload `ingest-pdf` calls Opus to extract vocab/phrases/grammar/themes
+3. **History (`/history`)** — sessions reverse-chronological with AI tutor notes + full transcript
+4. **Costs (`/costs`)** — total spend, last 30 days, total calls, cache hit rate; per-operation table; last 30 calls
+
+### Status (2026-06-29)
+- Single commit `a4eaa0e` (2026-04-30); functional prototype
+- **Uncommitted:** TLS workaround in `src/main/index.js`, `package.json` win-ca dep, `ROADMAP.md` (4-phase), `launch-cuilidh.vbs` silent launcher — commit before Phase 1 work starts
+- **TLS landmine (2026-06-24, FIXED):** Norton 360 silently turned on HTTPS interception against `api.anthropic.com`, re-signing with Norton's own root CA. Node doesn't read the Windows cert store, so Anthropic SDK threw `UNABLE_TO_VERIFY_LEAF_SIGNATURE` and the Tutor screen hung on three-dots indicator. `win-ca` didn't take (SDK's bundled `node-fetch` doesn't pick up the patched root). Final fix: `process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'` at top of `src/main/index.js`, before any other imports. Acceptable trade-off (single outbound endpoint, single home machine)
+- **Epistemic honesty patch (2026-06-24):** added EPISTEMIC HONESTY block to static system prompt so Sonnet hedges with "chan eil mi cinnteach / I'm not sure" when uncertain rather than inventing Gàidhlig. Cheapest grounding move; doesn't displace Phase 1 RAG
+
+### Roadmap (paused, in `ROADMAP.md`)
+1. Phase 1 — text RAG core
+2. Phase 2 — corpus depth + Am Faclair Beag dictionary
+3. Phase 3 — Èist voice-in
+4. Phase 4 — XTTS voice-out from gaidhlig-tts recordings (pre-work: ask one speaker for 30-min continuous monologue beyond corpus sentences)
+
+### Key Files
+```
+src/main/index.js              Electron main; IPC; Anthropic API; PDF processing
+                               (TLS reject-unauthorized at top — Norton workaround)
+src/main/preload.js            Context bridge
+src/renderer/{main.jsx,App.jsx,index.css}
+src/renderer/pages/{Tutor,Library,History,Costs}.jsx
+.pdf_text/                     Extracted PDF metadata
+extract_pdfs.js, build_store.js, seed-docs.js
+launch-cuilidh.vbs             Windows silent launcher (untracked)
+ROADMAP.md                     4-phase plan (untracked)
+.env                           ANTHROPIC_API_KEY (git-ignored)
+```
+
+### Build / deploy
+- `npm run dev` — Vite (4747) + Electron with DevTools
+- `npm start` — Electron production
+- No CI/CD, no electron-builder, no Vercel/Docker
+- Launched via `launch-cuilidh.vbs` (silent)
+
+---
+
+## PROJECT 6 — gaidhlig-tts (Local corpus + voice pipeline)
+
+### What It Is
+Scottish Gàidhlig **voice corpus + TTS/ASR pipeline**. Long-term aim: voice-in / voice-out
+conversational AI (ASR → LLM → TTS) anchored on the **EIST Edinburgh** ASR partnership (same group
+as ARCOSG). Short-term: build a clean recording corpus, ship USB mics to volunteer speakers
+(Audacity → WAVs back), feed into ASR fine-tune + per-voice TTS.
+
+### Status (2026-06-29)
+- **Corpus phase complete** — `gaelic_speech_corpus.csv` = **5,095** unique Gàidhlig sentences, UTF-8 with BOM. Sources: Tatoeba 707, FLORES-200 545, ARCOSG ~3,843
+- **Recording phase started** — 2× Rode USB mics shipped (~$300); mic-passing model, 2 active speakers, target 4–5
+- **Not yet under git** — local-only; will initialise once first round of recordings is QC-clean
+
+### Pipeline (planned, once recordings come in)
+QC → forced alignment → dataset packaging → ASR fine-tune (target partner: **Èist** / EIST
+Edinburgh) + per-speaker TTS training → wire into Pipecat / LiveKit conversational loop.
+
+### Layout
+```
+gaidhlig-tts/
+├── build_corpus.py            Stdlib pipeline: Tatoeba + FLORES-200 + ARCOSG → CSV
+├── gaelic_speech_corpus.csv   The corpus (5,095 sentences)
+└── cache/                     Cached source downloads
 ```
 
 ---
@@ -449,32 +520,59 @@ VITE_ADMIN_SECRET=...
 
 ### Supabase Database (key tables)
 ```
-immersion_locations     Lesson locations (e.g. cafaidh)
-units                   Curriculum units per location/level
-lesson_items            Vocabulary: gaelic, english, image_url, emoji, sort_order
-lesson_sessions         User progress (not yet built)
-question_attempts       Per-question tracking (not yet built)
-sruth_newsletters       Newsletter records
-sruth_sources           Content sources (RSS + scrapers)
-sruth_raw_items         Ingested raw content
-sruth_costs             API cost tracking per operation
+# Lessons
+immersion_locations            Lesson locations (e.g. cafaidh)
+units                          Curriculum units per location/level
+lesson_items                   Vocabulary: gaelic, english, image_url, emoji, sort_order
+lesson_sessions                User progress (not yet built)
+question_attempts              Per-question tracking (not yet built)
+
+# Users / auth
+users                          Clerk → Supabase webhook sync
+
+# Sruth editorial pipeline
+sruth_sources                  RSS / Playwright / Facebook / events sources
+sruth_raw_items                Ingested items (status: pending → processing → processed)
+sruth_newsletter_queue         Items awaiting approval for next issue
+sruth_newsletters              Sent issues + drafts (html_archive for public archive)
+sruth_website_queue            News page items (pending → approved → published → archived)
+sruth_festivals                Highland Games / fèisean (review_status pending/published/rejected/expired)
+sruth_events                   Event calendar
+sruth_subscribers              Email signups (unsubscribe_token)
+sruth_source_candidates        Staging for discovery results
+sruth_send_events              Resend webhook event log (unique on (resend_email_id, event_type, occurred_at))
+sruth_costs                    Per-call cost ledger
+sruth_editor_corrections       Editor markup submissions (migration 025)
+
+# Workbench / governance (migrations 021-023)
+gc_workbench_tasks             Task tracker (with codex_scope CHECK constraint)
+gc_workbench_councils          AI Council fan-outs (clarifications + final_brief from 023)
+gc_workbench_council_responses Per-model opinion + synthesis row
+gc_editors                     Active editor roster
+gc_editor_signoffs             Per-section editor approval (UI pending)
+gc_editor_overrides            "Send anyway" audit trail (UI pending)
+gc_review_items                Sgrùdadh queue items (UI pending)
+gc_ai_reviews                  AI pre-pass results per content type
+
+# Ceilidh Rooms (migration 024)
+gc_rooms                       Room registry (access_tier public/group/paid)
+gc_groups                      Group memberships
+gc_group_members
+gc_room_access_grants
+gc_room_payments
 ```
 
 ### Aileen — The Character
 - Scotland flag figure (red-haired woman)
 - Source image: `C:\Users\Scott\Desktop\Aileen_2_CGPT_3_20.png`
-- Used as: design consultant voice (conceptual) — no longer appears in gc-app
-- gc-app now uses GC Kids characters (Alba, U, Maple, GB, Awzi, Paddy, Nuwz) rotating by level
+- Used as: design consultant voice (conceptual); no longer appears in gc-app
+- gc-app uses GC Kids characters rotating by level
 
 ### GC Kids Characters
-- **11 characters total** (originally 7, expanded 2026-05): Alba, U, Maple, GB, Awzi, Paddy, Nuwz,
-  Siobhan, Piper, Sasha, Ruadh
-- Source images: `C:\Users\Scott\Desktop\GC-kids\`
-- Two maps exported from `gc-app/lib/levels.js`:
-  - `CHARACTERS` — full-color portraits (used by `LevelSelect`)
-  - `SILHOUETTES` — silhouette / scene variants (used in-game by `MatchingGame`)
-- In-game silhouette by level: Alba(1), U/Sammy(2), Maple(3), Awzi(4), Siobhan(5), Piper(6),
-  GB1(7), Sasha(8), Nuwz(9), Ruadh(10)
+- **11 characters total** (originally 7, expanded 2026-05): Alba, U, Maple, GB, Awzi, Paddy, Nuwz, Siobhan, Piper, Sasha, Ruadh
+- Source: `C:\Users\Scott\Desktop\GC-kids\`
+- Two maps exported from `gc-app/lib/levels.js`: `CHARACTERS` (portraits) + `SILHOUETTES` (in-game)
+- In-game silhouette by level: Alba(1), U/Sammy(2), Maple(3), Awzi(4), Siobhan(5), Piper(6), GB1(7), Sasha(8), Nuwz(9), Ruadh(10)
 - Text speech bubbles only (Gaelic + English) — voice removed
 
 ### The Sniomh (Swirl) Motif
@@ -483,39 +581,79 @@ sruth_costs             API cost tracking per operation
 - Used as: card backs in matching game, life currency icon
 - NOT Celtic knots — specifically the Sniomh spiral form
 
+### Auth (Clerk, fully promoted 2026-06-19)
+| Surface | Current state |
+|---|---|
+| global-ceilidh | `pk_live_` / `sk_live_`; webhook sync to Supabase `users` |
+| sruth-backend | Clerk JWT (JWKS 10-min cache) alongside legacy `X-Admin-Key` |
+| sruth-admin (web) | Fully Clerk-gated (2026-06-25); `VITE_ADMIN_KEY` removed from Vercel |
+| sruth-admin (Electron) | Still uses `VITE_ADMIN_KEY` legacy path |
+| gc-app | None (anonymous Supabase) |
+| cuilidh | None (local-only) |
+
 ---
 
 ## PENDING ITEMS (cross-project)
 
-### Cùilidh (personal Gaelic tutor — `C:\Dev\cuilidh`, not yet in source control / GitHub)
-- [ ] **NEXT SESSION**: Build API cost meter — instrument all three Anthropic SDK calls in `src/main/index.js` (ingest-pdf, chat, end-session) to log token usage + cost (`$15/MTok in, $75/MTok out` for claude-opus-4-7) into a new `costs` array in electron-store. Add `get-costs` IPC handler + new **Costaisean / Costs** page mirroring `C:\Dev\sruth-admin\src\renderer\pages\Costs.jsx`. ~45-60 min.
-- [ ] Push Cùilidh to GitHub at some point so remote agents become an option for it
-- [ ] Add Cùilidh as PROJECT 5 in this master briefing (currently only documented in memory)
+### High-leverage
+- **Re-add Clerk auth to /rooms** — embed `<SignIn />` on `/sign-in` app-domain route OR Clerk satellite-domain config (Pro). Currently the public-only MVP works but group/paid rooms are stuck on 403.
+- **Stripe Connect onboarding + paid-room Checkout** — Session 3 from the Rooms Council brief
+- **Sgrùdadh QA queue** at `globalceilidh.com/sgrùdadh` — first content = 100 `/saoghal` places (all `verified: false`)
+- **Reviewer outreach** (no code) — Fòram na Gàidhlig, SMO community board, ACGA, Scottish Gaelic Discord, Cape Breton networks
+- **Verify public numbers** — NA fluent speaker count (~4,000), Duolingo gd active learners (~500,000), ACGA membership, NS native vs learner split
 
 ### Sruth
-- [ ] Issue number auto-increment from sruth_newsletters table
-- [ ] Story selection persistence in Issue Builder
-- [ ] Fix dead RSS source URLs
-- [ ] Run `sruth_costs` table SQL in Supabase if not done
+- Issue number auto-increment from `sruth_newsletters`
+- Story selection persistence in Issue Builder
+- Fix dead RSS source URLs (LearnGaelic, Speak Gaelic, Tobar an Dualchais, Kim Carnie, Julie Fowlis)
+- AI Council Past Councils detail-view page
+- Per-section signoff grid (Editor Council Path B)
+- Auto-apply corrections back into `sections_config`
+- Editor management UI
 
 ### gc-app / Lorg na Càraidean
-- [ ] Card art — Unit 2: Brot, Uisge (dealbh + facal)
-- [ ] Card art — Unit 3 (colours): all 8 pairs
-- [ ] Card art — Unit 4 (family): all 8 pairs
-- [ ] Card art — Unit 5 (landscape): 7 remaining (rename Speur typo)
-- [ ] Win reveal image + video for levels 4–10
-- [ ] Seed Supabase with vocab units 2–5 (fallback hardcoded in App.js works for now)
-- [ ] PWA for globalceilidh.com
-- [ ] Web version of matching game
-- [ ] Replace `picsum.photos` URL on levels 3 & 4 `bg` field (low priority — only matters if revealImage absent)
+- Finish or shelve the 2026-06-20 uncommitted rewrite
+- Card art — Unit 2 (Brot, Uisge), Unit 3 (8), Unit 4 (8), Unit 5 (7 + Speur typo)
+- Win reveal image + video for levels 4–10
+- Seed Supabase with vocab Units 2–5
+- PWA + web version of matching game
+- EAS build
 
 ### global-ceilidh
-- [ ] Lock pedagogy (question counts, lesson flow)
-- [ ] Build Practice + Challenge tabs
-- [ ] Wire user progress tracking
-- [ ] Migration 003 (community chat)
-- [ ] Cosmetic redesign pass
-- [ ] CAPTCHA on subscribe form (Cloudflare Turnstile)
-- [ ] Supabase RLS policy on sruth_subscribers table
-- [ ] Confirm production Clerk webhook is healthy
-- [ ] Clerk: complete "Setup social connection credentials" (0/1 in production instance)
+- Lock pedagogy (question counts, lesson flow)
+- Build Practice + Challenge tabs
+- Wire user progress tracking
+- Migration 003 (community chat)
+- Cosmetic redesign pass
+- CAPTCHA on subscribe (Cloudflare Turnstile)
+- Supabase RLS on `sruth_subscribers`
+- Realtime chat overlay on /rooms via Supabase Realtime
+- Èist live Gàidhlig captions on /rooms (blocked on Èist API contract)
+
+### Cùilidh
+- Commit the uncommitted TLS workaround + ROADMAP + launcher
+- Phase 1 — text RAG core
+- Push to GitHub at some point so remote agents become an option
+
+### sruth-backend
+- STT Phase 3 — `POST /transcribe` for client apps
+- Optional `transcript_text` column on `sruth_raw_items`
+- Persistent Railway volume mount at `~/.cache/huggingface/`
+- Pessimistic edit-locking (`sruth_draft_locks`)
+
+### gaidhlig-tts
+- Bring under git once first round of recordings is QC-clean
+- Design dataset packaging step
+
+---
+
+## LANDMINES (don't relearn the hard way)
+
+- **VITE_* env changes** require a fresh git push to Vercel — "Redeploy" reuses stale artifacts
+- **Vercel env vars** must be set via web UI; PowerShell pipe injects a BOM
+- **Supabase DDL** is applied manually in SQL editor; numbered migrations in `sruth-backend/migrations/*.sql` are source of truth
+- **Windows + Playwright** needs forced Proactor event loop
+- **Norton 360** silently intercepts HTTPS on the home PC, re-signing with its own root CA. Node doesn't trust the Windows store. Triggered by Norton auto-updates; not your code. Signature: env var `SSLKEYLOGFILE=\\.\nllMonFltProxy\...` shows up in the shell. Workaround for local-only tools: `NODE_TLS_REJECT_UNAUTHORIZED=0`
+- **Clerk Account Portal cross-subdomain** doesn't propagate `__session` cookies from `accounts.*` to apex/www; `/rooms` auth currently disabled
+- **`VITE_ADMIN_KEY` was being baked into the public Vite bundle** (sruth-admin) — anyone hitting `admin.globalceilidh.com` got an admin-credentialed bundle. Removed from Vercel 2026-06-25. Don't add it back to the web build.
+- **`@anthropic-ai/sdk` v0.36** still uses bundled `node-fetch` v2 — `win-ca` / native cert-store fixes don't take. Relevant when an SDK upgrade lets us drop the `NODE_TLS_REJECT_UNAUTHORIZED=0` hack
