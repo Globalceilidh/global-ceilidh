@@ -31,12 +31,7 @@ const RUBBER_FACTOR = 0.32
 const MOMENTUM_FRICTION = 0.94
 const MOMENTUM_MIN_VELOCITY = 0.4
 const ROTATE_MAX_DEG = 8         // mouseX → rotateY lean (left/right)
-const BASE_TILT_DEG = 6          // baked-in rotateX — wall leans forward
-                                 // like a lectern; gives the Phantom-style
-                                 // "looking slightly down at the bottom
-                                 // row, top row recedes" perspective
-const PERSPECTIVE_PX = 900       // tighter perspective = more dramatic
-                                 // edge foreshortening on wide walls
+const PERSPECTIVE_PX = 900
 const DRAG_THRESHOLD_PX = 5
 
 const EMPTY_FILTERS = () => Object.fromEntries(FILTER_GROUPS.map((g) => [g.id, new Set()]))
@@ -397,7 +392,7 @@ export default function WallClient() {
             left: '50%',
             top: '50%',
             width: gridWidth,
-            transform: `translate3d(calc(-50% + ${dragOffset.x}px), calc(-50% + ${dragOffset.y}px), 0) rotateX(${reduceMotion ? 0 : BASE_TILT_DEG}deg) rotateY(${rotateY}deg)`,
+            transform: `translate3d(calc(-50% + ${dragOffset.x}px), calc(-50% + ${dragOffset.y}px), 0) rotateY(${rotateY}deg)`,
             transformStyle: 'preserve-3d',
             transition: isDragging ? 'none' : 'transform 80ms linear',
             willChange: 'transform',
