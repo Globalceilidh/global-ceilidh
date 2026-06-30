@@ -14,21 +14,29 @@ import FilterPanel, { FILTER_GROUPS } from './components/FilterPanel'
 import { ListView } from './components/ListView'
 import { issue as week2 } from './data/week-2026-06-23'
 
-// Grid sizing
-const TILE_W = 280
-const TILE_H = 380
-const GAP_DESKTOP = 12
-const GAP_MOBILE = 8
-const ROWS = 18
-const COLS_DESKTOP = 4
-const COLS_TABLET = 3
-const COLS_MOBILE = 2
+// Grid sizing — wall extends well beyond viewport on BOTH axes so drag has
+// real range in any direction (Phantom-style). Bigger gaps so the vortex
+// behind shows through between tiles instead of being walled off.
+const TILE_W = 240
+const TILE_H = 320
+const GAP_DESKTOP = 36
+const GAP_MOBILE = 16
+const ROWS = 12
+const COLS_DESKTOP = 9
+const COLS_TABLET = 5
+const COLS_MOBILE = 3
 
 // Drag / perspective tuning
-const RUBBER_FACTOR = 0.3
+const RUBBER_FACTOR = 0.32
 const MOMENTUM_FRICTION = 0.94
 const MOMENTUM_MIN_VELOCITY = 0.4
-const ROTATE_MAX_DEG = 8
+const ROTATE_MAX_DEG = 8         // mouseX → rotateY lean (left/right)
+const BASE_TILT_DEG = 6          // baked-in rotateX — wall leans forward
+                                 // like a lectern; gives the Phantom-style
+                                 // "looking slightly down at the bottom
+                                 // row, top row recedes" perspective
+const PERSPECTIVE_PX = 900       // tighter perspective = more dramatic
+                                 // edge foreshortening on wide walls
 const DRAG_THRESHOLD_PX = 5
 
 const EMPTY_FILTERS = () => Object.fromEntries(FILTER_GROUPS.map((g) => [g.id, new Set()]))
@@ -379,7 +387,7 @@ export default function WallClient() {
         onPointerCancel={onPointerUp}
         style={{
           ...wallLayerStyle,
-          perspective: '1200px',
+          perspective: `${PERSPECTIVE_PX}px`,
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
       >
@@ -389,7 +397,7 @@ export default function WallClient() {
             left: '50%',
             top: '50%',
             width: gridWidth,
-            transform: `translate3d(calc(-50% + ${dragOffset.x}px), calc(-50% + ${dragOffset.y}px), 0) rotateY(${rotateY}deg)`,
+            transform: `translate3d(calc(-50% + ${dragOffset.x}px), calc(-50% + ${dragOffset.y}px), 0) rotateX(${reduceMotion ? 0 : BASE_TILT_DEG}deg) rotateY(${rotateY}deg)`,
             transformStyle: 'preserve-3d',
             transition: isDragging ? 'none' : 'transform 80ms linear',
             willChange: 'transform',
