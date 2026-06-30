@@ -27,15 +27,26 @@ const RENDER_COLS = COLS * MOSAIC
 const RENDER_ROWS = ROWS * MOSAIC
 
 const TILE_W = 240
-const TILE_H = 320
+const TILE_H = 240               // square (was 320 portrait)
 const GAP = 36
 
 // Drag tuning
 const MOMENTUM_FRICTION = 0.95
 const MOMENTUM_MIN_VELOCITY = 0.3
-const ROTATE_MAX_DEG = 8          // mouseX → rotateY lean
 const PERSPECTIVE_PX = 1100
 const DRAG_THRESHOLD_PX = 5
+
+// Per-tile cylindrical curve: rotateY computed in CSS via calc() from
+// the tile's current screen X position relative to viewport center.
+// Tiles AT viewport center sit flat; tiles near the screen edges tilt
+// more obliquely. CSS handles this for all 1089 tiles in one pass
+// without any per-frame JS update.
+const TILE_ROTATE_FACTOR_DEG_PER_PX = 0.04
+
+const RENDER_W = RENDER_COLS * TILE_W + (RENDER_COLS - 1) * GAP
+const RENDER_H = RENDER_ROWS * TILE_H + (RENDER_ROWS - 1) * GAP
+const RENDER_HALF_W = RENDER_W / 2
+const RENDER_HALF_H = RENDER_H / 2
 
 const EMPTY_FILTERS = () => Object.fromEntries(FILTER_GROUPS.map((g) => [g.id, new Set()]))
 const VERTICALS = ['music', 'books', 'podcasts', 'film', 'radio']
@@ -338,6 +349,17 @@ export default function WallClient() {
             gridTemplateColumns: `repeat(${RENDER_COLS}, ${TILE_W}px)`,
             gridAutoRows: `${TILE_H}px`,
             gap: `${GAP}px`,
+            // CSS vars drive per-tile rotateY (computed entirely in CSS
+            // calc — no per-frame JS work for the 1089 tiles).
+            '--drag-x': `${visX}px`,
+            '--drag-y': `${visY}px`,
+            '--render-half-w': `${RENDER_HALF_W}px`,
+            '--render-half-h': `${RENDER_HALF_H}px`,
+            '--tile-pitch-x': `${TILE_W + GAP}px`,
+            '--tile-pitch-y': `${TILE_H + GAP}px`,
+            '--tile-half-w': `${TILE_W / 2}px`,
+            '--tile-half-h': `${TILE_H / 2}px`,
+            '--rot-factor': `${reduceMotion ? 0 : TILE_ROTATE_FACTOR_DEG_PER_PX}`,
           }}
         >
           {Array.from({ length: RENDER_COLS * RENDER_ROWS }, (_, i) => {
@@ -350,6 +372,8 @@ export default function WallClient() {
               <TileCard
                 key={i}
                 tile={tile}
+                col={xi}
+                row={yi}
                 dimmed={!matched}
                 onClick={() => onTileClick(tile)}
               />
@@ -428,25 +452,17 @@ export default function WallClient() {
   )
 }
 
-function TileCard({ tile, dimmed, onClick }) {
+function TileCard({ tile, col, row, dimmed, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className="antonn-tile"
       style={{
-        width: TILE_W,
-        height: TILE_H,
-        padding: 0,
-        background: '#0a0d14',
-        border: 'none',
-        borderRadius: 8,
-        overflow: 'hidden',
-        cursor: 'pointer',
+        '--col': col,
+        '--row': row,
         opacity: dimmed ? 0.2 : 1,
         pointerEvents: dimmed ? 'none' : 'auto',
-        position: 'relative',
-        display: 'block',
       }}
     >
       <img
@@ -454,14 +470,7 @@ function TileCard({ tile, dimmed, onClick }) {
         alt={tile.title}
         draggable={false}
         loading="lazy"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}
+        className="antonn-tile-img"
       />
       <div className="antonn-tile-overlay">
         <div style={{
@@ -485,13 +494,54 @@ function TileCard({ tile, dimmed, onClick }) {
   )
 }
 
+// Per-tile rotateY computed entirely in CSS. For tile at (col, row):
+//   natural-x  = col * pitch + half_w        (center of tile in grid coords)
+//   screen-x   = drag-x - render-half-w + natural-x   (signed distance
+//                                                       from viewport
+//                                                       center along X)
+//   rotateY    = screen-x * -rot-factor      (negative = right tiles
+//                                              tilt right-edge away;
+//                                              left tiles mirror)
+// Same for Y. The trick is `var(--screen-x) * -1deg * var(--rot-factor) / 1px`
+// which converts a px length to deg via dimensionless multiplication.
+//
+// Tile background is semi-translucent so the vortex shows through
+// every gap; a hairline cream border outlines each panel.
 const TILE_CSS = `
   .antonn-tile {
-    transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease;
+    width: ${TILE_W}px;
+    height: ${TILE_H}px;
+    padding: 0;
+    background: rgba(10, 13, 20, 0.62);
+    border: 1px solid rgba(242, 236, 220, 0.10);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    display: block;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    transform-style: preserve-3d;
+    --natural-x: calc(var(--col) * var(--tile-pitch-x) + var(--tile-half-w));
+    --natural-y: calc(var(--row) * var(--tile-pitch-y) + var(--tile-half-h));
+    --screen-x: calc(var(--drag-x) - var(--render-half-w) + var(--natural-x));
+    --screen-y: calc(var(--drag-y) - var(--render-half-h) + var(--natural-y));
+    transform:
+      rotateY(calc(var(--screen-x) * var(--rot-factor) * -1deg / 1px))
+      rotateX(calc(var(--screen-y) * var(--rot-factor) * 1deg / 1px));
+    transition: opacity 320ms ease, border-color 240ms ease;
   }
   .antonn-tile:hover {
-    transform: scale(1.03);
+    border-color: rgba(201, 160, 71, 0.55);
     z-index: 1;
+  }
+  .antonn-tile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+    user-select: none;
   }
   .antonn-tile-overlay {
     position: absolute;
