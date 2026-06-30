@@ -1,13 +1,13 @@
 'use client'
 
 // Thin client wrapper. Three responsibilities:
-//   1. WebGL feature detection on mount. If unavailable (Norton TLS
-//      blocking, broken GPU, browser flag disabling hw-accel) the
-//      cylinder will never render, so we render the list view instead.
-//   2. Wrap the cylinder in an error boundary so any runtime crash
-//      (shader compile failure, Three.js init, anything) falls back
-//      to the list view rather than blanking the page.
-//   3. Own the dynamic import of CylinderClient with ssr:false (Next.js
+//   1. WebGL feature detection on mount. The vortex shader still runs
+//      on a Three.js canvas behind the new CSS-perspective wall — if
+//      WebGL is unavailable (Norton TLS blocking, broken GPU, browser
+//      flag disabling hw-accel) we render the list view instead.
+//   2. Wrap the wall in an error boundary so any runtime crash falls
+//      back to the list view rather than blanking the page.
+//   3. Own the dynamic import of WallClient with ssr:false (Next.js
 //      16 disallows this pattern in Server Components).
 //
 // First-paint experience uses /AnTonn/cover.png (the existing
@@ -19,7 +19,7 @@ import dynamic from 'next/dynamic'
 import { ListView, SEOMirror } from './components/ListView'
 import { issue as week2 } from './data/week-2026-06-23'
 
-const CylinderClient = dynamic(() => import('./CylinderClient'), {
+const WallClient = dynamic(() => import('./WallClient'), {
   ssr: false,
   loading: () => <StaticCoverLoading />,
 })
@@ -53,7 +53,7 @@ export default function PreviewShell() {
 
   return (
     <ErrorBoundary onError={() => setErrored(true)}>
-      <CylinderClient />
+      <WallClient />
       <SEOMirror issue={week2} />
     </ErrorBoundary>
   )
@@ -116,7 +116,7 @@ class ErrorBoundary extends Component {
     return { hasError: true }
   }
   componentDidCatch(error, info) {
-    console.error('[AnTonn cylinder error boundary]', error, info)
+    console.error('[AnTonn wall error boundary]', error, info)
     this.props.onError?.(error)
   }
   render() {
