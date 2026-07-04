@@ -1,7 +1,29 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Script from 'next/script';
+
+// Featured artists — three tiles rotate around the Live365 player:
+//   left  = photo of the artist
+//   right = video of the artist (muted YouTube autoplay)
+// Artists without both `photo` AND `youtubeId` are skipped by the
+// rotation, so we can pre-declare Skipinnish + Mànran and just fill
+// their assets in later without touching the layout code.
+const ARTISTS = [
+  {
+    id: 'ally-the-piper',
+    name: 'Ally the Piper',
+    tagline: 'Bagpipe-rock on the Thruway',
+    photo: '/radio/ally-the-piper/photo-1.png',
+    photoAlt: 'Ally the Piper — press photo',
+    youtubeId: 'n2yFNWQRiU0',
+  },
+  { id: 'skipinnish', name: 'Skipinnish' },        // assets TBA
+  { id: 'manran',     name: 'Mànran' },             // assets TBA
+];
+
+const READY_ARTISTS = ARTISTS.filter((a) => a.photo && a.youtubeId);
+const ROTATION_MS = 18000; // 18s per featured artist
 
 // Ticker items — replace via CMS later. Each item has:
 //   { text?, logo?, href? }
@@ -23,6 +45,18 @@ const ADSENSE_PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID; // e.g. ca-
 const ADSENSE_SLOT_RADIO_TOP = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RADIO_TOP;
 
 export default function RadioClient() {
+  // Rotate through artists with complete assets. If only 1 artist has
+  // full data (photo + video), skip the timer and just show them.
+  const [featuredIdx, setFeaturedIdx] = useState(0);
+  useEffect(() => {
+    if (READY_ARTISTS.length < 2) return;
+    const id = setInterval(() => {
+      setFeaturedIdx((i) => (i + 1) % READY_ARTISTS.length);
+    }, ROTATION_MS);
+    return () => clearInterval(id);
+  }, []);
+  const featured = READY_ARTISTS[featuredIdx] || null;
+
   return (
     <>
       {/* AdSense loader — only injected if a publisher ID is configured.
@@ -57,22 +91,33 @@ export default function RadioClient() {
             />
           </div>
 
-          {/* Live365 embed — verbatim from Whitey's dashboard snippet */}
-          <div style={playerWrapperStyle}>
-            <div style={playerFrameStyle}>
-              <iframe
-                title="Global Ceilidh Radio — Live365 player"
-                width="450"
-                height="316"
-                frameBorder="0"
-                src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
-                allow="autoplay; encrypted-media"
-                style={{ display: 'block', maxWidth: '100%' }}
-              />
+          {/* Featured artist row: photo tile | Live365 player | video tile.
+              Flex-wrap causes clean stacking below ~1150px viewport. */}
+          {featured && (
+            <div style={featuredEyebrowStyle}>
+              ● NOW FEATURED · {featured.name.toUpperCase()}
+              {featured.tagline && <span style={featuredTaglineStyle}> · {featured.tagline}</span>}
             </div>
-            <div style={playerCaptionStyle}>
-              Broadcasting via Live365 · Powered by Global Ceilidh
+          )}
+          <div style={featuredRowStyle}>
+            {featured && <PhotoTile artist={featured} />}
+            <div style={playerColumnStyle}>
+              <div style={playerFrameStyle}>
+                <iframe
+                  title="Global Ceilidh Radio — Live365 player"
+                  width="450"
+                  height="316"
+                  frameBorder="0"
+                  src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
+                  allow="autoplay; encrypted-media"
+                  style={{ display: 'block', maxWidth: '100%' }}
+                />
+              </div>
+              <div style={playerCaptionStyle}>
+                Broadcasting via Live365 · Powered by Global Ceilidh
+              </div>
             </div>
+            {featured && <VideoTile artist={featured} />}
           </div>
 
           {/* Ticker chyron */}
@@ -146,6 +191,38 @@ function TickerItem({ item }) {
   return body;
 }
 
+function PhotoTile({ artist }) {
+  return (
+    <div style={photoTileStyle}>
+      <img
+        src={artist.photo}
+        alt={artist.photoAlt || artist.name}
+        style={photoImgStyle}
+        draggable={false}
+      />
+    </div>
+  );
+}
+
+function VideoTile({ artist }) {
+  // Muted autoplay is browser-policy-safe. `loop=1` requires
+  // `playlist=<same_id>` per YouTube's embed API.
+  const src = `https://www.youtube.com/embed/${artist.youtubeId}` +
+    `?autoplay=1&mute=1&loop=1&playlist=${artist.youtubeId}` +
+    `&controls=1&modestbranding=1&rel=0&playsinline=1`;
+  return (
+    <div style={videoTileStyle}>
+      <iframe
+        title={`${artist.name} — video`}
+        src={src}
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowFullScreen
+        style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
+      />
+    </div>
+  );
+}
+
 function AdSenseUnit({ publisherId, slot, label }) {
   useEffect(() => {
     if (!publisherId || !slot) return;
@@ -190,7 +267,7 @@ const pageStyle = {
 };
 
 const contentWrapperStyle = {
-  maxWidth: 720,
+  maxWidth: 1200,   // wider than sruth-signup to fit the three-panel featured row
   margin: '0 auto',
   display: 'flex',
   flexDirection: 'column',
@@ -243,11 +320,63 @@ const adWrapperStyle = {
   minHeight: 90,
 };
 
-const playerWrapperStyle = {
+const featuredEyebrowStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontSize: 11,
+  letterSpacing: 3,
+  color: '#C9A047',
+  textAlign: 'center',
+  marginTop: 4,
+};
+
+const featuredTaglineStyle = {
+  color: 'rgba(242, 236, 220, 0.5)',
+  letterSpacing: 2,
+};
+
+const featuredRowStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 20,
+};
+
+const playerColumnStyle = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   gap: 10,
+};
+
+const TILE_H = 316;
+
+const photoTileStyle = {
+  width: 237,
+  height: TILE_H,
+  background: 'rgba(0, 0, 0, 0.3)',
+  border: '1px solid rgba(242, 236, 220, 0.1)',
+  borderRadius: 8,
+  overflow: 'hidden',
+  boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+};
+
+const photoImgStyle = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
+  userSelect: 'none',
+};
+
+const videoTileStyle = {
+  width: 450,
+  height: TILE_H,
+  background: 'rgba(0, 0, 0, 0.3)',
+  border: '1px solid rgba(242, 236, 220, 0.1)',
+  borderRadius: 8,
+  overflow: 'hidden',
+  boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
 };
 
 const playerFrameStyle = {
