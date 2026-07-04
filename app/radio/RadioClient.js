@@ -19,7 +19,14 @@ const ARTISTS = [
     youtubeId: 'n2yFNWQRiU0',
   },
   { id: 'skipinnish', name: 'Skipinnish' },        // assets TBA
-  { id: 'manran',     name: 'Mànran' },             // assets TBA
+  {
+    id: 'manran',
+    name: 'Mànran',
+    tagline: 'Summer festival stages, Scotland to France',
+    photo: '/radio/manran/photo-1.png',
+    photoAlt: 'Mànran — press photo',
+    youtubeId: 'lTrHY3U4gYA',
+  },
 ];
 
 const READY_ARTISTS = ARTISTS.filter((a) => a.photo && a.youtubeId);
