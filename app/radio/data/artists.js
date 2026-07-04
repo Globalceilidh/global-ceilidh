@@ -101,16 +101,25 @@ export const FALLBACK = {
   partners: [],
 };
 
-// Phase 3 helper — normalise a Live365 artist string and find a match
-// in ARTISTS. Handles common variations ("Piper.Ally", "ally.piper",
-// case differences, punctuation).
+// Phase 3 helper — normalise a Live365 artist string and find any
+// artist in ARTISTS whose name or alias appears WITHIN it. Substring
+// match (not equality) so multi-artist strings like
+// "Mia Asano & Piper.Ally" still match Ally via her `piper.ally` alias
+// (both normalize to something containing "piperally").
 export function matchArtist(live365ArtistString) {
   if (!live365ArtistString) return null;
-  const norm = (s) => s.toLowerCase().replace(/[.\s_-]+/g, '');
+  const norm = (s) =>
+    s.toLowerCase().replace(/[.\s_&,()/\-\\]+/g, '');
   const target = norm(live365ArtistString);
+  if (target.length === 0) return null;
+
   for (const a of ARTISTS) {
-    if (norm(a.name) === target) return a;
-    if (a.aliases?.some((alias) => norm(alias) === target)) return a;
+    const candidates = [a.name, ...(a.aliases || [])];
+    for (const c of candidates) {
+      const n = norm(c);
+      // Guard against 1-2 char aliases accidentally matching everything
+      if (n.length >= 4 && target.includes(n)) return a;
+    }
   }
   return null;
 }

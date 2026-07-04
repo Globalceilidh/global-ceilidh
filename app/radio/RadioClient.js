@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import { Canvas } from '@react-three/fiber';
 import VortexBackground from '../AnTonn/preview/components/VortexBackground';
-import { ARTISTS, FALLBACK } from './data/artists';
+import { ARTISTS, FALLBACK, matchArtist } from './data/artists';
+
+const LIVE365_POLL_MS = 20000; // 20s poll interval — API caches server-side for 15s
 
 // YouTube IFrame Player API — singleton loader. The API sets a global
 // window.YT once its script finishes loading; we wrap the callback in
@@ -66,10 +68,35 @@ export default function RadioClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 });
   const [docHidden, setDocHidden] = useState(false);
 
-  // Phase 3 will `setFeatured(matchArtist(live365ArtistString))` from
-  // a polling effect; until then we stay null and both tiles show
-  // their empty state.
+  // Live365 sync — poll /api/live365/nowplaying every LIVE365_POLL_MS,
+  // run the artist string through matchArtist(), set featured to the
+  // ARTIST record if we own assets for them. If Live365 plays someone
+  // not in the library, matchArtist returns null and both tiles fall
+  // back to the EmptyTile (which shows FALLBACK.logo when present).
   const [featured, setFeatured] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const res = await fetch('/api/live365/nowplaying', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.ok && data.artist) {
+          const match = matchArtist(data.artist);
+          setFeatured(match || null);
+        } else {
+          setFeatured(null);
+        }
+      } catch (_) {
+        // Network hiccup — leave `featured` as-is until the next tick
+      }
+    };
+    poll();
+    const id = setInterval(poll, LIVE365_POLL_MS);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
 
   useEffect(() => {
     const handler = () => setDocHidden(document.hidden);
