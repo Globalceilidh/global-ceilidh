@@ -261,15 +261,23 @@ function TickerItem({ item }) {
   return body;
 }
 
-// Empty state — shown when no artist is featured (i.e. Live365 is
-// playing someone not in the ARTISTS library, or Phase 3 isn't wired
-// yet). Solid dark tile so the vortex reads around it, awaiting the
-// GC Radio fallback logo Whitey's delivering.
+// Empty state — shown when Live365 plays an artist not in the ARTISTS
+// library, or briefly on first page load. Solid dark tile bg (NOT
+// translucent — the logo's transparent corners were letting the
+// vortex bleed through as milky white).
 function EmptyTile({ wide }) {
   const base = wide ? videoTileStyle : photoTileStyle;
   const logo = FALLBACK.logo;
   return (
-    <div style={{ ...base, position: 'relative', background: 'rgba(0, 0, 0, 0.65)' }}>
+    <div
+      style={{
+        ...base,
+        position: 'relative',
+        background: '#050709',       // solid, opaque
+        backdropFilter: 'none',       // override tile base blur
+        WebkitBackdropFilter: 'none',
+      }}
+    >
       {logo && (
         <img
           src={logo}
@@ -281,8 +289,12 @@ function EmptyTile({ wide }) {
             inset: 0,
             width: '100%',
             height: '100%',
-            objectFit: 'contain',
-            opacity: 0.85,
+            // `cover` fills the tile in both slots (crops sides on the
+            // wide tile, top/bottom on the narrow tile). Logo now fills
+            // the panel edge to edge; you lose the outermost ~5-10%
+            // of the composition on the wide tile but the artwork and
+            // wordmark stay well inside that margin.
+            objectFit: 'cover',
             userSelect: 'none',
           }}
         />
