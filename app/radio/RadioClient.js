@@ -59,7 +59,7 @@ const ROTATION_MS = 18000; // 18s per featured artist
 const PHOTO_CAROUSEL_MS = 4500; // 4.5s per photo inside a tile carousel
 
 const SPONSOR_TICKER_ITEM = {
-  text: 'Fàilte gu Rèidio Ceilidh Cruinne — sponsor a slot at globalceilidh@gmail.com',
+  text: 'Fàilte gu Global Ceilidh Rèidio — sponsor a spot on our ticker at globalceilidh@gmail.com',
   href: 'mailto:globalceilidh@gmail.com',
 };
 
