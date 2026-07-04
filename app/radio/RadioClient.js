@@ -9,11 +9,11 @@ import Script from 'next/script';
 // items with both render as an image + label pair. Anything with an
 // href becomes a link.
 const TICKER_ITEMS = [
-  { text: 'TIDE LINES · UK Tour · July 2026 · Glasgow, Edinburgh, Stornoway, Halifax NS, Boston', href: '#' },
+  { text: '🪈 Ally the Piper · US Club Tour · Jul 29 Albany NY (The Egg / Swyer Theatre) · Jul 30 Syracuse NY (Westcott Theater) · Aug 6 Ann Arbor MI (Blind Pig) · Aug 12 Grand Rapids MI (The Pyramid Scheme) · Aug 13–16 Milwaukee WI (Milwaukee Irish Fest)' },
   { text: '·' },
-  { text: 'MÀNRAN · North American Tour · August 2026 · Inverness → Skye → Cape Breton → Toronto → NYC', href: '#' },
+  { text: '🥁 Skipinnish · Sep 19 Gloucestershire, England · Nov 22–30 Germany Tour (Hamburg · Berlin · Cologne · Munich · Stuttgart) · Dec 3 Fort William (Nevis Centre) · Dec 4 Glasgow (Royal Concert Hall) · Dec 5 Glasgow (Barrowland Ballroom) · Dec 10 Perth (Perth Concert Hall) · Dec 11 Oban (Corran Halls)' },
   { text: '·' },
-  { text: 'SKERRYVORE · Autumn Tour · September 2026 · Tiree, Glasgow, Belfast, Halifax, NYC', href: '#' },
+  { text: '🎸 Mànran · Jul 16 Isle of Lewis (HebCelt Festival) · Jul 26 Loon-Plage, France (Parc Galame) · Jul 30–Aug 1 Inverness (Belladrum Tartan Heart Festival) · Aug 14–15 York (The Magpies Festival) · Sep 4–6 Jedburgh (Edge Fest)' },
   { text: '·' },
   { text: 'Fàilte gu Rèidio Ceilidh Cruinne — sponsor a slot on the ticker at globalceilidh@gmail.com', href: 'mailto:globalceilidh@gmail.com' },
   { text: '·' },
