@@ -24,11 +24,9 @@ const ARTISTS = [
     tagline: 'England, Germany, and a winter run of Scottish theatres',
     photo: '/radio/skipinnish/photo-1.png',
     photoAlt: 'Skipinnish — press photo',
-    // No video available — right tile becomes a photo carousel
+    // No video available — right tile shows the second photo
     extraPhotos: [
       '/radio/skipinnish/photo-2.png',
-      '/radio/skipinnish/photo-3.png',
-      '/radio/skipinnish/photo-4.png',
     ],
   },
   {
