@@ -4,63 +4,77 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 
 // Featured artists — three tiles rotate around the Live365 player:
-//   left  = primary photo
-//   right = video (muted YouTube autoplay) if `youtubeId` is set,
-//           otherwise a cross-fading carousel of `extraPhotos`.
-// Artists need a `photo` to appear in the rotation. Everything else
-// is optional; the right tile adapts.
+//   left  = photo tile (cycles the artist's photo pool)
+//   right = video tile (muted YouTube) OR a second photo tile that
+//           cycles the same pool offset from left, so left and right
+//           always show different pictures
+// The ticker below the row is driven by the SAME featured state:
+// each artist's `tourDates` string swaps in when the tile rotates,
+// so the crawl always matches whoever's on screen.
 const ARTISTS = [
   {
     id: 'ally-the-piper',
+    emoji: '🪈',
     name: 'Ally the Piper',
     tagline: 'Bagpipe-rock on the Thruway',
-    photo: '/radio/ally-the-piper/photo-1.png',
+    photos: [
+      '/radio/ally-the-piper/photo-1.png',
+      '/radio/ally-the-piper/photo-2.png',
+    ],
     photoAlt: 'Ally the Piper — press photo',
     youtubeId: 'n2yFNWQRiU0',
+    tourDates: 'US Club Tour · Jul 29 Albany NY (The Egg / Swyer Theatre) · Jul 30 Syracuse NY (Westcott Theater) · Aug 6 Ann Arbor MI (Blind Pig) · Aug 12 Grand Rapids MI (The Pyramid Scheme) · Aug 13–16 Milwaukee WI (Milwaukee Irish Fest)',
   },
   {
     id: 'skipinnish',
+    emoji: '🥁',
     name: 'Skipinnish',
     tagline: 'England, Germany, and a winter run of Scottish theatres',
-    photo: '/radio/skipinnish/photo-1.png',
-    photoAlt: 'Skipinnish — press photo',
-    // No video available — right tile shows the second photo
-    extraPhotos: [
+    photos: [
+      '/radio/skipinnish/photo-1.png',
       '/radio/skipinnish/photo-2.png',
     ],
+    photoAlt: 'Skipinnish — press photo',
+    // No video available — right tile becomes a second photo panel
+    tourDates: 'Sep 19 Gloucestershire, England · Nov 22–30 Germany Tour (Hamburg · Berlin · Cologne · Munich · Stuttgart) · Dec 3 Fort William (Nevis Centre) · Dec 4 Glasgow (Royal Concert Hall) · Dec 5 Glasgow (Barrowland Ballroom) · Dec 10 Perth (Perth Concert Hall) · Dec 11 Oban (Corran Halls)',
   },
   {
     id: 'manran',
+    emoji: '🎸',
     name: 'Mànran',
     tagline: 'Summer festival stages, Scotland to France',
-    photo: '/radio/manran/photo-1.png',
+    photos: [
+      '/radio/manran/photo-1.png',
+      '/radio/manran/photo-2.png',
+      '/radio/manran/photo-3.png',
+    ],
     photoAlt: 'Mànran — press photo',
     youtubeId: 'lTrHY3U4gYA',
+    tourDates: 'Jul 16 Isle of Lewis (HebCelt Festival) · Jul 26 Loon-Plage, France (Parc Galame) · Jul 30–Aug 1 Inverness (Belladrum Tartan Heart Festival) · Aug 14–15 York (The Magpies Festival) · Sep 4–6 Jedburgh (Edge Fest)',
   },
 ];
 
-// Only artists with a primary photo appear in the rotation. When the
-// right tile has neither a video nor extra photos, it simply isn't
-// rendered — the row shrinks to a two-panel layout for that artist.
-const READY_ARTISTS = ARTISTS.filter((a) => a.photo);
+const READY_ARTISTS = ARTISTS.filter((a) => a.photos && a.photos.length > 0);
 const ROTATION_MS = 18000; // 18s per featured artist
-const PHOTO_CAROUSEL_MS = 4000; // 4s per photo inside a carousel tile
+const PHOTO_CAROUSEL_MS = 4500; // 4.5s per photo inside a tile carousel
 
-// Ticker items — replace via CMS later. Each item has:
-//   { text?, logo?, href? }
-// Text-only items render as serif text; logo items render as an image;
-// items with both render as an image + label pair. Anything with an
-// href becomes a link.
-const TICKER_ITEMS = [
-  { text: '🪈 Ally the Piper · US Club Tour · Jul 29 Albany NY (The Egg / Swyer Theatre) · Jul 30 Syracuse NY (Westcott Theater) · Aug 6 Ann Arbor MI (Blind Pig) · Aug 12 Grand Rapids MI (The Pyramid Scheme) · Aug 13–16 Milwaukee WI (Milwaukee Irish Fest)' },
-  { text: '·' },
-  { text: '🥁 Skipinnish · Sep 19 Gloucestershire, England · Nov 22–30 Germany Tour (Hamburg · Berlin · Cologne · Munich · Stuttgart) · Dec 3 Fort William (Nevis Centre) · Dec 4 Glasgow (Royal Concert Hall) · Dec 5 Glasgow (Barrowland Ballroom) · Dec 10 Perth (Perth Concert Hall) · Dec 11 Oban (Corran Halls)' },
-  { text: '·' },
-  { text: '🎸 Mànran · Jul 16 Isle of Lewis (HebCelt Festival) · Jul 26 Loon-Plage, France (Parc Galame) · Jul 30–Aug 1 Inverness (Belladrum Tartan Heart Festival) · Aug 14–15 York (The Magpies Festival) · Sep 4–6 Jedburgh (Edge Fest)' },
-  { text: '·' },
-  { text: 'Fàilte gu Rèidio Ceilidh Cruinne — sponsor a slot on the ticker at globalceilidh@gmail.com', href: 'mailto:globalceilidh@gmail.com' },
-  { text: '·' },
-];
+const SPONSOR_TICKER_ITEM = {
+  text: 'Fàilte gu Rèidio Ceilidh Cruinne — sponsor a slot at globalceilidh@gmail.com',
+  href: 'mailto:globalceilidh@gmail.com',
+};
+
+// Build the ticker's item list for a given featured artist. When no
+// artist is featured (should not happen while READY_ARTISTS.length > 0)
+// we fall back to just the sponsor CTA.
+function buildTickerItems(artist) {
+  if (!artist) return [SPONSOR_TICKER_ITEM, { text: '·' }];
+  return [
+    { text: `${artist.emoji || ''} ${artist.name} · ${artist.tourDates}` },
+    { text: '·' },
+    SPONSOR_TICKER_ITEM,
+    { text: '·' },
+  ];
+}
 
 const ADSENSE_PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID; // e.g. ca-pub-xxxxxxxxxxxxxxxx
 const ADSENSE_SLOT_RADIO_TOP = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RADIO_TOP;
@@ -121,7 +135,7 @@ export default function RadioClient() {
             </div>
           )}
           <div style={featuredRowStyle}>
-            {featured && <PhotoTile artist={featured} />}
+            {featured && <PhotoTile artist={featured} offset={0} wide={false} />}
             <div style={playerColumnStyle}>
               <div style={playerFrameStyle}>
                 <iframe
@@ -141,19 +155,24 @@ export default function RadioClient() {
             {featured && (
               featured.youtubeId
                 ? <VideoTile artist={featured} />
-                : featured.extraPhotos?.length
-                  ? <PhotoCarouselTile artist={featured} />
+                : featured.photos.length > 1
+                  ? <PhotoTile artist={featured} offset={1} wide={true} />
                   : null
             )}
           </div>
 
-          {/* Ticker chyron */}
-          <div style={tickerOuterStyle} aria-label="Global Ceilidh Radio — tour dates and sponsor ticker">
+          {/* Ticker chyron — content is driven by the featured artist and
+              re-mounts when the artist swaps (key={featured.id}) so the
+              scroll animation restarts cleanly from the beginning. */}
+          <div style={tickerOuterStyle} aria-label="Global Ceilidh Radio — featured artist tour dates and sponsor ticker">
             <div style={tickerViewportStyle}>
-              <div className="gc-ticker-track">
-                {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
-                  <TickerItem key={i} item={item} />
-                ))}
+              <div className="gc-ticker-track" key={featured?.id || 'idle'}>
+                {(() => {
+                  const items = buildTickerItems(featured);
+                  return [...items, ...items].map((item, i) => (
+                    <TickerItem key={i} item={item} />
+                  ));
+                })()}
               </div>
             </div>
           </div>
@@ -179,7 +198,7 @@ export default function RadioClient() {
               gap: 32px;
               white-space: nowrap;
               width: max-content;
-              animation: gc-ticker-scroll 65s linear infinite;
+              animation: gc-ticker-scroll 22s linear infinite;
               will-change: transform;
             }
             .gc-ticker-track > * { flex: 0 0 auto; }
@@ -218,45 +237,14 @@ function TickerItem({ item }) {
   return body;
 }
 
-function PhotoTile({ artist }) {
-  return (
-    <div style={photoTileStyle}>
-      <img
-        src={artist.photo}
-        alt={artist.photoAlt || artist.name}
-        style={photoImgStyle}
-        draggable={false}
-      />
-    </div>
-  );
-}
-
-function VideoTile({ artist }) {
-  // Muted autoplay is browser-policy-safe. `loop=1` requires
-  // `playlist=<same_id>` per YouTube's embed API.
-  const src = `https://www.youtube.com/embed/${artist.youtubeId}` +
-    `?autoplay=1&mute=1&loop=1&playlist=${artist.youtubeId}` +
-    `&controls=1&modestbranding=1&rel=0&playsinline=1`;
-  return (
-    <div style={videoTileStyle}>
-      <iframe
-        title={`${artist.name} — video`}
-        src={src}
-        allow="autoplay; encrypted-media; picture-in-picture"
-        allowFullScreen
-        style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
-      />
-    </div>
-  );
-}
-
-// Right-tile fallback when the artist has no video: cross-fade
-// through `extraPhotos` on a PHOTO_CAROUSEL_MS timer. All photos are
-// rendered absolutely-positioned; only the current one has opacity:1,
-// and CSS transitions handle the fade.
-function PhotoCarouselTile({ artist }) {
-  const photos = artist.extraPhotos || [];
-  const [idx, setIdx] = useState(0);
+// Photo tile that cycles through the artist's `photos` array on a
+// PHOTO_CAROUSEL_MS timer. `offset` shifts the starting index so left
+// and right photo tiles always show different pictures. `wide=false`
+// gives the narrow left-side aspect; `wide=true` matches the video
+// tile's dimensions for the right-side fallback.
+function PhotoTile({ artist, offset = 0, wide = false }) {
+  const photos = artist.photos || [];
+  const [idx, setIdx] = useState(photos.length ? offset % photos.length : 0);
   useEffect(() => {
     if (photos.length < 2) return;
     const id = setInterval(() => {
@@ -267,13 +255,14 @@ function PhotoCarouselTile({ artist }) {
 
   if (photos.length === 0) return null;
 
+  const base = wide ? videoTileStyle : photoTileStyle;
   return (
-    <div style={{ ...videoTileStyle, position: 'relative' }}>
+    <div style={{ ...base, position: 'relative' }}>
       {photos.map((src, i) => (
         <img
           key={i}
           src={src}
-          alt={artist.name}
+          alt={artist.photoAlt || artist.name}
           draggable={false}
           style={{
             position: 'absolute',
@@ -287,6 +276,46 @@ function PhotoCarouselTile({ artist }) {
           }}
         />
       ))}
+    </div>
+  );
+}
+
+// YouTube tile — all interactive controls stripped so it reads as an
+// ambient TV visual, not a player.
+//   controls=0        no play/progress/volume bar
+//   disablekb=1       no keyboard controls
+//   fs=0              no fullscreen button
+//   iv_load_policy=3  no video annotations
+//   modestbranding=1  hide most YouTube branding
+//   rel=0             don't recommend other videos at end
+//   playsinline=1     iOS Safari plays inline (not fullscreen takeover)
+// A pointer-events:none overlay layered on top swallows any residual
+// click surfaces (title bar hover, "Watch on YouTube" corner).
+// Using the -nocookie domain avoids setting YouTube tracking cookies
+// until the user actually interacts (they can't — see overlay).
+function VideoTile({ artist }) {
+  const src = `https://www.youtube-nocookie.com/embed/${artist.youtubeId}` +
+    `?autoplay=1&mute=1&loop=1&playlist=${artist.youtubeId}` +
+    `&controls=0&disablekb=1&fs=0&iv_load_policy=3` +
+    `&modestbranding=1&rel=0&playsinline=1`;
+  return (
+    <div style={{ ...videoTileStyle, position: 'relative' }}>
+      <iframe
+        title={`${artist.name} — video`}
+        src={src}
+        allow="autoplay; encrypted-media; picture-in-picture"
+        style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
+      />
+      {/* Click-eater — blocks any surface the YouTube player still exposes */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', inset: 0,
+          pointerEvents: 'auto',
+          background: 'transparent',
+          cursor: 'default',
+        }}
+      />
     </div>
   );
 }
