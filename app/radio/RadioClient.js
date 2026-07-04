@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 
 // Featured artists — three tiles rotate around the Live365 player:
-//   left  = photo of the artist
-//   right = video of the artist (muted YouTube autoplay)
-// Artists without both `photo` AND `youtubeId` are skipped by the
-// rotation, so we can pre-declare Skipinnish + Mànran and just fill
-// their assets in later without touching the layout code.
+//   left  = primary photo
+//   right = video (muted YouTube autoplay) if `youtubeId` is set,
+//           otherwise a cross-fading carousel of `extraPhotos`.
+// Artists need a `photo` to appear in the rotation. Everything else
+// is optional; the right tile adapts.
 const ARTISTS = [
   {
     id: 'ally-the-piper',
@@ -18,7 +18,19 @@ const ARTISTS = [
     photoAlt: 'Ally the Piper — press photo',
     youtubeId: 'n2yFNWQRiU0',
   },
-  { id: 'skipinnish', name: 'Skipinnish' },        // assets TBA
+  {
+    id: 'skipinnish',
+    name: 'Skipinnish',
+    tagline: 'England, Germany, and a winter run of Scottish theatres',
+    photo: '/radio/skipinnish/photo-1.png',
+    photoAlt: 'Skipinnish — press photo',
+    // No video available — right tile becomes a photo carousel
+    extraPhotos: [
+      '/radio/skipinnish/photo-2.png',
+      '/radio/skipinnish/photo-3.png',
+      '/radio/skipinnish/photo-4.png',
+    ],
+  },
   {
     id: 'manran',
     name: 'Mànran',
@@ -29,8 +41,12 @@ const ARTISTS = [
   },
 ];
 
-const READY_ARTISTS = ARTISTS.filter((a) => a.photo && a.youtubeId);
+// Only artists with a primary photo appear in the rotation. When the
+// right tile has neither a video nor extra photos, it simply isn't
+// rendered — the row shrinks to a two-panel layout for that artist.
+const READY_ARTISTS = ARTISTS.filter((a) => a.photo);
 const ROTATION_MS = 18000; // 18s per featured artist
+const PHOTO_CAROUSEL_MS = 4000; // 4s per photo inside a carousel tile
 
 // Ticker items — replace via CMS later. Each item has:
 //   { text?, logo?, href? }
@@ -124,7 +140,13 @@ export default function RadioClient() {
                 Broadcasting via Live365 · Powered by Global Ceilidh
               </div>
             </div>
-            {featured && <VideoTile artist={featured} />}
+            {featured && (
+              featured.youtubeId
+                ? <VideoTile artist={featured} />
+                : featured.extraPhotos?.length
+                  ? <PhotoCarouselTile artist={featured} />
+                  : null
+            )}
           </div>
 
           {/* Ticker chyron */}
@@ -226,6 +248,47 @@ function VideoTile({ artist }) {
         allowFullScreen
         style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
       />
+    </div>
+  );
+}
+
+// Right-tile fallback when the artist has no video: cross-fade
+// through `extraPhotos` on a PHOTO_CAROUSEL_MS timer. All photos are
+// rendered absolutely-positioned; only the current one has opacity:1,
+// and CSS transitions handle the fade.
+function PhotoCarouselTile({ artist }) {
+  const photos = artist.extraPhotos || [];
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (photos.length < 2) return;
+    const id = setInterval(() => {
+      setIdx((i) => (i + 1) % photos.length);
+    }, PHOTO_CAROUSEL_MS);
+    return () => clearInterval(id);
+  }, [photos.length]);
+
+  if (photos.length === 0) return null;
+
+  return (
+    <div style={{ ...videoTileStyle, position: 'relative' }}>
+      {photos.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt={artist.name}
+          draggable={false}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: i === idx ? 1 : 0,
+            transition: 'opacity 700ms ease-in-out',
+            userSelect: 'none',
+          }}
+        />
+      ))}
     </div>
   );
 }
