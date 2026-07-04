@@ -1,0 +1,5 @@
+# AdSense authorized digital sellers — GlobalCeilidh.com
+# Replace the publisher ID below with the one from your AdSense account:
+#   AdSense → Account → Account information → Publisher ID (starts "pub-")
+# Format: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+google.com, pub-REPLACE_WITH_ADSENSE_PUB_ID, DIRECT, f08c47fec0942fa0

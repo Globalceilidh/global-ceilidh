@@ -21,6 +21,9 @@ const PUBLIC_PREFIXES = [
   // URL without needing the editor's cookie key. Clerk auth still gates
   // entry — see app/rooms/[slug]/page.js and the token route.
   "/rooms",
+  // Global Ceilidh Radio: public for listener traffic + AdSense revenue.
+  "/radio",
+  "/ads.txt",
   "/api/",
   "/_next/",
   "/favicon",
