@@ -89,14 +89,15 @@ export const ARTISTS = [
 ];
 
 // Phase 3 fallback — shown when Live365 reports an artist that
-// doesn't match anyone in ARTISTS.
+// doesn't match anyone in ARTISTS. Two logo images, one designed
+// for each tile aspect (portrait 3:4 for the narrow left panel,
+// landscape 16:11 for the wide right panel).
 //
-// Drop these files into place when ready:
-//   public/radio/gc-radio-logo.png   (Whitey to provide)
-//   stockVideos entries with { videoId, start, end }
-//   partner entries with { id, name, adImages, adVideos, url, weight }
+// Drop stockVideos + partners entries here when ready — they'll rotate
+// on the right pane during unknown-artist windows.
 export const FALLBACK = {
-  logo: '/radio/gc-radio-logo.png',
+  logoNarrow: '/radio/gc-radio-logo-narrow.png', // ~474 x 632, portrait
+  logoWide:   '/radio/gc-radio-logo-wide.png',   // ~900 x 632, landscape
   stockVideos: [],
   partners: [],
 };

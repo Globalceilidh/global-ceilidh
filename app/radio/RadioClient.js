@@ -264,17 +264,18 @@ function TickerItem({ item }) {
 // Empty state — shown when Live365 plays an artist not in the ARTISTS
 // library, or briefly on first page load. Solid dark tile bg (NOT
 // translucent — the logo's transparent corners were letting the
-// vortex bleed through as milky white).
+// vortex bleed through as milky white). Picks logoWide vs logoNarrow
+// so each tile aspect gets its purpose-designed image with no crop.
 function EmptyTile({ wide }) {
   const base = wide ? videoTileStyle : photoTileStyle;
-  const logo = FALLBACK.logo;
+  const logo = wide ? FALLBACK.logoWide : FALLBACK.logoNarrow;
   return (
     <div
       style={{
         ...base,
         position: 'relative',
-        background: '#050709',       // solid, opaque
-        backdropFilter: 'none',       // override tile base blur
+        background: '#050709',
+        backdropFilter: 'none',
         WebkitBackdropFilter: 'none',
       }}
     >
@@ -289,11 +290,6 @@ function EmptyTile({ wide }) {
             inset: 0,
             width: '100%',
             height: '100%',
-            // `cover` fills the tile in both slots (crops sides on the
-            // wide tile, top/bottom on the narrow tile). Logo now fills
-            // the panel edge to edge; you lose the outermost ~5-10%
-            // of the composition on the wide tile but the artwork and
-            // wordmark stay well inside that margin.
             objectFit: 'cover',
             userSelect: 'none',
           }}
