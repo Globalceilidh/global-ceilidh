@@ -15,7 +15,7 @@ const TICKER_ITEMS = [
   { text: '·' },
   { text: 'SKERRYVORE · Autumn Tour · September 2026 · Tiree, Glasgow, Belfast, Halifax, NYC', href: '#' },
   { text: '·' },
-  { text: 'Fàilte gu Rèidio Ceilidh Cruinne — sponsor a slot on the ticker at radio@globalceilidh.com', href: 'mailto:radio@globalceilidh.com' },
+  { text: 'Fàilte gu Rèidio Ceilidh Cruinne — sponsor a slot on the ticker at globalceilidh@gmail.com', href: 'mailto:globalceilidh@gmail.com' },
   { text: '·' },
 ];
 
@@ -89,8 +89,8 @@ export default function RadioClient() {
           <div style={sponsorNoteStyle}>
             Groups, tours and businesses — sponsor a spot on the ticker at
             {' '}
-            <a href="mailto:radio@globalceilidh.com" style={sponsorLinkStyle}>
-              radio@globalceilidh.com
+            <a href="mailto:globalceilidh@gmail.com" style={sponsorLinkStyle}>
+              globalceilidh@gmail.com
             </a>
             .
           </div>
