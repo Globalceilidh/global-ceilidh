@@ -39,7 +39,15 @@ export const ARTISTS = [
     ],
     photoAlt: 'Ally the Piper — press photo',
     videos: [
-      { videoId: 'n2yFNWQRiU0', start: 0, end: 240 },
+      // Ally the Piper — 6-clip sequence, ~5m 42s total playtime,
+      // then wraps. Chained via YouTube IFrame Player API in
+      // VideoSequencerTile (Phase 2 sequencer).
+      { videoId: 'n2yFNWQRiU0', start: 6,   end: 195 },  // :06  – 3:15
+      { videoId: '_E6O8Uxp67g', start: 7,   end: 65  },  // :07  – 1:05
+      { videoId: '_E6O8Uxp67g', start: 100, end: 123 },  // 1:40 – 2:03
+      { videoId: '_E6O8Uxp67g', start: 138, end: 149 },  // 2:18 – 2:29
+      { videoId: 'DoMowA_9sxY', start: 9,   end: 45  },  // :09  – :45
+      { videoId: 'DoMowA_9sxY', start: 274, end: 299 },  // 4:34 – 4:59
     ],
     tourDates: 'US Club Tour · Jul 29 Albany NY (The Egg / Swyer Theatre) · Jul 30 Syracuse NY (Westcott Theater) · Aug 6 Ann Arbor MI (Blind Pig) · Aug 12 Grand Rapids MI (The Pyramid Scheme) · Aug 13–16 Milwaukee WI (Milwaukee Irish Fest)',
     isPartner: false,
