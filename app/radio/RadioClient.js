@@ -33,27 +33,29 @@ function loadYouTubeAPI() {
   return ytApiReadyPromise;
 }
 
-// Only artists with at least one photo appear in the rotation. The
-// right-tile picks video → photo-carousel-fallback → nothing based on
-// what's available.
-const READY_ARTISTS = ARTISTS.filter((a) => a.photos && a.photos.length > 0);
-const ROTATION_MS = 18000;      // 18s per featured artist
-const PHOTO_CAROUSEL_MS = 4500; // 4.5s per photo inside a tile carousel
+// Tiles are driven by Live365 metadata (Phase 3). Until that's wired,
+// `featured` stays null and both tiles render the empty/placeholder
+// state — the JS artist-rotation timer was removed because it was
+// misleading (showing Ally while the stream played a totally
+// different artist).
+const PHOTO_CAROUSEL_MS = 4500;
 
 const SPONSOR_TICKER_ITEM = {
   text: 'Fàilte gu Global Ceilidh Rèidio — sponsor a spot on our ticker at globalceilidh@gmail.com',
   href: 'mailto:globalceilidh@gmail.com',
 };
 
-function buildTickerItems(artist) {
-  if (!artist) return [SPONSOR_TICKER_ITEM, { text: '·' }];
-  return [
-    { text: `${artist.emoji || ''} ${artist.name} · ${artist.tourDates}` },
+// Ticker is INDEPENDENT of the featured tile now — it cycles through
+// every artist's tour dates continuously regardless of what's on
+// screen (or on the Live365 stream).
+const TICKER_ITEMS = [
+  ...ARTISTS.flatMap((a) => [
+    { text: `${a.emoji || ''} ${a.name} · ${a.tourDates}` },
     { text: '·' },
-    SPONSOR_TICKER_ITEM,
-    { text: '·' },
-  ];
-}
+  ]),
+  SPONSOR_TICKER_ITEM,
+  { text: '·' },
+];
 
 const ADSENSE_PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID;
 const ADSENSE_SLOT_RADIO_TOP = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RADIO_TOP;
@@ -64,15 +66,10 @@ export default function RadioClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 });
   const [docHidden, setDocHidden] = useState(false);
 
-  const [featuredIdx, setFeaturedIdx] = useState(0);
-  useEffect(() => {
-    if (READY_ARTISTS.length < 2) return;
-    const id = setInterval(() => {
-      setFeaturedIdx((i) => (i + 1) % READY_ARTISTS.length);
-    }, ROTATION_MS);
-    return () => clearInterval(id);
-  }, []);
-  const featured = READY_ARTISTS[featuredIdx] || null;
+  // Phase 3 will `setFeatured(matchArtist(live365ArtistString))` from
+  // a polling effect; until then we stay null and both tiles show
+  // their empty state.
+  const [featured, setFeatured] = useState(null);
 
   useEffect(() => {
     const handler = () => setDocHidden(document.hidden);
@@ -133,9 +130,14 @@ export default function RadioClient() {
               />
             </div>
 
-            {/* Three panels: photo · Live365 · video (or photo carousel) */}
+            {/* Three panels: photo · Live365 · video (or photo carousel).
+                When featured is null (no Live365 match, or before Phase 3
+                is wired) both flanking tiles render their empty state. */}
             <div style={featuredRowStyle}>
-              {featured && <PhotoTile artist={featured} offset={0} wide={false} />}
+              {featured
+                ? <PhotoTile artist={featured} offset={0} wide={false} />
+                : <EmptyTile wide={false} />
+              }
               <div style={playerColumnStyle}>
                 <div style={playerFrameStyle}>
                   <iframe
@@ -149,26 +151,25 @@ export default function RadioClient() {
                   />
                 </div>
               </div>
-              {featured && (
-                featured.videos && featured.videos.length > 0
-                  ? <VideoSequencerTile videos={featured.videos} name={featured.name} />
-                  : featured.photos.length > 1
-                    ? <PhotoTile artist={featured} offset={1} wide={true} />
-                    : null
-              )}
+              {featured
+                ? (featured.videos && featured.videos.length > 0
+                    ? <VideoSequencerTile videos={featured.videos} name={featured.name} />
+                    : featured.photos.length > 1
+                      ? <PhotoTile artist={featured} offset={1} wide={true} />
+                      : <EmptyTile wide={true} />)
+                : <EmptyTile wide={true} />
+              }
             </div>
 
-            {/* Ticker — driven by featured artist; key on featured.id so the
-                scroll animation restarts cleanly on every rotation. */}
-            <div style={tickerOuterStyle} aria-label="Global Ceilidh Radio — featured artist tour dates and sponsor ticker">
+            {/* Ticker — INDEPENDENT of the featured tiles. Continuous
+                scroll through every artist's tour dates + the sponsor
+                CTA. Never re-mounts. */}
+            <div style={tickerOuterStyle} aria-label="Global Ceilidh Radio — tour dates and sponsor ticker">
               <div style={tickerViewportStyle}>
-                <div className="gc-ticker-track" key={featured?.id || 'idle'}>
-                  {(() => {
-                    const items = buildTickerItems(featured);
-                    return [...items, ...items].map((item, i) => (
-                      <TickerItem key={i} item={item} />
-                    ));
-                  })()}
+                <div className="gc-ticker-track">
+                  {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+                    <TickerItem key={i} item={item} />
+                  ))}
                 </div>
               </div>
             </div>
@@ -193,7 +194,7 @@ export default function RadioClient() {
                 gap: 40px;
                 white-space: nowrap;
                 width: max-content;
-                animation: gc-ticker-scroll 38s linear infinite;
+                animation: gc-ticker-scroll 110s linear infinite;
                 will-change: transform;
               }
               .gc-ticker-track > * { flex: 0 0 auto; }
@@ -231,6 +232,36 @@ function TickerItem({ item }) {
     );
   }
   return body;
+}
+
+// Empty state — shown when no artist is featured (i.e. Live365 is
+// playing someone not in the ARTISTS library, or Phase 3 isn't wired
+// yet). Solid dark tile so the vortex reads around it, awaiting the
+// GC Radio fallback logo Whitey's delivering.
+function EmptyTile({ wide }) {
+  const base = wide ? videoTileStyle : photoTileStyle;
+  const logo = FALLBACK.logo;
+  return (
+    <div style={{ ...base, position: 'relative', background: 'rgba(0, 0, 0, 0.65)' }}>
+      {logo && (
+        <img
+          src={logo}
+          alt="Global Ceilidh Radio"
+          draggable={false}
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            opacity: 0.85,
+            userSelect: 'none',
+          }}
+        />
+      )}
+    </div>
+  );
 }
 
 function PhotoTile({ artist, offset = 0, wide = false }) {
