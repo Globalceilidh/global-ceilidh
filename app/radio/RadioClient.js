@@ -106,9 +106,11 @@ export default function RadioClient() {
               align-items: center;
               gap: 32px;
               white-space: nowrap;
+              width: max-content;
               animation: gc-ticker-scroll 65s linear infinite;
               will-change: transform;
             }
+            .gc-ticker-track > * { flex: 0 0 auto; }
             .gc-ticker-track:hover {
               animation-play-state: paused;
             }
