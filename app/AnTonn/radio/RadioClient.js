@@ -142,7 +142,7 @@ export default function RadioClient() {
         <main style={contentLayerStyle}>
           <div style={contentWrapperStyle}>
             <header style={mastheadStyle}>
-              <h1 style={titleStyle}>Global Ceilidh Rèidio</h1>
+              <h1 style={titleStyle}>Global Cèilidh Rèidio</h1>
               <p style={taglineStyle}>
                 The soundtrack of an t-sruth streaming around the world.
               </p>
@@ -515,7 +515,7 @@ const mastheadStyle = {
 };
 
 const titleStyle = {
-  fontFamily: '"Cinzel", Georgia, serif',
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
   fontSize: 'clamp(38px, 6.5vw, 60px)',
   fontWeight: 600,
   letterSpacing: '0.04em',
