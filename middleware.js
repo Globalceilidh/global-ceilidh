@@ -21,8 +21,13 @@ const PUBLIC_PREFIXES = [
   // URL without needing the editor's cookie key. Clerk auth still gates
   // entry — see app/rooms/[slug]/page.js and the token route.
   "/rooms",
-  // Global Ceilidh Radio: public for listener traffic + AdSense revenue.
+  // Global Ceilidh Radio + An Tonn Bhidio: public for listener/viewer
+  // traffic + AdSense revenue. /radio is legacy; the 308 redirect in
+  // next.config.js sends it to /AnTonn/radio, so both need to be
+  // reachable without the cookie gate.
   "/radio",
+  "/AnTonn/radio",
+  "/AnTonn/bhidio",
   "/ads.txt",
   "/api/",
   "/_next/",

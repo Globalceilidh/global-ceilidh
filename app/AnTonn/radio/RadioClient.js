@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import { Canvas } from '@react-three/fiber';
-import VortexBackground from '../AnTonn/preview/components/VortexBackground';
+import VortexBackground from '../preview/components/VortexBackground';
 import { ARTISTS, FALLBACK, matchArtist } from './data/artists';
 
 const LIVE365_POLL_MS = 20000; // 20s poll interval — API caches server-side for 15s
