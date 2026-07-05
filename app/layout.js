@@ -9,6 +9,14 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const cinzel = Cinzel({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-cinzel' });
 const ebGaramond = EB_Garamond({ subsets: ['latin'], weight: ['400', '500'], style: ['normal', 'italic'], variable: '--font-eb-garamond' });
 
+// Without this, mobile browsers render the page at desktop CSS width
+// (~980px) and scale down — content ends up compressed to the top of
+// the screen with dead space at the bottom, and reads as tiny.
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export const metadata = {
   title: 'GlobalCeilidh.com — The Global Home of Scottish Gaelic Culture',
   description: 'Learn Scottish Gaelic, connect with the global diaspora, find events, and join the community. Fàilte gu GlobalCeilidh.com.',

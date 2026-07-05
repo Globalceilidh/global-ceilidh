@@ -161,10 +161,6 @@ export default function RadioClient() {
                 When featured is null (no Live365 match, or before Phase 3
                 is wired) both flanking tiles render their empty state. */}
             <div style={featuredRowStyle}>
-              {featured
-                ? <PhotoTile artist={featured} offset={0} wide={false} />
-                : <EmptyTile wide={false} />
-              }
               <div style={playerColumnStyle}>
                 <div style={playerFrameStyle}>
                   <iframe
@@ -181,9 +177,7 @@ export default function RadioClient() {
               {featured
                 ? (featured.videos && featured.videos.length > 0
                     ? <VideoSequencerTile videos={featured.videos} name={featured.name} />
-                    : featured.photos.length > 1
-                      ? <PhotoTile artist={featured} offset={1} wide={true} />
-                      : <EmptyTile wide={true} />)
+                    : <PhotoTile artist={featured} offset={0} wide={true} />)
                 : <EmptyTile wide={true} />
               }
             </div>
@@ -326,7 +320,11 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
             inset: 0,
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
+            // Narrow (portrait) photos letterbox inside the landscape
+            // panel; the tile's translucent bg lets the vortex show
+            // through the letterbox borders. Landscape photos fill
+            // exactly. Same rule for either aspect — no crop.
+            objectFit: 'contain',
             opacity: i === idx ? 1 : 0,
             transition: 'opacity 700ms ease-in-out',
             userSelect: 'none',
