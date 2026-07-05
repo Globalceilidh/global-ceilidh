@@ -236,10 +236,15 @@ export default function RadioClient() {
                  desktop tile size (450x316) that padding shows;
                  scaling up by 1.35 hides it. Phone crops naturally
                  via the narrow-tile aspect override so it stays out
-                 of this zoom. */
+                 of this zoom.
+                 transform-origin at (60%, 40%) — scale expands from
+                 upper-right of the tile, so the composition centre
+                 shifts down-and-left by ~3.5% in each axis (~15px
+                 left, ~11px down at 450x316). Whitey's "smidge". */
               @media (min-width: 769px) {
                 .gc-fallback-logo-wide {
                   transform: scale(1.35);
+                  transform-origin: 60% 40%;
                 }
               }
             `}</style>
