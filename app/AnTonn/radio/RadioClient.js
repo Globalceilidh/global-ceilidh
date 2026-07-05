@@ -527,6 +527,8 @@ const titleStyle = {
 const taglineStyle = {
   fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
   fontStyle: 'italic',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
   fontSize: 'clamp(16px, 2vw, 20px)',
   color: 'rgba(242, 236, 220, 0.7)',
   margin: 0,
