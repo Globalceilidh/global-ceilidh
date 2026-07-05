@@ -139,7 +139,7 @@ export default function RadioClient() {
         </div>
 
         {/* Content layer */}
-        <main style={contentLayerStyle}>
+        <main className="gc-radio-content" style={contentLayerStyle}>
           <div style={contentWrapperStyle}>
             <header style={mastheadStyle}>
               <h1 style={titleStyle}>Global Ceilidh Rèidio</h1>
@@ -160,22 +160,22 @@ export default function RadioClient() {
             {/* Three panels: photo · Live365 · video (or photo carousel).
                 When featured is null (no Live365 match, or before Phase 3
                 is wired) both flanking tiles render their empty state. */}
-            <div style={featuredRowStyle}>
+            <div className="gc-featured-row" style={featuredRowStyle}>
               {featured
                 ? <PhotoTile artist={featured} offset={0} wide={false} />
                 : <EmptyTile wide={false} />
               }
-              <div style={playerColumnStyle}>
+              <div className="gc-player-column" style={playerColumnStyle}>
                 <div style={playerFrameStyle}>
-                  <iframe
-                    title="Global Ceilidh Radio — Live365 player"
-                    width="450"
-                    height="316"
-                    frameBorder="0"
-                    src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
-                    allow="autoplay; encrypted-media"
-                    style={{ display: 'block', maxWidth: '100%' }}
-                  />
+                  <div style={playerIframeWrapStyle}>
+                    <iframe
+                      title="Global Ceilidh Radio — Live365 player"
+                      frameBorder="0"
+                      src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
+                      allow="autoplay; encrypted-media"
+                      style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
+                    />
+                  </div>
                 </div>
               </div>
               {featured
@@ -231,6 +231,40 @@ export default function RadioClient() {
               @media (prefers-reduced-motion: reduce) {
                 .gc-ticker-track { animation: none; }
               }
+
+              /* ── Mobile responsive layout ─────────────────────────── */
+              /* Under 768px: tighten padding + gap, promote the player
+                 to the top of the stack (thumb-reach for play/pause on
+                 phone), bump the ticker font so it reads at arm's length. */
+              @media (max-width: 768px) {
+                .gc-radio-content {
+                  padding: 24px 12px 60px !important;
+                }
+                .gc-featured-row {
+                  gap: 14px !important;
+                }
+                .gc-player-column {
+                  order: -1;
+                  width: 100%;
+                }
+                .gc-ticker-text {
+                  font-size: 20px !important;
+                  letter-spacing: 1.6px !important;
+                }
+                .gc-ticker-bullet {
+                  font-size: 22px !important;
+                }
+              }
+              /* Under 480px: player + tiles fill the row width so they
+                 stop feeling tiny inside the wrapping flex row. */
+              @media (max-width: 480px) {
+                .gc-radio-content {
+                  padding: 20px 10px 56px !important;
+                }
+                .gc-ticker-text {
+                  font-size: 22px !important;
+                }
+              }
             `}</style>
           </div>
         </main>
@@ -243,10 +277,13 @@ function TickerItem({ item }) {
   const body = item.logo ? (
     <span style={tickerLogoWrapStyle}>
       <img src={item.logo} alt={item.text || ''} style={tickerLogoStyle} />
-      {item.text && <span style={tickerTextStyle}>{item.text}</span>}
+      {item.text && <span className="gc-ticker-text" style={tickerTextStyle}>{item.text}</span>}
     </span>
   ) : (
-    <span style={item.text === '·' ? tickerBulletStyle : tickerTextStyle}>
+    <span
+      className={item.text === '·' ? 'gc-ticker-bullet' : 'gc-ticker-text'}
+      style={item.text === '·' ? tickerBulletStyle : tickerTextStyle}
+    >
       {item.text}
     </span>
   );
@@ -564,13 +601,24 @@ const playerFrameStyle = {
   boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
   backdropFilter: 'blur(2px)',
   WebkitBackdropFilter: 'blur(2px)',
+  // Frame gets the same responsive treatment as the tiles so the
+  // Live365 iframe scales with the row on phones.
+  width: 'min(100%, 466px)',   // 450 iframe + 16px padding
+  boxSizing: 'border-box',
 };
 
-const TILE_H = 316;
+const playerIframeWrapStyle = {
+  width: '100%',
+  aspectRatio: '450 / 316',
+};
 
+// Tile sizes: on desktop they hit the fixed pixel widths; on mobile they
+// scale down to viewport minus row padding, keeping their aspect ratio
+// so the composition never gets crushed vertically.
 const photoTileStyle = {
-  width: 237,
-  height: TILE_H,
+  width: 'min(100%, 237px)',
+  aspectRatio: '237 / 316',
+  flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
   border: '1px solid rgba(242, 236, 220, 0.10)',
   borderRadius: 8,
@@ -581,8 +629,9 @@ const photoTileStyle = {
 };
 
 const videoTileStyle = {
-  width: 450,
-  height: TILE_H,
+  width: 'min(100%, 450px)',
+  aspectRatio: '450 / 316',
+  flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
   border: '1px solid rgba(242, 236, 220, 0.10)',
   borderRadius: 8,
