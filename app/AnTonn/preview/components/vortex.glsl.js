@@ -87,9 +87,12 @@ export const VORTEX_FRAGMENT_SHADER = /* glsl */ `
     uv.x *= uResolution.x / uResolution.y;
 
     // Full edge-to-edge mouse pull — vortex centre tracks the cursor
-    // 1:1. Cursor in a corner puts the vortex centre at that corner
-    // (half the vortex sits off-screen at extremes; intentional).
-    vec2 mouseOffset = (uMouse - 0.5) * 1.0;
+    // 1:1. The X component must be scaled by the same aspect ratio
+    // uv.x is scaled by, otherwise on landscape viewports the vortex
+    // only travels ~56% of the way to the horizontal edges (whereas
+    // it hits the top/bottom cleanly). Matches the cursor-glow calc
+    // on line 152.
+    vec2 mouseOffset = (uMouse - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
     vec2 puv = uv - mouseOffset;
 
     // Mouse-velocity shear: bend the flow in the direction the cursor
