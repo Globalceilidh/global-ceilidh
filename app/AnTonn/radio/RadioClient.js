@@ -231,6 +231,17 @@ export default function RadioClient() {
                   gap: 20px !important;
                 }
               }
+              /* Wide fallback logo — the source image has generous
+                 negative space baked in around the actual card. At
+                 desktop tile size (450x316) that padding shows;
+                 scaling up by 1.35 hides it. Phone crops naturally
+                 via the narrow-tile aspect override so it stays out
+                 of this zoom. */
+              @media (min-width: 769px) {
+                .gc-fallback-logo-wide {
+                  transform: scale(1.35);
+                }
+              }
             `}</style>
           </div>
         </main>
@@ -285,6 +296,10 @@ function EmptyTile({ wide }) {
           alt="Global Ceilidh Radio"
           draggable={false}
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          // Class scopes the desktop-only zoom (see media query in
+          // the style tag). Only wide fallback needs the zoom — narrow
+          // logo is designed for portrait, no baked-in padding issue.
+          className={wide ? 'gc-fallback-logo-wide' : ''}
           style={{
             position: 'absolute',
             inset: 0,
