@@ -68,6 +68,17 @@ export default function RadioClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 });
   const [docHidden, setDocHidden] = useState(false);
 
+  // Live365 embed size — 'sm' on narrow viewports (< 700px), 'md'
+  // otherwise. Prevents the medium player from needing internal
+  // scroll when the iframe is smaller than its native 450x316.
+  const [live365Size, setLive365Size] = useState('md');
+  useEffect(() => {
+    const check = () => setLive365Size(window.innerWidth < 700 ? 'sm' : 'md');
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // Live365 sync — poll /api/live365/nowplaying every LIVE365_POLL_MS,
   // run the artist string through matchArtist(), set featured to the
   // ARTIST record if we own assets for them. If Live365 plays someone
@@ -140,7 +151,7 @@ export default function RadioClient() {
 
         {/* Content layer */}
         <main style={contentLayerStyle}>
-          <div style={contentWrapperStyle}>
+          <div className="gc-radio-wrapper" style={contentWrapperStyle}>
             <header style={mastheadStyle}>
               <h1 style={titleStyle}>Global Cèilidh Rèidio</h1>
               <p style={taglineStyle}>
@@ -165,7 +176,7 @@ export default function RadioClient() {
                 <iframe
                   title="Global Ceilidh Radio — Live365 player"
                   frameBorder="0"
-                  src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
+                  src={`https://live365.com/embeds/v1/player/a11866?s=${live365Size}&m=dark&c=mp3`}
                   allow="autoplay; encrypted-media"
                   style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
                 />
@@ -220,6 +231,15 @@ export default function RadioClient() {
               }
               @media (prefers-reduced-motion: reduce) {
                 .gc-ticker-track { animation: none; }
+              }
+              /* Tighten vertical rhythm on phones — reclaim ~90px of
+                 vertical space by trimming top/bottom padding and the
+                 flex-column gap. Desktop untouched. */
+              @media (max-width: 768px) {
+                .gc-radio-wrapper {
+                  padding: 24px 12px 32px !important;
+                  gap: 20px !important;
+                }
               }
             `}</style>
           </div>
@@ -499,9 +519,11 @@ const contentLayerStyle = {
 const contentWrapperStyle = {
   maxWidth: 1200,
   margin: '0 auto',
-  minHeight: '100vh',           // fills viewport so the featured row
-                                // has a definite parent height to grow
-                                // into (see featuredRowStyle flex: 1)
+  // dvh = dynamic viewport height. Matches the currently-visible
+  // viewport on mobile (100vh includes the collapsed address bar area,
+  // making the wrapper taller than visible screen; dvh matches what
+  // the user actually sees).
+  minHeight: '100dvh',
   padding: '56px 20px 88px',
   boxSizing: 'border-box',
   display: 'flex',
