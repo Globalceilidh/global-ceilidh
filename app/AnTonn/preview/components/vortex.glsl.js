@@ -86,12 +86,10 @@ export const VORTEX_FRAGMENT_SHADER = /* glsl */ `
     vec2 uv = vUv - 0.5;
     uv.x *= uResolution.x / uResolution.y;
 
-    // STRONG mouse pull — cursor drags the vortex centre noticeably.
-    // 0.85 means a cursor in the corner shifts the composition ~85%
-    // across the viewport, so the vortex centre travels near
-    // edge-to-edge with the cursor. Feels like the wave is pulled
-    // by your fingertip.
-    vec2 mouseOffset = (uMouse - 0.5) * 0.85;
+    // Full edge-to-edge mouse pull — vortex centre tracks the cursor
+    // 1:1. Cursor in a corner puts the vortex centre at that corner
+    // (half the vortex sits off-screen at extremes; intentional).
+    vec2 mouseOffset = (uMouse - 0.5) * 1.0;
     vec2 puv = uv - mouseOffset;
 
     // Mouse-velocity shear: bend the flow in the direction the cursor
