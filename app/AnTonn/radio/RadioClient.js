@@ -163,15 +163,15 @@ export default function RadioClient() {
             <div style={featuredRowStyle}>
               <div style={playerColumnStyle}>
                 <div style={playerFrameStyle}>
-                  <iframe
-                    title="Global Ceilidh Radio — Live365 player"
-                    width="450"
-                    height="316"
-                    frameBorder="0"
-                    src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
-                    allow="autoplay; encrypted-media"
-                    style={{ display: 'block', maxWidth: '100%' }}
-                  />
+                  <div style={{ width: '100%', aspectRatio: '450 / 316' }}>
+                    <iframe
+                      title="Global Ceilidh Radio — Live365 player"
+                      frameBorder="0"
+                      src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
+                      allow="autoplay; encrypted-media"
+                      style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
+                    />
+                  </div>
                 </div>
               </div>
               {featured
@@ -482,7 +482,10 @@ const pageOuterStyle = {
   minHeight: '100vh',
   background: '#020409',
   color: '#F2ECDC',
-  overflow: 'hidden',
+  // overflowX only — allow vertical document scroll. `overflow: hidden`
+  // was silently clipping the featured row (which extends past viewport
+  // when fixed 450px tiles wrap on a 375px phone).
+  overflowX: 'hidden',
 };
 
 const vortexLayerStyle = {
@@ -562,13 +565,21 @@ const playerFrameStyle = {
   boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
   backdropFilter: 'blur(2px)',
   WebkitBackdropFilter: 'blur(2px)',
+  // Cap at 466 (450 iframe + 16 padding) on desktop; scale to
+  // viewport on phone. Without this the frame's content-based
+  // width forces horizontal overflow on mobile.
+  width: 'min(100%, 466px)',
+  boxSizing: 'border-box',
 };
 
-const TILE_H = 316;
-
+// Wide tile scales down to viewport on mobile; keeps its 450x316
+// aspect ratio so nothing crushes vertically. Narrow tile is unused
+// now that the left panel is dropped, but kept in case we ever want
+// it back.
 const photoTileStyle = {
-  width: 237,
-  height: TILE_H,
+  width: 'min(100%, 237px)',
+  aspectRatio: '237 / 316',
+  flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
   border: '1px solid rgba(242, 236, 220, 0.10)',
   borderRadius: 8,
@@ -579,8 +590,9 @@ const photoTileStyle = {
 };
 
 const videoTileStyle = {
-  width: 450,
-  height: TILE_H,
+  width: 'min(100%, 450px)',
+  aspectRatio: '450 / 316',
+  flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
   border: '1px solid rgba(242, 236, 220, 0.10)',
   borderRadius: 8,
