@@ -341,17 +341,25 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
   );
 }
 
+// Cap on how long a single clip plays before we auto-advance. Ensures
+// all clips in a sequence cycle through within a typical song window
+// (~3 min) — if a Live365 song is shorter than clip 1, we still get
+// through the whole sequence in every featured window. Also acts as a
+// fallback if YouTube's ENDED event doesn't fire on the `end` param
+// (a known quirk — sometimes YT fires PAUSED instead).
+const MAX_CLIP_MS = 40000; // 40s — 6 clips × 40s = 4 min max sequence
+
 // Phase 2 sequencer — one persistent YouTube IFrame Player API
 // instance that chains a `videos: [{ videoId, start, end }]` list.
-// When the current clip reaches its `end`, YouTube fires the ENDED
-// state; we `loadVideoById` the next clip immediately (no iframe
-// reload, no black flash). When the sequence exhausts, wraps to 0.
+// Advance triggers on whichever comes first: ENDED event, error, or
+// the MAX_CLIP_MS timer. When the sequence exhausts, wraps to 0.
 // Controls fully suppressed via playerVars; click-eater on top.
 function VideoSequencerTile({ videos, name }) {
   const [containerId] = useState(() => `yt-seq-${Math.random().toString(36).slice(2, 10)}`);
   const playerRef = useRef(null);
   const clipIdxRef = useRef(0);
   const videosRef = useRef(videos);
+  const advanceTimerRef = useRef(null);
 
   useEffect(() => { videosRef.current = videos; }, [videos]);
 
@@ -372,6 +380,18 @@ function VideoSequencerTile({ videos, name }) {
       outer.appendChild(inner);
 
       const first = videos[0];
+
+      const scheduleAdvance = (target, clipIdx) => {
+        if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+        const clip = videosRef.current[clipIdx];
+        if (!clip) return;
+        const naturalMs = (clip.end - clip.start) * 1000;
+        const timerMs = Math.min(naturalMs, MAX_CLIP_MS);
+        advanceTimerRef.current = setTimeout(() => {
+          advance(target);
+        }, timerMs);
+      };
+
       const advance = (target) => {
         const N = videosRef.current.length;
         if (N === 0) return;
@@ -383,6 +403,7 @@ function VideoSequencerTile({ videos, name }) {
           startSeconds: clip.start,
           endSeconds: clip.end,
         });
+        scheduleAdvance(target, nextIdx);
       };
 
       const player = new YT.Player(inner, {
@@ -407,6 +428,7 @@ function VideoSequencerTile({ videos, name }) {
           onReady: (e) => {
             e.target.mute();
             e.target.playVideo();
+            scheduleAdvance(e.target, 0);
           },
           onStateChange: (e) => {
             if (e.data === 0 /* ENDED */) advance(e.target);
@@ -422,6 +444,10 @@ function VideoSequencerTile({ videos, name }) {
 
     return () => {
       cancelled = true;
+      if (advanceTimerRef.current) {
+        clearTimeout(advanceTimerRef.current);
+        advanceTimerRef.current = null;
+      }
       if (playerRef.current) {
         try { playerRef.current.destroy(); } catch (_) {}
         playerRef.current = null;
