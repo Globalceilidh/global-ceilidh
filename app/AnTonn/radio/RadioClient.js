@@ -518,7 +518,8 @@ const titleStyle = {
   fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
   fontSize: 'clamp(38px, 6.5vw, 60px)',
   fontWeight: 600,
-  letterSpacing: '0.04em',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
   margin: '0 0 12px',
   color: '#F2ECDC',
   lineHeight: 1.05,
@@ -527,8 +528,6 @@ const titleStyle = {
 const taglineStyle = {
   fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
   fontStyle: 'italic',
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
   fontSize: 'clamp(16px, 2vw, 20px)',
   color: 'rgba(242, 236, 220, 0.7)',
   margin: 0,
