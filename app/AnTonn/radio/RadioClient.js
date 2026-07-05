@@ -525,7 +525,7 @@ const titleStyle = {
 };
 
 const taglineStyle = {
-  fontFamily: '"EB Garamond", Georgia, serif',
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
   fontStyle: 'italic',
   fontSize: 'clamp(16px, 2vw, 20px)',
   color: 'rgba(242, 236, 220, 0.7)',
