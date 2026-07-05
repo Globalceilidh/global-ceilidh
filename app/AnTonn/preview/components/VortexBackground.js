@@ -52,12 +52,7 @@ export default function VortexBackground({ intensity = 0.0, mouseUv, paused = fa
       // Low-pass filter so velocity decays gracefully rather than snapping
       uniforms.uMouseVel.value.x += (vx - uniforms.uMouseVel.value.x) * 0.25
       uniforms.uMouseVel.value.y += (vy - uniforms.uMouseVel.value.y) * 0.25
-      // Smoothly lerp uMouse toward target — cross-origin iframes
-      // (Live365, YouTube) swallow pointermove events, so mouseUv
-      // freezes then snaps when the cursor re-enters our page.
-      // Smoothing hides the snap and gives the vortex a natural glide.
-      uniforms.uMouse.value.x += (mouseUv.x - uniforms.uMouse.value.x) * 0.15
-      uniforms.uMouse.value.y += (mouseUv.y - uniforms.uMouse.value.y) * 0.15
+      uniforms.uMouse.value.set(mouseUv.x, mouseUv.y)
       lastMouseRef.current = mouseUv
     }
     // Decay velocity when no movement

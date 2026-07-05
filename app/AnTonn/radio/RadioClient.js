@@ -565,7 +565,7 @@ const playerColumnStyle = {
 // panels feel like a balanced pair — was noticeably smaller before
 // because the frame's width was content-based.
 const playerFrameStyle = {
-  width: 'min(100%, 640px)',
+  width: 'min(100%, 450px)',
   aspectRatio: '450 / 316',
   flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
@@ -596,7 +596,7 @@ const photoTileStyle = {
 };
 
 const videoTileStyle = {
-  width: 'min(100%, 640px)',
+  width: 'min(100%, 450px)',
   aspectRatio: '450 / 316',
   flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
