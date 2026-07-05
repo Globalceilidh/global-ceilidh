@@ -68,16 +68,6 @@ export default function RadioClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 });
   const [docHidden, setDocHidden] = useState(false);
 
-  // Live365 embed size — 'sm' on narrow viewports (< 700px), 'md'
-  // otherwise. Prevents the medium player from needing internal
-  // scroll when the iframe is smaller than its native 450x316.
-  const [live365Size, setLive365Size] = useState('md');
-  useEffect(() => {
-    const check = () => setLive365Size(window.innerWidth < 700 ? 'sm' : 'md');
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
 
   // Live365 sync — poll /api/live365/nowplaying every LIVE365_POLL_MS,
   // run the artist string through matchArtist(), set featured to the
@@ -176,7 +166,7 @@ export default function RadioClient() {
                 <iframe
                   title="Global Ceilidh Radio — Live365 player"
                   frameBorder="0"
-                  src={`https://live365.com/embeds/v1/player/a11866?s=${live365Size}&m=dark&c=mp3`}
+                  src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
                   allow="autoplay; encrypted-media"
                   style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
                 />
@@ -589,6 +579,11 @@ const playerColumnStyle = {
 const playerFrameStyle = {
   width: 'min(100%, 450px)',
   aspectRatio: '450 / 316',
+  minHeight: 316,               // ← never shrink below Live365's native
+                                //   content height, even on narrow
+                                //   phones where the aspect calc would
+                                //   otherwise give ~235px. Prevents
+                                //   internal scroll inside the iframe.
   flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
   border: '1px solid rgba(242, 236, 220, 0.10)',
@@ -620,6 +615,11 @@ const photoTileStyle = {
 const videoTileStyle = {
   width: 'min(100%, 450px)',
   aspectRatio: '450 / 316',
+  minHeight: 316,               // ← never shrink below Live365's native
+                                //   content height, even on narrow
+                                //   phones where the aspect calc would
+                                //   otherwise give ~235px. Prevents
+                                //   internal scroll inside the iframe.
   flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
   border: '1px solid rgba(242, 236, 220, 0.10)',
