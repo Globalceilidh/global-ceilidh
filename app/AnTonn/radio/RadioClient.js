@@ -244,7 +244,11 @@ export default function RadioClient() {
               @media (min-width: 769px) {
                 .gc-fallback-logo-wide {
                   transform: scale(1.35);
-                  transform-origin: 60% 40%;
+                  /* Origin at 50% 10% shifts the composition centre
+                     to (50%, 64%): no horizontal offset (undoes the
+                     previous 15px left shift = 1 smidge right), and
+                     ~44px down at 316 tall (3 smidges down). */
+                  transform-origin: 50% 10%;
                 }
               }
             `}</style>
