@@ -161,18 +161,14 @@ export default function RadioClient() {
                 When featured is null (no Live365 match, or before Phase 3
                 is wired) both flanking tiles render their empty state. */}
             <div style={featuredRowStyle}>
-              <div style={playerColumnStyle}>
-                <div style={playerFrameStyle}>
-                  <div style={{ width: '100%', aspectRatio: '450 / 316' }}>
-                    <iframe
-                      title="Global Ceilidh Radio — Live365 player"
-                      frameBorder="0"
-                      src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
-                      allow="autoplay; encrypted-media"
-                      style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
-                    />
-                  </div>
-                </div>
+              <div style={playerFrameStyle}>
+                <iframe
+                  title="Global Ceilidh Radio — Live365 player"
+                  frameBorder="0"
+                  src="https://live365.com/embeds/v1/player/a11866?s=md&m=dark&c=mp3"
+                  allow="autoplay; encrypted-media"
+                  style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
+                />
               </div>
               {featured
                 ? (featured.videos && featured.videos.length > 0
@@ -498,13 +494,16 @@ const vortexLayerStyle = {
 const contentLayerStyle = {
   position: 'relative',
   zIndex: 10,
-  minHeight: '100vh',
-  padding: '56px 20px 88px',
 };
 
 const contentWrapperStyle = {
   maxWidth: 1200,
   margin: '0 auto',
+  minHeight: '100vh',           // fills viewport so the featured row
+                                // has a definite parent height to grow
+                                // into (see featuredRowStyle flex: 1)
+  padding: '56px 20px 88px',
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
   gap: 32,
@@ -549,6 +548,10 @@ const featuredRowStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   gap: 20,
+  // Grow to fill vertical slack in the wrapper flex column — ticker
+  // + footer get pushed toward the bottom of the viewport instead of
+  // clustering at the top with empty vortex below.
+  flex: '1 1 auto',
 };
 
 const playerColumnStyle = {
@@ -557,18 +560,20 @@ const playerColumnStyle = {
   alignItems: 'center',
 };
 
+// Player tile matches the media (right) tile dimensions so the two
+// panels feel like a balanced pair — was noticeably smaller before
+// because the frame's width was content-based.
 const playerFrameStyle = {
+  width: 'min(100%, 450px)',
+  aspectRatio: '450 / 316',
+  flexShrink: 0,
   background: 'rgba(0, 0, 0, 0.30)',
   border: '1px solid rgba(242, 236, 220, 0.10)',
   borderRadius: 8,
-  padding: 8,
+  overflow: 'hidden',
   boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
   backdropFilter: 'blur(2px)',
   WebkitBackdropFilter: 'blur(2px)',
-  // Cap at 466 (450 iframe + 16 padding) on desktop; scale to
-  // viewport on phone. Without this the frame's content-based
-  // width forces horizontal overflow on mobile.
-  width: 'min(100%, 466px)',
   boxSizing: 'border-box',
 };
 
