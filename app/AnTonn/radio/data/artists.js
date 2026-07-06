@@ -10,17 +10,17 @@
 //   }]
 //
 //   FALLBACK: {
-//     logo,           // GC Radio logo image shown when Live365 plays
-//                     // an artist not in the ARTISTS library
-//     stockVideos: [] // GC feature clips + featured-partner ads to
-//                     // rotate on the right pane when no artist video
-//                     // is available
-//     partners: []    // featured partner records (weighted rotation)
+//     logoNarrow / logoWide,   // fallback logos per tile aspect
+//     stockVideos: [],         // GC feature clips + featured-partner
+//                              // ads on the right pane when no artist
+//                              // video is available
+//     partners: []             // featured partner records
 //   }
 //
-// `aliases` matters for Phase 3 Live365 sync — the widget currently
-// reports the artist as "Piper.Ally", NOT "Ally the Piper". Any name
-// variant Live365 might send goes in this array.
+// `aliases` matters for Phase 3 Live365 sync — the widget can report
+// artist names with different casing, punctuation, or accents.
+// matchArtist() substring-matches on normalised strings, so any
+// variant Live365 might send should go in this array.
 //
 // Update this file directly; the /radio page reads it at build+run
 // time. Later this can move to a CMS/Supabase table without changing
@@ -40,8 +40,8 @@ export const ARTISTS = [
     photoAlt: 'Ally the Piper — press photo',
     videos: [
       // Ally the Piper — 6-clip sequence, ~5m 42s total playtime,
-      // then wraps. Chained via YouTube IFrame Player API in
-      // VideoSequencerTile (Phase 2 sequencer).
+      // capped in the sequencer to 40s per clip so the whole cycle
+      // fits inside a typical song window.
       { videoId: 'n2yFNWQRiU0', start: 6,   end: 195 },  // :06  – 3:15
       { videoId: '_E6O8Uxp67g', start: 7,   end: 65  },  // :07  – 1:05
       { videoId: '_E6O8Uxp67g', start: 100, end: 123 },  // 1:40 – 2:03
@@ -53,19 +53,143 @@ export const ARTISTS = [
     isPartner: false,
   },
   {
-    id: 'skipinnish',
-    name: 'Skipinnish',
-    aliases: ['skipinnish'],
+    id: 'bad-haggis',
+    name: 'Bad Haggis',
+    aliases: ['bad haggis'],
     emoji: '🥁',
-    tagline: 'England, Germany, and a winter run of Scottish theatres',
+    tagline: null,
     photos: [
-      '/radio/skipinnish/photo-1.png',
-      '/radio/skipinnish/photo-2.png',
+      '/radio/bad_haggis/b_h_1.png',
+      '/radio/bad_haggis/b_h_2.png',
+      '/radio/bad_haggis/b_h_3.png',
+      '/radio/bad_haggis/b_h_4.png',
     ],
-    photoAlt: 'Skipinnish — press photo',
-    // No video available — right pane falls back to a second photo tile
+    photoAlt: 'Bad Haggis — press photo',
     videos: [],
-    tourDates: 'Sep 19 Gloucestershire, England · Nov 22–30 Germany Tour (Hamburg · Berlin · Cologne · Munich · Stuttgart) · Dec 3 Fort William (Nevis Centre) · Dec 4 Glasgow (Royal Concert Hall) · Dec 5 Glasgow (Barrowland Ballroom) · Dec 10 Perth (Perth Concert Hall) · Dec 11 Oban (Corran Halls)',
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'beluga-lagoon',
+    name: 'Beluga Lagoon',
+    aliases: ['beluga lagoon'],
+    emoji: '🌊',
+    tagline: null,
+    photos: [
+      '/radio/beluga_lagoon/beluga_1.png',
+      '/radio/beluga_lagoon/beluga_2.png',
+      '/radio/beluga_lagoon/beluga_3.png',
+      '/radio/beluga_lagoon/beluga_4.png',
+    ],
+    photoAlt: 'Beluga Lagoon — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'hadrians-wall',
+    name: "Hadrian's Wall",
+    aliases: ["hadrian's wall", 'hadrians wall', 'hadrian wall'],
+    emoji: '🎻',
+    tagline: null,
+    photos: [
+      '/radio/hadrians-wall/hadrians_wall_1.png',
+      '/radio/hadrians-wall/hadrians_wall_2.png',
+      '/radio/hadrians-wall/hadrians_wall_3.png',
+      '/radio/hadrians-wall/hadrians_wall_4.png',
+    ],
+    photoAlt: "Hadrian's Wall — press photo",
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'isla-scott',
+    name: 'Isla Scott',
+    aliases: ['isla scott'],
+    emoji: '🎻',
+    tagline: null,
+    photos: [
+      '/radio/isla_scott/isla-scott-1.png',
+      '/radio/isla_scott/isla-scott-2.png',
+      '/radio/isla_scott/isla-scott-3.png',
+      '/radio/isla_scott/isla-scott-4.png',
+    ],
+    photoAlt: 'Isla Scott — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'josie-duncan',
+    name: 'Josie Duncan',
+    aliases: ['josie duncan'],
+    emoji: '🎤',
+    tagline: null,
+    photos: [
+      '/radio/josie_duncan/j-d-1.png',
+      '/radio/josie_duncan/j-d-2.png',
+      '/radio/josie_duncan/j-d-3.png',
+      '/radio/josie_duncan/j-d-4.png',
+      '/radio/josie_duncan/j-d-5.png',
+    ],
+    photoAlt: 'Josie Duncan — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'julie-fowlis',
+    name: 'Julie Fowlis',
+    aliases: ['julie fowlis'],
+    emoji: '🎤',
+    tagline: null,
+    photos: [
+      '/radio/julie_fowlis/jf_1.png',
+      '/radio/julie_fowlis/jf_2.png',
+      '/radio/julie_fowlis/jf_3.png',
+      '/radio/julie_fowlis/jf_4.png',
+      '/radio/julie_fowlis/jf_5.png',
+    ],
+    photoAlt: 'Julie Fowlis — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'kim-carnie',
+    name: 'Kim Carnie',
+    aliases: ['kim carnie'],
+    emoji: '🎤',
+    tagline: null,
+    photos: [
+      '/radio/kim_carnie/k-c-1.png',
+      '/radio/kim_carnie/k-c-2.png',
+      '/radio/kim_carnie/k-c-3.png',
+      '/radio/kim_carnie/k-c-4.png',
+      '/radio/kim_carnie/k-c-5.png',
+      '/radio/kim_carnie/k-c-6.png',
+    ],
+    photoAlt: 'Kim Carnie — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'mairi-mcgillivray',
+    name: 'Mairi McGillivray',
+    aliases: ['mairi mcgillivray', 'mairi macgillivray', 'màiri mcgillivray'],
+    emoji: '🎻',
+    tagline: null,
+    photos: [
+      '/radio/Mairi_McGillivray/m_m_1.png',
+      '/radio/Mairi_McGillivray/m_m_2.png',
+      '/radio/Mairi_McGillivray/m_m_3.png',
+      '/radio/Mairi_McGillivray/m_m_4.png',
+    ],
+    photoAlt: 'Mairi McGillivray — press photo',
+    videos: [],
+    tourDates: null,
     isPartner: false,
   },
   {
@@ -84,6 +208,141 @@ export const ARTISTS = [
       { videoId: 'lTrHY3U4gYA', start: 0, end: 240 },
     ],
     tourDates: 'Jul 16 Isle of Lewis (HebCelt Festival) · Jul 26 Loon-Plage, France (Parc Galame) · Jul 30–Aug 1 Inverness (Belladrum Tartan Heart Festival) · Aug 14–15 York (The Magpies Festival) · Sep 4–6 Jedburgh (Edge Fest)',
+    isPartner: false,
+  },
+  {
+    id: 'proclaimers',
+    name: 'The Proclaimers',
+    aliases: ['proclaimers', 'the proclaimers'],
+    emoji: '🎤',
+    tagline: null,
+    photos: [
+      '/radio/proclaimers/proclaimers_1.png',
+      '/radio/proclaimers/proclaimers_2.png',
+      '/radio/proclaimers/proclaimers_3.png',
+      '/radio/proclaimers/proclaimers_4.png',
+    ],
+    photoAlt: 'The Proclaimers — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'runrig',
+    name: 'Runrig',
+    aliases: ['runrig'],
+    emoji: '🎸',
+    tagline: null,
+    photos: [
+      '/radio/runrig/runrig-1.png',
+      '/radio/runrig/runrig-2.png',
+      '/radio/runrig/runrig-3.png',
+    ],
+    photoAlt: 'Runrig — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'sian',
+    name: 'Sian',
+    aliases: ['sian', 'sìan'],
+    emoji: '🎤',
+    tagline: null,
+    photos: [
+      '/radio/sian/Sian_1.png',
+      '/radio/sian/Sian_2.png',
+      '/radio/sian/Sian_3.png',
+      '/radio/sian/Sian_4.png',
+    ],
+    photoAlt: 'Sian — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'skerryvore',
+    name: 'Skerryvore',
+    aliases: ['skerryvore'],
+    emoji: '🎸',
+    tagline: null,
+    photos: [
+      '/radio/skerryvore/skerryvore_1.png',
+      '/radio/skerryvore/skerryvore_2.png',
+      '/radio/skerryvore/skerryvore_3.png',
+      '/radio/skerryvore/skerryvore_4.png',
+    ],
+    photoAlt: 'Skerryvore — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'skipinnish',
+    name: 'Skipinnish',
+    aliases: ['skipinnish'],
+    emoji: '🥁',
+    tagline: 'England, Germany, and a winter run of Scottish theatres',
+    photos: [
+      '/radio/skipinnish/photo-1.png',
+      '/radio/skipinnish/photo-2.png',
+      '/radio/skipinnish/photo-3.png',
+      '/radio/skipinnish/photo-4.png',
+    ],
+    photoAlt: 'Skipinnish — press photo',
+    videos: [],
+    tourDates: 'Sep 19 Gloucestershire, England · Nov 22–30 Germany Tour (Hamburg · Berlin · Cologne · Munich · Stuttgart) · Dec 3 Fort William (Nevis Centre) · Dec 4 Glasgow (Royal Concert Hall) · Dec 5 Glasgow (Barrowland Ballroom) · Dec 10 Perth (Perth Concert Hall) · Dec 11 Oban (Corran Halls)',
+    isPartner: false,
+  },
+  {
+    id: 'steve-earle',
+    name: 'Steve Earle',
+    aliases: ['steve earle'],
+    emoji: '🎸',
+    tagline: null,
+    photos: [
+      '/radio/steve_earle/steve_earle_1.png',
+      '/radio/steve_earle/steve_earle_2.png',
+      '/radio/steve_earle/steve_earle_3.png',
+      '/radio/steve_earle/steve_earle_4.png',
+    ],
+    photoAlt: 'Steve Earle — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'tide-lines',
+    name: 'Tide Lines',
+    aliases: ['tide lines'],
+    emoji: '🎸',
+    tagline: null,
+    photos: [
+      '/radio/tide_lines/t-l-1.png',
+      '/radio/tide_lines/t-l-2.png',
+      '/radio/tide_lines/t-l-3.png',
+      '/radio/tide_lines/t-l-4.png',
+    ],
+    photoAlt: 'Tide Lines — press photo',
+    videos: [],
+    tourDates: null,
+    isPartner: false,
+  },
+  {
+    id: 'trail-west',
+    name: 'Trail West',
+    aliases: ['trail west'],
+    emoji: '🪗',
+    tagline: null,
+    photos: [
+      '/radio/trail_west/t_w_1.png',
+      '/radio/trail_west/t_w_2.png',
+      '/radio/trail_west/t_w_3.png',
+      '/radio/trail_west/t_w_4.png',
+    ],
+    photoAlt: 'Trail West — press photo',
+    videos: [],
+    tourDates: null,
     isPartner: false,
   },
 ];
