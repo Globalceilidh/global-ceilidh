@@ -6,7 +6,7 @@ import { Canvas } from '@react-three/fiber';
 import VortexBackground from '../preview/components/VortexBackground';
 import { ARTISTS, FALLBACK, matchArtist } from './data/artists';
 
-const LIVE365_POLL_MS = 20000; // 20s poll interval — API caches server-side for 15s
+const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so upstream still fires only ~15/min max
 
 // YouTube IFrame Player API — singleton loader. The API sets a global
 // window.YT once its script finishes loading; we wrap the callback in

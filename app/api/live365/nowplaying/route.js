@@ -9,11 +9,28 @@
 //
 // Add ?debug=1 to include the raw upstream JSON in the response.
 
+import { supabaseAdmin } from '../../../../lib/supabase';
+
 const STATION_ID = 'a11866';
 const UPSTREAM = `https://api.live365.com/station/${STATION_ID}`;
-const CACHE_SECS = 15;
+const CACHE_SECS = 4;   // was 15 — bumped for tighter Live365 → tile sync
 
 export const runtime = 'nodejs';
+
+// Fire-and-forget hourly-bucketed counter. Failures are swallowed —
+// metrics should never break the response.
+async function logMetric(metric) {
+  try {
+    const hourBucket = new Date();
+    hourBucket.setMinutes(0, 0, 0);
+    await supabaseAdmin.rpc('increment_gc_radio_metric', {
+      p_hour: hourBucket.toISOString(),
+      p_metric: metric,
+    });
+  } catch (_) {
+    /* swallow */
+  }
+}
 
 export async function GET(request) {
   const url = new URL(request.url);
@@ -30,6 +47,7 @@ export async function GET(request) {
     });
 
     if (!res.ok) {
+      logMetric('live365_nowplaying_fail');
       return Response.json(
         { ok: false, error: `Live365 upstream returned ${res.status}` },
         { status: 502 }
@@ -62,12 +80,15 @@ export async function GET(request) {
       payload.debug = { raw: data };
     }
 
+    logMetric('live365_nowplaying_ok');
+
     return Response.json(payload, {
       headers: {
         'Cache-Control': `s-maxage=${CACHE_SECS}, stale-while-revalidate=30`,
       },
     });
   } catch (err) {
+    logMetric('live365_nowplaying_error');
     return Response.json(
       { ok: false, error: String(err && err.message ? err.message : err) },
       { status: 500 }
