@@ -40,21 +40,24 @@ function loadYouTubeAPI() {
 // state — the JS artist-rotation timer was removed because it was
 // misleading (showing Ally while the stream played a totally
 // different artist).
-const PHOTO_CAROUSEL_MS = 4500;
+const PHOTO_CAROUSEL_MS = 8500;
 
 const SPONSOR_TICKER_ITEM = {
   text: 'Fàilte gu Global Ceilidh Rèidio — sponsor a spot on our ticker at globalceilidh@gmail.com',
   href: 'mailto:globalceilidh@gmail.com',
 };
 
-// Ticker is INDEPENDENT of the featured tile now — it cycles through
-// every artist's tour dates continuously regardless of what's on
-// screen (or on the Live365 stream).
+// Ticker cycles through every artist WITH tour dates set, regardless
+// of what's on screen or on the Live365 stream. Artists in the library
+// without tourDates (i.e. added for photo rotation only) are matched
+// on-air but stay out of the ticker so we don't render "Name · null".
 const TICKER_ITEMS = [
-  ...ARTISTS.flatMap((a) => [
-    { text: `${a.emoji || ''} ${a.name} · ${a.tourDates}` },
-    { text: '·' },
-  ]),
+  ...ARTISTS
+    .filter((a) => a.tourDates)
+    .flatMap((a) => [
+      { text: `${a.emoji || ''} ${a.name} · ${a.tourDates}` },
+      { text: '·' },
+    ]),
   SPONSOR_TICKER_ITEM,
   { text: '·' },
 ];
@@ -356,7 +359,7 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
             // exactly. Same rule for either aspect — no crop.
             objectFit: 'contain',
             opacity: i === idx ? 1 : 0,
-            transition: 'opacity 700ms ease-in-out',
+            transition: 'opacity 1400ms ease-in-out',
             userSelect: 'none',
           }}
         />
