@@ -1,4 +1,4 @@
-import { Inter, Cinzel, EB_Garamond, IBM_Plex_Sans } from 'next/font/google';
+import { Inter, Cinzel, EB_Garamond, IBM_Plex_Sans, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '../context/LanguageContext';
 import { ClerkProvider } from '@clerk/nextjs';
@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const cinzel = Cinzel({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-cinzel' });
 const ebGaramond = EB_Garamond({ subsets: ['latin'], weight: ['400', '500'], style: ['normal', 'italic'], variable: '--font-eb-garamond' });
 const ibmPlexSans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'], variable: '--font-ibm-plex-sans' });
+const bebasNeue = Bebas_Neue({ subsets: ['latin'], weight: ['400'], variable: '--font-bebas-neue' });
 
 // Without this, mobile browsers render the page at desktop CSS width
 // (~980px) and scale down — content ends up compressed to the top of
@@ -35,7 +36,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${inter.variable} ${cinzel.variable} ${ebGaramond.variable} ${ibmPlexSans.variable}`}>
+      <html lang="en" className={`${inter.variable} ${cinzel.variable} ${ebGaramond.variable} ${ibmPlexSans.variable} ${bebasNeue.variable}`}>
         <body className={`${inter.className} bg-white text-gc-text antialiased`}>
           <LanguageProvider>
             {children}

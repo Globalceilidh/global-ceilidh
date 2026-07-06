@@ -577,14 +577,17 @@ const mastheadStyle = {
 };
 
 const titleStyle = {
-  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
-  fontSize: 'clamp(38px, 6.5vw, 60px)',
-  fontWeight: 600,
-  letterSpacing: '0.08em',
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
+  // Bebas Neue is display-weight by design (400 reads like a bold);
+  // bumping to 700 lets the browser synthesize extra weight for the
+  // "Bold" ask.
+  fontSize: 'clamp(48px, 8vw, 78px)',
+  fontWeight: 700,
+  letterSpacing: '0.06em',
   textTransform: 'uppercase',
   margin: '0 0 12px',
   color: '#F2ECDC',
-  lineHeight: 1.05,
+  lineHeight: 1.0,
 };
 
 const taglineStyle = {
