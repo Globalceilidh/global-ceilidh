@@ -38,17 +38,20 @@ export const ARTISTS = [
       '/radio/ally-the-piper/photo-2.png',
     ],
     photoAlt: 'Ally the Piper — press photo',
-    videos: [
-      // Ally the Piper — 6-clip sequence, ~5m 42s total playtime,
-      // capped in the sequencer to 40s per clip so the whole cycle
-      // fits inside a typical song window.
-      { videoId: 'n2yFNWQRiU0', start: 6,   end: 195 },  // :06  – 3:15
-      { videoId: '_E6O8Uxp67g', start: 7,   end: 65  },  // :07  – 1:05
-      { videoId: '_E6O8Uxp67g', start: 100, end: 123 },  // 1:40 – 2:03
-      { videoId: '_E6O8Uxp67g', start: 138, end: 149 },  // 2:18 – 2:29
-      { videoId: 'DoMowA_9sxY', start: 9,   end: 45  },  // :09  – :45
-      { videoId: 'DoMowA_9sxY', start: 274, end: 299 },  // 4:34 – 4:59
-    ],
+    // Video sequencer retired 2026-07-07 (Whitey's call — YouTube's
+    // control flash on clip transitions + cross-origin pointer swallow
+    // + inability to real-sync with Live365 audio outweighed the
+    // pastiche-video vision). All artists are static image carousels
+    // now. MTV-style video montage moves to /AnTonn/bhidio.
+    //
+    // Original 6-clip Ally sequence preserved here in case we revive:
+    //   { videoId: 'n2yFNWQRiU0', start: 6,   end: 195 },  // :06  – 3:15
+    //   { videoId: '_E6O8Uxp67g', start: 7,   end: 65  },  // :07  – 1:05
+    //   { videoId: '_E6O8Uxp67g', start: 100, end: 123 },  // 1:40 – 2:03
+    //   { videoId: '_E6O8Uxp67g', start: 138, end: 149 },  // 2:18 – 2:29
+    //   { videoId: 'DoMowA_9sxY', start: 9,   end: 45  },  // :09  – :45
+    //   { videoId: 'DoMowA_9sxY', start: 274, end: 299 },  // 4:34 – 4:59
+    videos: [],
     tourDates: 'US Club Tour · Jul 29 Albany NY (The Egg / Swyer Theatre) · Jul 30 Syracuse NY (Westcott Theater) · Aug 6 Ann Arbor MI (Blind Pig) · Aug 12 Grand Rapids MI (The Pyramid Scheme) · Aug 13–16 Milwaukee WI (Milwaukee Irish Fest)',
     isPartner: false,
   },
@@ -204,9 +207,10 @@ export const ARTISTS = [
       '/radio/manran/photo-3.png',
     ],
     photoAlt: 'Mànran — press photo',
-    videos: [
-      { videoId: 'lTrHY3U4gYA', start: 0, end: 240 },
-    ],
+    // Video retired 2026-07-07 (see Ally's videos comment); kept as
+    // a reference in case /AnTonn/bhidio revives it:
+    //   { videoId: 'lTrHY3U4gYA', start: 0, end: 240 }
+    videos: [],
     tourDates: 'Jul 16 Isle of Lewis (HebCelt Festival) · Jul 26 Loon-Plage, France (Parc Galame) · Jul 30–Aug 1 Inverness (Belladrum Tartan Heart Festival) · Aug 14–15 York (The Magpies Festival) · Sep 4–6 Jedburgh (Edge Fest)',
     isPartner: false,
   },

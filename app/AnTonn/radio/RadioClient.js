@@ -1,39 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { Canvas } from '@react-three/fiber';
 import VortexBackground from '../preview/components/VortexBackground';
 import { ARTISTS, FALLBACK, matchArtist } from './data/artists';
 
 const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so upstream still fires only ~15/min max
-
-// YouTube IFrame Player API — singleton loader. The API sets a global
-// window.YT once its script finishes loading; we wrap the callback in
-// a Promise so multiple sequencer instances share one load.
-let ytApiReadyPromise = null;
-function loadYouTubeAPI() {
-  if (typeof window === 'undefined') return Promise.reject(new Error('SSR'));
-  if (ytApiReadyPromise) return ytApiReadyPromise;
-  ytApiReadyPromise = new Promise((resolve) => {
-    if (window.YT && window.YT.Player) {
-      resolve(window.YT);
-      return;
-    }
-    const prev = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      prev?.();
-      resolve(window.YT);
-    };
-    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-      const s = document.createElement('script');
-      s.src = 'https://www.youtube.com/iframe_api';
-      s.async = true;
-      document.head.appendChild(s);
-    }
-  });
-  return ytApiReadyPromise;
-}
 
 // Tiles are driven by Live365 metadata (Phase 3). Until that's wired,
 // `featured` stays null and both tiles render the empty/placeholder
@@ -175,9 +148,7 @@ export default function RadioClient() {
                 />
               </div>
               {featured
-                ? (featured.videos && featured.videos.length > 0
-                    ? <VideoSequencerTile videos={featured.videos} name={featured.name} />
-                    : <PhotoTile artist={featured} offset={0} wide={true} />)
+                ? <PhotoTile artist={featured} offset={0} wide={true} />
                 : <EmptyTile wide={true} />
               }
             </div>
@@ -364,139 +335,6 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
           }}
         />
       ))}
-    </div>
-  );
-}
-
-// Cap on how long a single clip plays before we auto-advance. Ensures
-// all clips in a sequence cycle through within a typical song window
-// (~3 min) — if a Live365 song is shorter than clip 1, we still get
-// through the whole sequence in every featured window. Also acts as a
-// fallback if YouTube's ENDED event doesn't fire on the `end` param
-// (a known quirk — sometimes YT fires PAUSED instead).
-const MAX_CLIP_MS = 40000; // 40s — 6 clips × 40s = 4 min max sequence
-
-// Phase 2 sequencer — one persistent YouTube IFrame Player API
-// instance that chains a `videos: [{ videoId, start, end }]` list.
-// Advance triggers on whichever comes first: ENDED event, error, or
-// the MAX_CLIP_MS timer. When the sequence exhausts, wraps to 0.
-// Controls fully suppressed via playerVars; click-eater on top.
-function VideoSequencerTile({ videos, name }) {
-  const [containerId] = useState(() => `yt-seq-${Math.random().toString(36).slice(2, 10)}`);
-  const playerRef = useRef(null);
-  const clipIdxRef = useRef(0);
-  const videosRef = useRef(videos);
-  const advanceTimerRef = useRef(null);
-
-  useEffect(() => { videosRef.current = videos; }, [videos]);
-
-  useEffect(() => {
-    if (!videos || videos.length === 0) return;
-    let cancelled = false;
-    clipIdxRef.current = 0;
-
-    loadYouTubeAPI().then((YT) => {
-      if (cancelled) return;
-      const outer = document.getElementById(containerId);
-      if (!outer) return;
-      // Fresh inner element each mount so YT's iframe replacement is clean
-      outer.innerHTML = '';
-      const inner = document.createElement('div');
-      inner.style.width = '100%';
-      inner.style.height = '100%';
-      outer.appendChild(inner);
-
-      const first = videos[0];
-
-      const scheduleAdvance = (target, clipIdx) => {
-        if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
-        const clip = videosRef.current[clipIdx];
-        if (!clip) return;
-        const naturalMs = (clip.end - clip.start) * 1000;
-        const timerMs = Math.min(naturalMs, MAX_CLIP_MS);
-        advanceTimerRef.current = setTimeout(() => {
-          advance(target);
-        }, timerMs);
-      };
-
-      const advance = (target) => {
-        const N = videosRef.current.length;
-        if (N === 0) return;
-        const nextIdx = (clipIdxRef.current + 1) % N;
-        clipIdxRef.current = nextIdx;
-        const clip = videosRef.current[nextIdx];
-        target.loadVideoById({
-          videoId: clip.videoId,
-          startSeconds: clip.start,
-          endSeconds: clip.end,
-        });
-        scheduleAdvance(target, nextIdx);
-      };
-
-      const player = new YT.Player(inner, {
-        width: '100%',
-        height: '100%',
-        videoId: first.videoId,
-        playerVars: {
-          autoplay: 1,
-          mute: 1,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          iv_load_policy: 3,
-          modestbranding: 1,
-          rel: 0,
-          playsinline: 1,
-          start: first.start,
-          end: first.end,
-          origin: window.location.origin,
-        },
-        events: {
-          onReady: (e) => {
-            e.target.mute();
-            e.target.playVideo();
-            scheduleAdvance(e.target, 0);
-          },
-          onStateChange: (e) => {
-            if (e.data === 0 /* ENDED */) advance(e.target);
-          },
-          onError: (e) => {
-            // Unplayable / not-embeddable / removed — skip to next clip
-            advance(e.target);
-          },
-        },
-      });
-      playerRef.current = player;
-    });
-
-    return () => {
-      cancelled = true;
-      if (advanceTimerRef.current) {
-        clearTimeout(advanceTimerRef.current);
-        advanceTimerRef.current = null;
-      }
-      if (playerRef.current) {
-        try { playerRef.current.destroy(); } catch (_) {}
-        playerRef.current = null;
-      }
-    };
-  }, [videos, containerId]);
-
-  if (!videos || videos.length === 0) return null;
-
-  return (
-    <div style={{ ...videoTileStyle, position: 'relative' }} aria-label={`${name} — video sequence`}>
-      <div id={containerId} style={{ width: '100%', height: '100%' }} />
-      {/* Click-eater — blocks residual YT click surfaces */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute', inset: 0,
-          pointerEvents: 'auto',
-          background: 'transparent',
-          cursor: 'default',
-        }}
-      />
     </div>
   );
 }
