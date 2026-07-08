@@ -44,6 +44,21 @@ function isPublic(pathname) {
 export default clerkMiddleware((auth, request) => {
   const { pathname, searchParams } = request.nextUrl;
 
+  // Case-normalize AnTonn URLs. Vercel runs on Linux (case-sensitive
+  // filesystem), so /antonn/radio does NOT match the /AnTonn/radio
+  // route file and 404s — then the middleware below treats the miss
+  // as "not public" and bounces it to /. Phone browsers auto-lowercase
+  // typed URLs, and Google indexes tend to lowercase too, so real
+  // listeners kept ending up on the home page instead of the radio.
+  // 308 preserves the method and tells search engines the canonical
+  // spelling is /AnTonn.
+  if (pathname.toLowerCase().startsWith("/antonn") &&
+      !pathname.startsWith("/AnTonn")) {
+    const canonical = "/AnTonn" + pathname.slice(7); // '/antonn'.length === 7
+    const dest = new URL(canonical + request.nextUrl.search, request.url);
+    return NextResponse.redirect(dest, 308);
+  }
+
   // If key is in the URL, set the cookie and redirect to the originally
   // requested path (defaulting to /home if the request was for the root).
   // Other query params survive so utm tags or anchors aren't dropped on
