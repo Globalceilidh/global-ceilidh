@@ -59,15 +59,20 @@ CREATE TABLE IF NOT EXISTS gc_radio_poll_votes (
   now_playing_track  TEXT,
   now_playing_artist TEXT,
   user_agent         TEXT,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- Real UTC calendar day the vote was cast on. Defaults are evaluated
+  -- per-INSERT so they don't need to be IMMUTABLE (only index expressions
+  -- do). Giving the day its own column dodges the whole timestamptz→date
+  -- immutability trap that killed the previous two migration attempts.
+  vote_day           DATE        NOT NULL DEFAULT ((NOW() AT TIME ZONE 'UTC')::date)
 );
--- Postgres requires index expressions to be IMMUTABLE. `created_at::date`
--- on a timestamptz depends on session TIMEZONE (STABLE, not IMMUTABLE)
--- and gets rejected. Pinning the timezone to UTC makes it IMMUTABLE —
--- and gives us a stable "day" the same way everywhere, which is what
--- we want anyway (no DST or client-tz drift in the one-vote-per-day rule).
+-- Backfill the column on tables that were created by an earlier failed run
+-- of this migration (before vote_day existed).
+ALTER TABLE gc_radio_poll_votes
+  ADD COLUMN IF NOT EXISTS vote_day DATE NOT NULL DEFAULT ((NOW() AT TIME ZONE 'UTC')::date);
+
 CREATE UNIQUE INDEX IF NOT EXISTS gc_radio_poll_votes_one_per_day
-  ON gc_radio_poll_votes (category_id, ip_hash, ((created_at AT TIME ZONE 'UTC')::date));
+  ON gc_radio_poll_votes (category_id, ip_hash, vote_day);
 CREATE INDEX IF NOT EXISTS gc_radio_poll_votes_target
   ON gc_radio_poll_votes (target_type, target_id);
 
