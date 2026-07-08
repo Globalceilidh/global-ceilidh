@@ -32,6 +32,22 @@ async function logMetric(metric) {
   }
 }
 
+// Fire-and-forget now-playing log. RPC handles dedup: same track within
+// 5 min = update last_seen; anything else = new play row. Skips
+// null/empty tracks so between-song gaps don't create bogus entries.
+async function logNowPlaying(artist, title, art) {
+  if (!artist || !title) return;
+  try {
+    await supabaseAdmin.rpc('log_now_playing', {
+      p_artist:  artist,
+      p_title:   title,
+      p_art_url: art || null,
+    });
+  } catch (_) {
+    /* swallow */
+  }
+}
+
 export async function GET(request) {
   const url = new URL(request.url);
   const debug = url.searchParams.get('debug') === '1';
@@ -81,6 +97,7 @@ export async function GET(request) {
     }
 
     logMetric('live365_nowplaying_ok');
+    logNowPlaying(payload.artist, payload.track, payload.art);
 
     return Response.json(payload, {
       headers: {
