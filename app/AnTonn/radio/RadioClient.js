@@ -259,10 +259,21 @@ export default function RadioClient() {
 // Radio buttons for nominees + a write-in text field at the bottom.
 // Server enforces one-per-category-per-IP-per-day; a 409 turns into a
 // friendly message.
+// Categories are stable (3 rows, hand-curated). Hardcoding them here
+// skips a network round-trip on modal open and — more importantly —
+// stops the select from redrawing after the fetch resolves, which was
+// causing the modal to visibly "switch" into its final state a beat
+// after it opened.
+const VOTE_CATEGORIES = [
+  { id: 'best-artist', label: 'Best Artist' },
+  { id: 'best-song',   label: 'Best Song'   },
+  { id: 'best-album',  label: 'Best Album'  },
+];
+
 function VoteModal({ onClose }) {
-  const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState('best-artist');
   const [nominees, setNominees] = useState([]);
+  const [nomineesLoading, setNomineesLoading] = useState(true);
   const [selectedTargetId, setSelectedTargetId] = useState(null);
   const [writeIn, setWriteIn] = useState('');
   const [honeypot, setHoneypot] = useState('');
@@ -270,21 +281,17 @@ function VoteModal({ onClose }) {
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/radio/vote')
-      .then(r => r.json())
-      .then(d => { if (alive && d.ok) setCategories(d.categories || []); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
+    setNomineesLoading(true);
     setNominees([]);
     setSelectedTargetId(null);
     fetch(`/api/radio/vote?category=${encodeURIComponent(categoryId)}`)
       .then(r => r.json())
-      .then(d => { if (alive && d.ok) setNominees(d.nominees || []); })
-      .catch(() => {});
+      .then(d => {
+        if (!alive) return;
+        if (d.ok) setNominees(d.nominees || []);
+        setNomineesLoading(false);
+      })
+      .catch(() => { if (alive) setNomineesLoading(false); });
     return () => { alive = false; };
   }, [categoryId]);
 
@@ -343,17 +350,25 @@ function VoteModal({ onClose }) {
           onChange={(e) => { setCategoryId(e.target.value); setStatus({ kind: 'idle' }); }}
           style={modalSelectStyle}
         >
-          {(categories.length ? categories : [{ id: 'best-artist', label: 'Best Artist' }]).map(c => (
+          {VOTE_CATEGORIES.map(c => (
             <option key={c.id} value={c.id}>{c.label}</option>
           ))}
         </select>
       </div>
 
-      {nominees.length > 0 && (
-        <div style={modalFieldStyle}>
-          <label style={modalLabelStyle}>Nominees</label>
-          <div style={nomineeListStyle}>
-            {nominees.map(n => (
+      <div style={modalFieldStyle}>
+        <label style={modalLabelStyle}>Nominees</label>
+        <div style={nomineeListStyle}>
+          {nomineesLoading ? (
+            <div style={{ ...nomineeRowStyle, color: 'rgba(242,236,220,0.5)', fontStyle: 'italic' }}>
+              Loading nominees…
+            </div>
+          ) : nominees.length === 0 ? (
+            <div style={{ ...nomineeRowStyle, color: 'rgba(242,236,220,0.5)', fontStyle: 'italic' }}>
+              No nominees yet — be the first with a write-in below.
+            </div>
+          ) : (
+            nominees.map(n => (
               <label key={n.id} style={nomineeRowStyle}>
                 <input
                   type="radio"
@@ -364,15 +379,13 @@ function VoteModal({ onClose }) {
                 />
                 <span>{n.label}</span>
               </label>
-            ))}
-          </div>
+            ))
+          )}
         </div>
-      )}
+      </div>
 
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>
-          {nominees.length ? 'Or write in a nominee' : 'Write in a nominee'}
-        </label>
+        <label style={modalLabelStyle}>Or write in a nominee</label>
         <input
           type="text"
           value={writeIn}
@@ -390,7 +403,7 @@ function VoteModal({ onClose }) {
         </div>
       </div>
 
-      {/* Honeypot — hidden field. Bots fill it, humans don't. */}
+      {/* Honeypot — hidden field. Bots fill it, humans do not. */}
       <input
         type="text"
         value={honeypot}
