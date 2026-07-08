@@ -61,8 +61,13 @@ CREATE TABLE IF NOT EXISTS gc_radio_poll_votes (
   user_agent         TEXT,
   created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+-- Postgres requires index expressions to be IMMUTABLE. `created_at::date`
+-- on a timestamptz depends on session TIMEZONE (STABLE, not IMMUTABLE)
+-- and gets rejected. Pinning the timezone to UTC makes it IMMUTABLE —
+-- and gives us a stable "day" the same way everywhere, which is what
+-- we want anyway (no DST or client-tz drift in the one-vote-per-day rule).
 CREATE UNIQUE INDEX IF NOT EXISTS gc_radio_poll_votes_one_per_day
-  ON gc_radio_poll_votes (category_id, ip_hash, (created_at::date));
+  ON gc_radio_poll_votes (category_id, ip_hash, ((created_at AT TIME ZONE 'UTC')::date));
 CREATE INDEX IF NOT EXISTS gc_radio_poll_votes_target
   ON gc_radio_poll_votes (target_type, target_id);
 
