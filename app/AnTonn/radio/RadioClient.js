@@ -52,6 +52,11 @@ export default function RadioClient() {
   // back to the EmptyTile (which shows FALLBACK.logo when present).
   const [featured, setFeatured] = useState(null);
 
+  // Modals — Vote drives An Tonn's editorial pipeline. Request is an
+  // open queue that surfaces in sruth-admin.
+  const [showVote, setShowVote] = useState(false);
+  const [showRequest, setShowRequest] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     const poll = async () => {
@@ -153,6 +158,19 @@ export default function RadioClient() {
               }
             </div>
 
+            {/* Vote + Request pills — Vote drives An Tonn Top-10s (Best
+                Artist / Song / Album). Requests land in sruth-admin. */}
+            <div style={pillRowStyle}>
+              <button type="button" style={pillStyle} onClick={() => setShowVote(true)}>
+                <span style={pillDotStyle} aria-hidden="true">◆</span>
+                Vote
+              </button>
+              <button type="button" style={pillStyle} onClick={() => setShowRequest(true)}>
+                <span style={pillDotStyle} aria-hidden="true">♪</span>
+                Request a Song
+              </button>
+            </div>
+
             {/* Ticker — INDEPENDENT of the featured tiles. Continuous
                 scroll through every artist's tour dates + the sponsor
                 CTA. Never re-mounts. */}
@@ -228,8 +246,316 @@ export default function RadioClient() {
             `}</style>
           </div>
         </main>
+
+        {showVote && <VoteModal onClose={() => setShowVote(false)} />}
+        {showRequest && <RequestModal onClose={() => setShowRequest(false)} />}
       </div>
     </>
+  );
+}
+
+// ── Vote modal ────────────────────────────────────────────────────────
+// Loads categories on mount, then nominees for the selected category.
+// Radio buttons for nominees + a write-in text field at the bottom.
+// Server enforces one-per-category-per-IP-per-day; a 409 turns into a
+// friendly message.
+function VoteModal({ onClose }) {
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState('best-artist');
+  const [nominees, setNominees] = useState([]);
+  const [selectedTargetId, setSelectedTargetId] = useState(null);
+  const [writeIn, setWriteIn] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+  const [status, setStatus] = useState({ kind: 'idle' });
+
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/radio/vote')
+      .then(r => r.json())
+      .then(d => { if (alive && d.ok) setCategories(d.categories || []); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    setNominees([]);
+    setSelectedTargetId(null);
+    fetch(`/api/radio/vote?category=${encodeURIComponent(categoryId)}`)
+      .then(r => r.json())
+      .then(d => { if (alive && d.ok) setNominees(d.nominees || []); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [categoryId]);
+
+  const submit = async () => {
+    if (status.kind === 'submitting') return;
+
+    let payload;
+    if (writeIn.trim()) {
+      payload = {
+        category_id: categoryId,
+        target_type: 'writein',
+        writein_label: writeIn.trim(),
+        honeypot,
+      };
+    } else if (selectedTargetId) {
+      payload = {
+        category_id: categoryId,
+        target_type: 'nominee',
+        target_id: selectedTargetId,
+        honeypot,
+      };
+    } else {
+      setStatus({ kind: 'error', message: 'Pick a nominee or type a write-in.' });
+      return;
+    }
+
+    setStatus({ kind: 'submitting' });
+    try {
+      const res = await fetch('/api/radio/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setStatus({
+          kind: 'ok',
+          message: data.promoted
+            ? 'Vote recorded — your write-in just hit 5 votes and is now a nominee!'
+            : 'Vote recorded. Come back tomorrow for another.',
+        });
+      } else {
+        setStatus({ kind: 'error', message: data.error || 'Something went wrong.' });
+      }
+    } catch (err) {
+      setStatus({ kind: 'error', message: 'Network error — try again.' });
+    }
+  };
+
+  return (
+    <ModalShell title="Vote — Top 10" onClose={onClose}>
+      <div style={modalFieldStyle}>
+        <label style={modalLabelStyle}>Category</label>
+        <select
+          value={categoryId}
+          onChange={(e) => { setCategoryId(e.target.value); setStatus({ kind: 'idle' }); }}
+          style={modalSelectStyle}
+        >
+          {(categories.length ? categories : [{ id: 'best-artist', label: 'Best Artist' }]).map(c => (
+            <option key={c.id} value={c.id}>{c.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {nominees.length > 0 && (
+        <div style={modalFieldStyle}>
+          <label style={modalLabelStyle}>Nominees</label>
+          <div style={nomineeListStyle}>
+            {nominees.map(n => (
+              <label key={n.id} style={nomineeRowStyle}>
+                <input
+                  type="radio"
+                  name="nominee"
+                  value={n.id}
+                  checked={selectedTargetId === n.id}
+                  onChange={() => { setSelectedTargetId(n.id); setWriteIn(''); }}
+                />
+                <span>{n.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={modalFieldStyle}>
+        <label style={modalLabelStyle}>
+          {nominees.length ? 'Or write in a nominee' : 'Write in a nominee'}
+        </label>
+        <input
+          type="text"
+          value={writeIn}
+          onChange={(e) => { setWriteIn(e.target.value); if (e.target.value) setSelectedTargetId(null); }}
+          placeholder={
+            categoryId === 'best-artist' ? 'Artist name'
+            : categoryId === 'best-song' ? 'Song title'
+            : 'Album title'
+          }
+          maxLength={200}
+          style={modalInputStyle}
+        />
+        <div style={modalHintStyle}>
+          Write-ins become official nominees after 5 votes.
+        </div>
+      </div>
+
+      {/* Honeypot — hidden field. Bots fill it, humans don't. */}
+      <input
+        type="text"
+        value={honeypot}
+        onChange={(e) => setHoneypot(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        style={honeypotStyle}
+        aria-hidden="true"
+      />
+
+      {status.kind === 'error' && (
+        <div style={modalErrorStyle}>{status.message}</div>
+      )}
+      {status.kind === 'ok' && (
+        <div style={modalOkStyle}>{status.message}</div>
+      )}
+
+      <div style={modalActionRowStyle}>
+        <button type="button" style={modalCancelStyle} onClick={onClose}>
+          {status.kind === 'ok' ? 'Close' : 'Cancel'}
+        </button>
+        {status.kind !== 'ok' && (
+          <button
+            type="button"
+            style={modalSubmitStyle}
+            onClick={submit}
+            disabled={status.kind === 'submitting'}
+          >
+            {status.kind === 'submitting' ? 'Submitting…' : 'Cast vote'}
+          </button>
+        )}
+      </div>
+    </ModalShell>
+  );
+}
+
+// ── Request modal ─────────────────────────────────────────────────────
+// Open queue. Server throttles to 3 requests / 10 min per IP.
+function RequestModal({ onClose }) {
+  const [songTitle, setSongTitle] = useState('');
+  const [artistName, setArtistName] = useState('');
+  const [albumName, setAlbumName] = useState('');
+  const [notes, setNotes] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+  const [status, setStatus] = useState({ kind: 'idle' });
+
+  const submit = async () => {
+    if (status.kind === 'submitting') return;
+    if (!songTitle.trim()) {
+      setStatus({ kind: 'error', message: 'Song title required.' });
+      return;
+    }
+    setStatus({ kind: 'submitting' });
+    try {
+      const res = await fetch('/api/radio/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          song_title: songTitle,
+          artist_name: artistName,
+          album_name: albumName,
+          notes,
+          honeypot,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setStatus({
+          kind: 'ok',
+          message: 'Request received — thanks! We\'ll queue it into the rotation.',
+        });
+      } else {
+        setStatus({ kind: 'error', message: data.error || 'Something went wrong.' });
+      }
+    } catch {
+      setStatus({ kind: 'error', message: 'Network error — try again.' });
+    }
+  };
+
+  return (
+    <ModalShell title="Request a Song" onClose={onClose}>
+      <div style={modalFieldStyle}>
+        <label style={modalLabelStyle}>Song title *</label>
+        <input
+          type="text"
+          value={songTitle}
+          onChange={(e) => setSongTitle(e.target.value)}
+          maxLength={300}
+          style={modalInputStyle}
+        />
+      </div>
+      <div style={modalFieldStyle}>
+        <label style={modalLabelStyle}>Artist</label>
+        <input
+          type="text"
+          value={artistName}
+          onChange={(e) => setArtistName(e.target.value)}
+          maxLength={200}
+          style={modalInputStyle}
+        />
+      </div>
+      <div style={modalFieldStyle}>
+        <label style={modalLabelStyle}>Album</label>
+        <input
+          type="text"
+          value={albumName}
+          onChange={(e) => setAlbumName(e.target.value)}
+          maxLength={200}
+          style={modalInputStyle}
+        />
+      </div>
+      <div style={modalFieldStyle}>
+        <label style={modalLabelStyle}>Notes (optional)</label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={500}
+          rows={3}
+          style={{ ...modalInputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+        />
+      </div>
+
+      <input
+        type="text"
+        value={honeypot}
+        onChange={(e) => setHoneypot(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        style={honeypotStyle}
+        aria-hidden="true"
+      />
+
+      {status.kind === 'error' && <div style={modalErrorStyle}>{status.message}</div>}
+      {status.kind === 'ok' && <div style={modalOkStyle}>{status.message}</div>}
+
+      <div style={modalActionRowStyle}>
+        <button type="button" style={modalCancelStyle} onClick={onClose}>
+          {status.kind === 'ok' ? 'Close' : 'Cancel'}
+        </button>
+        {status.kind !== 'ok' && (
+          <button
+            type="button"
+            style={modalSubmitStyle}
+            onClick={submit}
+            disabled={status.kind === 'submitting'}
+          >
+            {status.kind === 'submitting' ? 'Submitting…' : 'Send request'}
+          </button>
+        )}
+      </div>
+    </ModalShell>
+  );
+}
+
+function ModalShell({ title, children, onClose }) {
+  return (
+    <div style={modalBackdropStyle} onClick={onClose}>
+      <div style={modalPanelStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={modalHeaderStyle}>
+          <h2 style={modalTitleStyle}>{title}</h2>
+          <button type="button" onClick={onClose} style={modalCloseXStyle} aria-label="Close">×</button>
+        </div>
+        <div style={modalBodyStyle}>{children}</div>
+      </div>
+    </div>
   );
 }
 
@@ -609,4 +935,232 @@ const adPlaceholderInnerStyle = {
   textTransform: 'uppercase',
   textAlign: 'center',
   lineHeight: 1.5,
+};
+
+// ── Pills + modal styles ──────────────────────────────────────────────
+
+const pillRowStyle = {
+  display: 'flex',
+  gap: 14,
+  justifyContent: 'center',
+  flexWrap: 'wrap',
+};
+
+const pillStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 13,
+  fontWeight: 600,
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
+  color: '#F2ECDC',
+  background: 'rgba(20, 30, 45, 0.72)',
+  border: '1px solid rgba(201, 160, 71, 0.45)',
+  borderRadius: 999,
+  padding: '11px 22px',
+  cursor: 'pointer',
+  transition: 'background 200ms ease, border-color 200ms ease, transform 120ms ease',
+  backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)',
+};
+
+const pillDotStyle = {
+  color: '#C9A047',
+  fontSize: 14,
+  lineHeight: 1,
+};
+
+const modalBackdropStyle = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 100,
+  background: 'rgba(2, 4, 9, 0.78)',
+  backdropFilter: 'blur(4px)',
+  WebkitBackdropFilter: 'blur(4px)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 20,
+};
+
+const modalPanelStyle = {
+  width: '100%',
+  maxWidth: 520,
+  maxHeight: '90dvh',
+  overflowY: 'auto',
+  background: '#0A1220',
+  border: '1px solid rgba(201, 160, 71, 0.35)',
+  borderRadius: 12,
+  boxShadow: '0 20px 80px rgba(0,0,0,0.7)',
+  color: '#F2ECDC',
+};
+
+const modalHeaderStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '18px 22px 10px',
+  borderBottom: '1px solid rgba(242, 236, 220, 0.08)',
+};
+
+const modalTitleStyle = {
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
+  fontSize: 26,
+  letterSpacing: '0.04em',
+  fontWeight: 700,
+  margin: 0,
+  color: '#F2ECDC',
+};
+
+const modalCloseXStyle = {
+  background: 'transparent',
+  border: 'none',
+  color: 'rgba(242, 236, 220, 0.6)',
+  fontSize: 28,
+  lineHeight: 1,
+  cursor: 'pointer',
+  padding: '4px 8px',
+};
+
+const modalBodyStyle = {
+  padding: '18px 22px 22px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 16,
+};
+
+const modalFieldStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+};
+
+const modalLabelStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontSize: 11,
+  letterSpacing: 1.4,
+  color: 'rgba(242, 236, 220, 0.6)',
+  textTransform: 'uppercase',
+};
+
+const modalInputStyle = {
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 15,
+  color: '#F2ECDC',
+  background: 'rgba(0, 0, 0, 0.35)',
+  border: '1px solid rgba(242, 236, 220, 0.15)',
+  borderRadius: 6,
+  padding: '10px 12px',
+  width: '100%',
+  boxSizing: 'border-box',
+  outline: 'none',
+};
+
+const modalSelectStyle = {
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 15,
+  color: '#F2ECDC',
+  background: 'rgba(0, 0, 0, 0.35)',
+  border: '1px solid rgba(242, 236, 220, 0.15)',
+  borderRadius: 6,
+  padding: '10px 12px',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const modalHintStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontSize: 10.5,
+  letterSpacing: 1.2,
+  color: 'rgba(242, 236, 220, 0.4)',
+  textTransform: 'uppercase',
+};
+
+const nomineeListStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+  gap: 6,
+  maxHeight: 240,
+  overflowY: 'auto',
+  padding: '4px 4px 4px 0',
+  border: '1px solid rgba(242, 236, 220, 0.08)',
+  borderRadius: 6,
+  background: 'rgba(0, 0, 0, 0.25)',
+};
+
+const nomineeRowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '6px 10px',
+  fontSize: 14,
+  cursor: 'pointer',
+};
+
+const modalActionRowStyle = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 10,
+  marginTop: 8,
+};
+
+const modalCancelStyle = {
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 13,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'rgba(242, 236, 220, 0.75)',
+  background: 'transparent',
+  border: '1px solid rgba(242, 236, 220, 0.2)',
+  borderRadius: 6,
+  padding: '9px 18px',
+  cursor: 'pointer',
+};
+
+const modalSubmitStyle = {
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 13,
+  fontWeight: 600,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: '#0A1220',
+  background: '#C9A047',
+  border: '1px solid #C9A047',
+  borderRadius: 6,
+  padding: '9px 22px',
+  cursor: 'pointer',
+};
+
+const modalErrorStyle = {
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 13,
+  color: '#F2A05B',
+  padding: '8px 12px',
+  background: 'rgba(242, 160, 91, 0.08)',
+  border: '1px solid rgba(242, 160, 91, 0.3)',
+  borderRadius: 6,
+};
+
+const modalOkStyle = {
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 13,
+  color: '#8FCB9B',
+  padding: '8px 12px',
+  background: 'rgba(143, 203, 155, 0.08)',
+  border: '1px solid rgba(143, 203, 155, 0.3)',
+  borderRadius: 6,
+};
+
+// Off-screen honeypot input — bots that autofill every visible field
+// will trip this and their submission gets silently dropped.
+const honeypotStyle = {
+  position: 'absolute',
+  left: -10000,
+  top: 'auto',
+  width: 1,
+  height: 1,
+  overflow: 'hidden',
+  opacity: 0,
 };

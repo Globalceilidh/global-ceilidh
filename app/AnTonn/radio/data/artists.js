@@ -36,6 +36,11 @@ export const ARTISTS = [
     photos: [
       '/radio/ally-the-piper/photo-1.png',
       '/radio/ally-the-piper/photo-2.png',
+      '/radio/ally-the-piper/photo-3.png',
+      '/radio/ally-the-piper/photo-4.png',
+      '/radio/ally-the-piper/photo-5.png',
+      '/radio/ally-the-piper/photo-6.png',
+      '/radio/ally-the-piper/photo-7.png',
     ],
     photoAlt: 'Ally the Piper — press photo',
     // Video sequencer retired 2026-07-07 (Whitey's call — YouTube's
