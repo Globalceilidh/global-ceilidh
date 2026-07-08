@@ -20,6 +20,11 @@ export const viewport = {
 };
 
 export const metadata = {
+  // metadataBase resolves relative image URLs in child-route metadata
+  // (e.g. /AnTonn/radio's og:image) into absolute URLs, which is what
+  // Facebook/Twitter/iMessage crawlers need. Without this, Next 15+
+  // logs warnings and some crawlers refuse to render the card.
+  metadataBase: new URL('https://globalceilidh.com'),
   title: 'GlobalCeilidh.com — The Global Home of Scottish Gaelic Culture',
   description: 'Learn Scottish Gaelic, connect with the global diaspora, find events, and join the community. Fàilte gu GlobalCeilidh.com.',
   keywords: 'Scottish Gaelic, Gàidhlig, learn Gaelic, diaspora, Highland Games, ceilidh, GlobalCeilidh',
