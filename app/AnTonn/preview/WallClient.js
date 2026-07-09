@@ -28,7 +28,15 @@ const RENDER_ROWS = ROWS * MOSAIC
 
 const TILE_W = 240
 const TILE_H = 240               // square (was 320 portrait)
-const GAP = 36
+const GAP = 52                   // widened (was 36) to hold the per-tile metadata rows
+
+const VERTICAL_LABELS = {
+  music: 'CEÒL',
+  books: 'LEABHRAICHEAN',
+  podcasts: 'PODCASTAN',
+  film: 'FILM',
+  radio: 'RÈIDIO',
+}
 
 // Drag tuning
 const MOMENTUM_FRICTION = 0.95
@@ -454,9 +462,7 @@ export default function WallClient() {
 
 function TileCard({ tile, col, row, dimmed, onClick }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       className="antonn-tile"
       style={{
         '--col': col,
@@ -465,32 +471,48 @@ function TileCard({ tile, col, row, dimmed, onClick }) {
         pointerEvents: dimmed ? 'none' : 'auto',
       }}
     >
-      <img
-        src={tile.cover_url}
-        alt={tile.title}
-        draggable={false}
-        loading="lazy"
-        className="antonn-tile-img"
-      />
-      <div className="antonn-tile-overlay">
-        <div style={{
-          fontFamily: 'Cinzel, Georgia, serif',
-          fontSize: 14, fontWeight: 600,
-          color: '#F2ECDC',
-          marginBottom: 2,
-          lineHeight: 1.2,
-        }}>
-          {tile.title}
-        </div>
-        <div style={{
-          fontFamily: '"IBM Plex Mono", Menlo, monospace',
-          fontSize: 10, letterSpacing: 1.2,
-          color: 'rgba(242, 236, 220, 0.75)',
-        }}>
-          {tile.creator}
-        </div>
+      <div className="antonn-tile-meta antonn-tile-meta-top">
+        <span>{VERTICAL_LABELS[tile._vertical] || tile._vertical}</span>
+        <span className="antonn-tile-meta-title">{tile.title}</span>
       </div>
-    </button>
+
+      <button type="button" onClick={onClick} className="antonn-tile-frame">
+        <img
+          src={tile.cover_url}
+          alt={tile.title}
+          draggable={false}
+          loading="lazy"
+          className="antonn-tile-img"
+        />
+        <div className="antonn-tile-overlay">
+          <div style={{
+            fontFamily: 'Cinzel, Georgia, serif',
+            fontSize: 14, fontWeight: 600,
+            color: '#F2ECDC',
+            marginBottom: 2,
+            lineHeight: 1.2,
+          }}>
+            {tile.title}
+          </div>
+          <div style={{
+            fontFamily: '"IBM Plex Mono", Menlo, monospace',
+            fontSize: 10, letterSpacing: 1.2,
+            color: 'rgba(242, 236, 220, 0.75)',
+          }}>
+            {tile.creator}
+          </div>
+        </div>
+      </button>
+
+      <div className="antonn-tile-meta antonn-tile-meta-bottom">
+        <span className="antonn-tile-chips">
+          {(tile.tags || []).slice(0, 2).map((t) => (
+            <span key={t} className="antonn-tile-chip">{t}</span>
+          ))}
+        </span>
+        <span>{tile.year}</span>
+      </div>
+    </div>
   )
 }
 
@@ -511,6 +533,20 @@ const TILE_CSS = `
   .antonn-tile {
     width: ${TILE_W}px;
     height: ${TILE_H}px;
+    position: relative;
+    transform-style: preserve-3d;
+    --natural-x: calc(var(--col) * var(--tile-pitch-x) + var(--tile-half-w));
+    --natural-y: calc(var(--row) * var(--tile-pitch-y) + var(--tile-half-h));
+    --screen-x: calc(var(--drag-x) - var(--render-half-w) + var(--natural-x));
+    --screen-y: calc(var(--drag-y) - var(--render-half-h) + var(--natural-y));
+    transform:
+      rotateY(calc(var(--screen-x) * var(--rot-factor) * -1deg / 1px))
+      rotateX(calc(var(--screen-y) * var(--rot-factor) * 1deg / 1px));
+    transition: opacity 320ms ease;
+  }
+  .antonn-tile-frame {
+    width: 100%;
+    height: 100%;
     padding: 0;
     background: rgba(10, 13, 20, 0.62);
     border: 1px solid rgba(242, 236, 220, 0.10);
@@ -521,19 +557,54 @@ const TILE_CSS = `
     display: block;
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
-    transform-style: preserve-3d;
-    --natural-x: calc(var(--col) * var(--tile-pitch-x) + var(--tile-half-w));
-    --natural-y: calc(var(--row) * var(--tile-pitch-y) + var(--tile-half-h));
-    --screen-x: calc(var(--drag-x) - var(--render-half-w) + var(--natural-x));
-    --screen-y: calc(var(--drag-y) - var(--render-half-h) + var(--natural-y));
-    transform:
-      rotateY(calc(var(--screen-x) * var(--rot-factor) * -1deg / 1px))
-      rotateX(calc(var(--screen-y) * var(--rot-factor) * 1deg / 1px));
-    transition: opacity 320ms ease, border-color 240ms ease;
+    transition: border-color 240ms ease;
+  }
+  .antonn-tile:hover .antonn-tile-frame {
+    border-color: rgba(201, 160, 71, 0.55);
   }
   .antonn-tile:hover {
-    border-color: rgba(201, 160, 71, 0.55);
     z-index: 1;
+  }
+  .antonn-tile-meta {
+    position: absolute;
+    left: 2px; right: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-family: "IBM Plex Mono", Menlo, monospace;
+    font-size: 8px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: rgba(242, 236, 220, 0.55);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .antonn-tile-meta-top {
+    bottom: calc(100% + 8px);
+  }
+  .antonn-tile-meta-top .antonn-tile-meta-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgba(242, 236, 220, 0.78);
+  }
+  .antonn-tile-meta-bottom {
+    top: calc(100% + 7px);
+  }
+  .antonn-tile-chips {
+    display: flex;
+    gap: 5px;
+    overflow: hidden;
+  }
+  .antonn-tile-chip {
+    display: inline-block;
+    padding: 2px 8px 1px;
+    border: 1px solid rgba(242, 236, 220, 0.28);
+    border-radius: 999px;
+    font-size: 7.5px;
+    letter-spacing: 1.2px;
+    line-height: 1.5;
+    color: rgba(242, 236, 220, 0.6);
   }
   .antonn-tile-img {
     width: 100%;
