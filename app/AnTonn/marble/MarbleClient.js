@@ -51,9 +51,11 @@ const MOMENTUM_FRICTION = 0.945
 const MOMENTUM_MIN = 0.00015
 const DRAG_THRESHOLD_PX = 5
 
-const PILL_W = 380
-const PILL_H = 92
-const PILL_GAP = 14
+const PILL_W = 560
+const PILL_H = 140
+const PILL_GAP = 20
+const PILL_FONT_SIZE = 62
+const PILL_FONT_FAMILY = 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif'
 
 export default function MarbleClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 })
@@ -271,8 +273,16 @@ function Pill({ label, hovered, onEnter, onLeave, onClick }) {
         transformOrigin: 'center',
         transition: 'transform 260ms ease, filter 260ms ease',
         filter: hovered
-          ? 'drop-shadow(0 0 22px rgba(255,255,255,0.55))'
-          : 'drop-shadow(0 6px 22px rgba(0,0,0,0.42))',
+          ? 'drop-shadow(0 0 26px rgba(255,255,255,0.6))'
+          : 'drop-shadow(0 8px 28px rgba(0,0,0,0.45))',
+        // Backface culling — when the pill rotates past 90° yaw/pitch,
+        // its face turns away from the camera and it should disappear.
+        // Without this, CSS 3D happily renders the back side as a
+        // mirrored plane crossing in front of the viewer, which breaks
+        // the "you're at the centre" illusion. Now the pills correctly
+        // orbit AROUND you and vanish when they pass behind.
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
       }}
     >
       <svg
@@ -290,8 +300,10 @@ function Pill({ label, hovered, onEnter, onLeave, onClick }) {
             <text
               x="50%" y="50%"
               textAnchor="middle" dominantBaseline="central"
-              fontFamily="Cinzel, Georgia, serif"
-              fontSize="36" fontWeight="700" letterSpacing="4"
+              style={{ fontFamily: PILL_FONT_FAMILY }}
+              fontSize={PILL_FONT_SIZE}
+              fontWeight="400"
+              letterSpacing="6"
               fill="black"
             >
               {label.toUpperCase()}
