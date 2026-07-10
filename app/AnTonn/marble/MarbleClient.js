@@ -63,17 +63,52 @@ const PILL_FONT_FAMILY = 'var(--font-bebas-neue), "Bebas Neue", Impact, system-u
 const PITCH_LIMIT = 1.35  // ~77°
 const clampPitch = (p) => Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, p))
 
-// Six-city clock — city name, IANA timezone, lat/lng, and a rough
-// day-window (local hours between which we show the sun glyph; nighttime
-// shows the crescent).
-const CITIES = [
+// Five fixed diaspora anchors — the cultural centres. The clock shows
+// each city's local time + how far the current viewer is from it. On
+// each row the ● glyph flips to ☾ when the city is in local night.
+const DIASPORA = [
   { name: 'Inverness',  region: 'Scotland',      tz: 'Europe/London',       lat: 57.4778, lng:  -4.2247 },
   { name: 'Halifax',    region: 'Nova Scotia',   tz: 'America/Halifax',     lat: 44.6488, lng: -63.5752 },
   { name: 'Perth',      region: 'NY',            tz: 'America/New_York',    lat: 43.0009, lng: -74.1746 },
   { name: 'Seattle',    region: 'Washington',    tz: 'America/Los_Angeles', lat: 47.6062, lng:-122.3321 },
   { name: 'Auckland',   region: 'New Zealand',   tz: 'Pacific/Auckland',    lat:-36.8485, lng: 174.7633 },
-  { name: 'Sydney',     region: 'Australia',     tz: 'Australia/Sydney',    lat:-33.8688, lng: 151.2093 },
 ]
+
+// The user's location. Hardcoded to Whitey's Brewerton, NY for testing.
+// Production: comes from Clerk sign-up address → geocoded server-side →
+// stored on the Supabase users record → read at render. The same source
+// will drive personalisation on /saoghal (globe pin, diaspora distances,
+// nearby-Gàidhlig lookup, "start a revival where you are" prompt).
+const USER = {
+  name: 'YOU',
+  region: 'Brewerton, NY',
+  tz:     'America/New_York',
+  lat:    43.2384,
+  lng:   -76.1400,
+}
+
+// Great-circle distance (miles) via Haversine + 8-way cardinal bearing.
+const EARTH_MI = 3958.8
+const CARDINALS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+const toRad = (d) => d * Math.PI / 180
+
+function greatCircleMiles(lat1, lng1, lat2, lng2) {
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  return EARTH_MI * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function bearingCardinal(lat1, lng1, lat2, lng2) {
+  const φ1 = toRad(lat1)
+  const φ2 = toRad(lat2)
+  const Δλ = toRad(lng2 - lng1)
+  const y = Math.sin(Δλ) * Math.cos(φ2)
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
+  const deg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
+  return CARDINALS[Math.round(deg / 45) % 8]
+}
 
 export default function MarbleClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 })
@@ -275,9 +310,10 @@ export default function MarbleClient() {
   )
 }
 
-// Multi-city clock — six cities down the right side of the top strip.
-// Sun ● before daytime cities, crescent ☾ before nighttime. Refreshes
-// every 30s. Mono font + right-aligned times for tabular clean look.
+// Diaspora clock — five fixed cultural centres, distance from the user
+// on each. Sixth row = user, marked ← home with their own coord instead
+// of a distance. All rows refresh every 30s. IBM Plex Mono for the
+// tabular feel, right-aligned times.
 function Clock() {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
@@ -291,14 +327,16 @@ function Clock() {
       gridTemplateColumns: 'auto 1fr auto auto',
       columnGap: 14,
       rowGap: 3,
-      fontFamily: '"IBM Plex Mono", Menlo, monospace',
+      fontFamily: 'var(--font-ibm-plex-mono), "IBM Plex Mono", Menlo, monospace',
       fontSize: 10,
       letterSpacing: 1,
       color: 'rgba(242,236,220,0.82)',
       lineHeight: 1.4,
     }}>
-      {CITIES.map((c) => {
+      {DIASPORA.map((c) => {
         const { hhmm, offset, isDay } = formatCity(c.tz, now)
+        const miles = greatCircleMiles(USER.lat, USER.lng, c.lat, c.lng)
+        const dir = bearingCardinal(USER.lat, USER.lng, c.lat, c.lng)
         return (
           <ClockRow
             key={c.name}
@@ -307,36 +345,66 @@ function Clock() {
             hhmm={hhmm}
             offset={offset}
             isDay={isDay}
-            lat={c.lat}
-            lng={c.lng}
+            trailing={`${formatMiles(miles)} mi ${dir}`}
           />
         )
       })}
+      {(() => {
+        const { hhmm, offset, isDay } = formatCity(USER.tz, now)
+        return (
+          <ClockRow
+            key="you"
+            city={USER.name}
+            region={USER.region}
+            hhmm={hhmm}
+            offset={offset}
+            isDay={isDay}
+            trailing={formatCoord(USER.lat, USER.lng)}
+            isUser
+          />
+        )
+      })()}
     </div>
   )
 }
 
-function ClockRow({ city, region, hhmm, offset, isDay, lat, lng }) {
-  const dimStyle = { color: 'rgba(242,236,220,0.42)' }
-  const latDir = lat >= 0 ? 'N' : 'S'
-  const lngDir = lng >= 0 ? 'E' : 'W'
-  const coord = `${Math.abs(lat).toFixed(2)}°${latDir}  ${Math.abs(lng).toFixed(2)}°${lngDir}`
+// Diaspora row shows city + local time + distance-from-you.
+// User row shows YOU + local time + your coord, tinted gold so it reads
+// as "the anchor" in the list.
+function ClockRow({ city, region, hhmm, offset, isDay, trailing, isUser }) {
+  const dim = { color: 'rgba(242,236,220,0.42)' }
+  const goldName = { color: '#C9A047', textTransform: 'uppercase' }
+  const plainName = { color: 'rgba(242,236,220,0.82)', textTransform: 'uppercase' }
   return (
     <>
-      <span style={{ fontSize: 11, lineHeight: 1, marginTop: 1 }}>
+      <span style={{
+        fontSize: 11, lineHeight: 1, marginTop: 1,
+        color: isUser ? '#C9A047' : 'inherit',
+      }}>
         {isDay ? '●' : '☾'}
       </span>
-      <span style={{ textTransform: 'uppercase' }}>
-        {city}, {region}
+      <span style={isUser ? goldName : plainName}>
+        {city}{region ? `, ${region}` : ''}
       </span>
       <span style={{ textAlign: 'right' }}>{hhmm}</span>
-      <span style={dimStyle}>{offset}</span>
+      <span style={dim}>{offset}</span>
       <span />
-      <span style={dimStyle}>{coord}</span>
+      <span style={dim}>{trailing}</span>
       <span />
       <span />
     </>
   )
+}
+
+function formatMiles(mi) {
+  return mi >= 1000
+    ? mi.toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : Math.round(mi).toString()
+}
+function formatCoord(lat, lng) {
+  const latDir = lat >= 0 ? 'N' : 'S'
+  const lngDir = lng >= 0 ? 'E' : 'W'
+  return `${Math.abs(lat).toFixed(2)}°${latDir}  ${Math.abs(lng).toFixed(2)}°${lngDir}`
 }
 
 // Format a city's current time + GMT offset via Intl. isDay flips when
