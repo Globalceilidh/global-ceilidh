@@ -57,6 +57,24 @@ const PILL_GAP = 20
 const PILL_FONT_SIZE = 62
 const PILL_FONT_FAMILY = 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif'
 
+// Orientation lock — clamp pitch so the sphere can never rotate over the
+// "top" or "bottom" pole. Past ~80° the up-vector flips and the pills
+// start appearing upside down; this holds them upright forever.
+const PITCH_LIMIT = 1.35  // ~77°
+const clampPitch = (p) => Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, p))
+
+// Six-city clock — city name, IANA timezone, lat/lng, and a rough
+// day-window (local hours between which we show the sun glyph; nighttime
+// shows the crescent).
+const CITIES = [
+  { name: 'Inverness',  region: 'Scotland',      tz: 'Europe/London',       lat: 57.4778, lng:  -4.2247 },
+  { name: 'Halifax',    region: 'Nova Scotia',   tz: 'America/Halifax',     lat: 44.6488, lng: -63.5752 },
+  { name: 'Perth',      region: 'NY',            tz: 'America/New_York',    lat: 43.0009, lng: -74.1746 },
+  { name: 'Seattle',    region: 'Washington',    tz: 'America/Los_Angeles', lat: 47.6062, lng:-122.3321 },
+  { name: 'Auckland',   region: 'New Zealand',   tz: 'Pacific/Auckland',    lat:-36.8485, lng: 174.7633 },
+  { name: 'Sydney',     region: 'Australia',     tz: 'Australia/Sydney',    lat:-33.8688, lng: 151.2093 },
+]
+
 export default function MarbleClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 })
   const [reduceMotion, setReduceMotion] = useState(false)
@@ -111,7 +129,13 @@ export default function MarbleClient() {
     let curPitch = vPitch
     const tick = () => {
       setYaw((y) => y + curYaw)
-      setPitch((p) => p + curPitch)
+      setPitch((p) => {
+        const next = clampPitch(p + curPitch)
+        // If we hit the pitch clamp, kill momentum in this axis so the
+        // sphere doesn't stubbornly push against the pole.
+        if (next !== p + curPitch) curPitch = 0
+        return next
+      })
       curYaw *= MOMENTUM_FRICTION
       curPitch *= MOMENTUM_FRICTION
       if (Math.abs(curYaw) < MOMENTUM_MIN && Math.abs(curPitch) < MOMENTUM_MIN) {
@@ -152,7 +176,8 @@ export default function MarbleClient() {
     setYaw(dragStart.current.yaw + dx * DRAG_RAD_PER_PX)
     // Negative dy → pitch up. Positive dy (drag down) → sphere rotates
     // so pills fall toward the bottom. Equivalent: pitch decreases.
-    setPitch(dragStart.current.pitch - dy * DRAG_RAD_PER_PX)
+    // Clamp so pitch never crosses the pole (orientation lock).
+    setPitch(clampPitch(dragStart.current.pitch - dy * DRAG_RAD_PER_PX))
     const now = performance.now()
     velSamples.current.push({ t: now, x: e.clientX, y: e.clientY })
     velSamples.current = velSamples.current.filter((s) => now - s.t < 80)
@@ -235,21 +260,103 @@ export default function MarbleClient() {
         </div>
       </div>
 
-      {/* Wordmark */}
-      <div style={topWordmarkStyle}>
-        <div style={{
-          fontFamily: 'Cinzel, Georgia, serif',
-          fontSize: 15, letterSpacing: 6, fontWeight: 600,
-        }}>AN TONN</div>
-        <div style={{
-          fontFamily: '"IBM Plex Mono", Menlo, monospace',
-          fontSize: 9, letterSpacing: 2, opacity: 0.55, marginTop: 4,
-        }}>THE ENTERTAINMENT WING · GLOBAL CÈILIDH</div>
-      </div>
+      {/* Top strip — masthead centred, clock right-of-centre, Let's
+          Talk pill in the corner. All static; do not orbit the sphere. */}
+      <div style={mastheadStyle}>AN TONN</div>
+      <div style={clockPositionStyle}><Clock /></div>
+      <a href="/lets-talk" style={letsTalkStyle}>Let&apos;s Talk</a>
+
+      {/* Center point — a small anchor marker at the sphere's origin so
+          the user always knows where "straight ahead" is. Non-interactive. */}
+      <div style={centerPointStyle} aria-hidden="true" />
 
       <div style={helpStyle}>Drag anywhere — the sphere rotates around you</div>
     </div>
   )
+}
+
+// Multi-city clock — six cities down the right side of the top strip.
+// Sun ● before daytime cities, crescent ☾ before nighttime. Refreshes
+// every 30s. Mono font + right-aligned times for tabular clean look.
+function Clock() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30000)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'auto 1fr auto auto',
+      columnGap: 14,
+      rowGap: 3,
+      fontFamily: '"IBM Plex Mono", Menlo, monospace',
+      fontSize: 10,
+      letterSpacing: 1,
+      color: 'rgba(242,236,220,0.82)',
+      lineHeight: 1.4,
+    }}>
+      {CITIES.map((c) => {
+        const { hhmm, offset, isDay } = formatCity(c.tz, now)
+        return (
+          <ClockRow
+            key={c.name}
+            city={c.name}
+            region={c.region}
+            hhmm={hhmm}
+            offset={offset}
+            isDay={isDay}
+            lat={c.lat}
+            lng={c.lng}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+function ClockRow({ city, region, hhmm, offset, isDay, lat, lng }) {
+  const dimStyle = { color: 'rgba(242,236,220,0.42)' }
+  const latDir = lat >= 0 ? 'N' : 'S'
+  const lngDir = lng >= 0 ? 'E' : 'W'
+  const coord = `${Math.abs(lat).toFixed(2)}°${latDir}  ${Math.abs(lng).toFixed(2)}°${lngDir}`
+  return (
+    <>
+      <span style={{ fontSize: 11, lineHeight: 1, marginTop: 1 }}>
+        {isDay ? '●' : '☾'}
+      </span>
+      <span style={{ textTransform: 'uppercase' }}>
+        {city}, {region}
+      </span>
+      <span style={{ textAlign: 'right' }}>{hhmm}</span>
+      <span style={dimStyle}>{offset}</span>
+      <span />
+      <span style={dimStyle}>{coord}</span>
+      <span />
+      <span />
+    </>
+  )
+}
+
+// Format a city's current time + GMT offset via Intl. isDay flips when
+// the city's local hour is in [6, 18) — good enough as a glyph cue
+// without any solar-position math.
+function formatCity(tz, now) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: tz,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZoneName: 'shortOffset',
+  }).formatToParts(now)
+  const hour = Number(parts.find((p) => p.type === 'hour').value)
+  const minute = parts.find((p) => p.type === 'minute').value
+  const hhmm = `${String(hour).padStart(2, '0')}:${minute}`
+  let offset = parts.find((p) => p.type === 'timeZoneName')?.value || 'GMT'
+  offset = offset.replace('GMT+0', 'GMT+').replace(/^UTC/, 'GMT')
+  const isDay = hour >= 6 && hour < 18
+  return { hhmm, offset, isDay }
 }
 
 function Pill({ label, hovered, onEnter, onLeave, onClick }) {
@@ -347,13 +454,61 @@ const pillStackStyle = {
   display: 'flex', flexDirection: 'column', gap: `${PILL_GAP}px`,
   transformStyle: 'preserve-3d',
 }
-const topWordmarkStyle = {
-  position: 'absolute', top: 30, left: '50%', transform: 'translateX(-50%)',
-  color: '#F2ECDC', textAlign: 'center', zIndex: 15, pointerEvents: 'none',
+const mastheadStyle = {
+  position: 'absolute',
+  top: 36, left: '50%', transform: 'translateX(-50%)',
+  color: '#F2ECDC',
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
+  fontWeight: 400,
+  fontSize: 44,
+  letterSpacing: 10,
+  lineHeight: 1,
+  zIndex: 25,
+  pointerEvents: 'none',
+}
+// Positioned midway between the horizontal centre and the right edge —
+// left:75% then shift back by half the clock's own width so it centres
+// on x=75%. Vertically aligned to the masthead.
+const clockPositionStyle = {
+  position: 'absolute',
+  top: 36, left: '75%', transform: 'translateX(-50%)',
+  zIndex: 25,
+  pointerEvents: 'none',
+}
+// Static pill in the top-right corner. Small, high-contrast, always on
+// top of everything so it survives the sphere behind it.
+const letsTalkStyle = {
+  position: 'absolute',
+  top: 26, right: 30,
+  padding: '11px 26px',
+  borderRadius: 999,
+  background: '#F2ECDC',
+  color: '#0A0D14',
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontWeight: 500,
+  fontSize: 14,
+  letterSpacing: 0.3,
+  textDecoration: 'none',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+  zIndex: 30,
+  transition: 'transform 220ms ease, box-shadow 220ms ease',
+}
+// Tiny anchor dot at screen centre — visual reference for the sphere's
+// "straight ahead" while the pill stack orbits around it.
+const centerPointStyle = {
+  position: 'absolute',
+  left: '50%', top: '50%',
+  width: 6, height: 6,
+  transform: 'translate(-50%, -50%)',
+  borderRadius: '50%',
+  background: 'rgba(242,236,220,0.55)',
+  boxShadow: '0 0 6px rgba(242,236,220,0.35)',
+  zIndex: 12,
+  pointerEvents: 'none',
 }
 const helpStyle = {
   position: 'absolute', bottom: 26, left: '50%', transform: 'translateX(-50%)',
-  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontFamily: 'var(--font-ibm-plex-mono), "IBM Plex Mono", Menlo, monospace',
   fontSize: 10, letterSpacing: 1.5,
   color: 'rgba(242,236,220,0.42)',
   pointerEvents: 'none', zIndex: 15,
