@@ -159,18 +159,19 @@ const iconImgStyle = {
   userSelect: 'none',
 }
 
-// Centred vertical wordmark (Bhidio / Ceòl / etc.). Same negative-top
-// trick as /AnTonn/test's AN TONN wordmark: the source PNGs are square
-// canvases with letters in the middle band, so a negative top pulls
-// the visible letters up to the top of the viewport while the
-// transparent padding sits above the viewport line.
+// Centred wordmark (Bhidio marquee, etc.). The source PNGs are square
+// canvases with the wordmark occupying the middle band, so a negative
+// top pulls the visible art toward the top of the viewport while the
+// transparent padding sits above the viewport line. Sized generously
+// so wordmarks that include decorative frames (like the Bhidio cinema
+// marquee) read at real size.
 const wordmarkWrapStyle = {
   position: 'absolute',
-  top: -110,
+  top: -140,
   left: 0,
   right: 0,
   margin: '0 auto',
-  width: 'min(42vw, 400px)',
+  width: 'min(48vw, 520px)',
   lineHeight: 0,
   pointerEvents: 'none',
   zIndex: 20,
