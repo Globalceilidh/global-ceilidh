@@ -101,7 +101,9 @@ export default function AnTonnTest() {
           display: block;
           width: 180px;
           height: 180px;
-          z-index: 30;
+          /* No z-index — creating a stacking context here would trap
+             the sniomh-img's mix-blend-mode inside an empty context.
+             DOM order alone keeps this above the wave canvas. */
           line-height: 0;
         }
         .sniomh-img {
@@ -164,7 +166,7 @@ export default function AnTonnTest() {
           left: 50%;
           transform: translateX(-50%);
           width: min(56vw, 520px);
-          z-index: 20;
+          /* No z-index — see note on .sniomh-wrap. */
           line-height: 0;
         }
         .antonn-title-img {
@@ -190,7 +192,10 @@ export default function AnTonnTest() {
           align-items: center;
           justify-content: center;
           width: min(94vw, 1500px);
-          z-index: 15;
+          /* No z-index — creating a stacking context here would trap
+             each tile's mix-blend-mode inside an empty container so
+             the black baked-in bg couldn't dissolve into the wave.
+             DOM order alone keeps the row above the wave canvas. */
         }
         .tile {
           flex: 1 1 0;
@@ -238,6 +243,9 @@ const pageStyle = {
   inset: 0,
   background: '#000000',
   overflow: 'hidden',
+  // Root isolation so mix-blend-mode on descendants blends against
+  // the wave canvas + page bg, not against anything above this page.
+  isolation: 'isolate',
 }
 
 // White pill matching /AnTonn/radio + /AnTonn/marble.

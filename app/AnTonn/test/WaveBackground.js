@@ -176,7 +176,10 @@ export default function WaveBackground({ mouseRef }) {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 1,
+        // No zIndex — creating a stacking context here would isolate
+        // the canvas from the tiles above, breaking their mix-blend-mode
+        // screen against the wave. DOM order (WaveBackground is the
+        // first child of pageStyle) keeps this beneath all visual chrome.
         pointerEvents: 'none',
       }}
       camera={{ position: [0, 0, 1], near: 0.01, far: 10 }}
