@@ -32,6 +32,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import VortexBackground from '../preview/components/VortexBackground'
+import LanguagePill from '../../../components/LanguagePill'
 
 const PILLS = [
   { id: 'ceol',          label: 'Ceòl' },
@@ -299,7 +300,8 @@ export default function MarbleClient() {
           Talk pill in the corner. All static; do not orbit the sphere. */}
       <div style={mastheadStyle}>AN TONN</div>
       <div style={clockPositionStyle}><Clock /></div>
-      <a href="/lets-talk" style={letsTalkStyle}>Let&apos;s Talk</a>
+      <LanguagePill position="top-left" variant="dark" />
+      <a href="/contact" style={letsTalkStyle}>Let&apos;s Talk</a>
 
       {/* Center point — a small anchor marker at the sphere's origin so
           the user always knows where "straight ahead" is. Non-interactive. */}

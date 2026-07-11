@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import LanguagePill from '../../components/LanguagePill';
 
 // Mobile: image open area at ~58–78% of 1920px height
 const MOBILE_IMG = { w: 1080, h: 1920, src: '/sruth_sign_up_2_mobile.png' };
@@ -187,6 +188,7 @@ export default function SruthSignup() {
         alt="sruth. — Sign up"
         style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', display: 'block' }}
       />
+      <LanguagePill position="top-left" variant="dark" />
 
       {/* Desktop form */}
       {!isMobile && (

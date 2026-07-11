@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { Canvas } from '@react-three/fiber';
 import VortexBackground from '../preview/components/VortexBackground';
+import LanguagePill from '../../../components/LanguagePill';
 import { ARTISTS, FALLBACK, matchArtist } from './data/artists';
 
 const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so upstream still fires only ~15/min max
@@ -246,6 +247,13 @@ export default function RadioClient() {
             `}</style>
           </div>
         </main>
+
+        {/* EN/GD language toggle — top-left, opposite corner from Let's Talk. */}
+        <LanguagePill position="top-left" variant="dark" />
+
+        {/* Let's Talk pill — matches /AnTonn/marble corner pill (same
+            style, same position). Anchors to pageOuterStyle. */}
+        <a href="/contact" style={letsTalkStyle}>Let&apos;s Talk</a>
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
         {showRequest && <RequestModal onClose={() => setShowRequest(false)} />}
@@ -722,6 +730,24 @@ const pageOuterStyle = {
   // was silently clipping the featured row (which extends past viewport
   // when fixed 450px tiles wrap on a 375px phone).
   overflowX: 'hidden',
+};
+
+// Static pill in the top-right corner — mirrors /AnTonn/marble.
+const letsTalkStyle = {
+  position: 'absolute',
+  top: 26, right: 30,
+  padding: '11px 26px',
+  borderRadius: 999,
+  background: '#F2ECDC',
+  color: '#0A0D14',
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontWeight: 500,
+  fontSize: 14,
+  letterSpacing: 0.3,
+  textDecoration: 'none',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+  zIndex: 30,
+  transition: 'transform 220ms ease, box-shadow 220ms ease',
 };
 
 const vortexLayerStyle = {

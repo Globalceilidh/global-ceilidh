@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import LanguagePill from '@/components/LanguagePill';
 
 const TABS = [
   { key: 'all',       en: 'All',       gd: 'Na h-uile' },
@@ -152,7 +153,8 @@ export default function NewsContent({ items, active }) {
   const density = densityFor(rest.length);
 
   return (
-    <div className="min-h-screen bg-gc-bg">
+    <div className="min-h-screen bg-gc-bg" style={{ position: 'relative' }}>
+      <LanguagePill position="top-right" variant="dark" offsetTop={20} offsetRight={20} />
       {/* Hero — mirrors /naidheachd's gradient + tarheel eyebrow pattern */}
       <section className="bg-gradient-to-br from-gc-dark to-gc-mid text-white py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">

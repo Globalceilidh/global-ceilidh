@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
+import LanguagePill from '../components/LanguagePill';
 
 const CONFIGS = {
   desktop: {
@@ -77,6 +78,7 @@ export default function ComingSoon() {
           style={{ position: 'fixed', top: z.top, left: z.left, width: z.width, height: z.height, display: 'block', cursor: 'pointer' }}
         />
       ))}
+      <LanguagePill position="top-left" variant="dark" />
     </div>
   );
 }

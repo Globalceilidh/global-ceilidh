@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPublishedIssues, getIssueBySlug, padded } from '../data';
+import LanguagePill from '../../../../components/LanguagePill';
 
 // ISR + on-demand: known issues are prerendered; a brand-new issue (new slug)
 // renders on first hit and is then cached. So Issue 3 needs no redeploy.
@@ -64,7 +65,7 @@ export default async function SruthIssuePage({ params }) {
         <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>
           Sruth · Nº {num}
         </span>
-        <span style={{ width: 56 }} />
+        <LanguagePill position="inline" variant="light" />
       </header>
 
       <iframe

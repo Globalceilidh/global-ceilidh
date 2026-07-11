@@ -7,6 +7,7 @@
 // cover and at the top of every subsection page.
 
 import Link from "next/link";
+import LanguagePill from "../../../components/LanguagePill";
 
 const ACCENT = "#6B4E1F";
 const INK = "#1A1A1A";
@@ -114,7 +115,8 @@ export default function AnTonnNav({ activeSlug }) {
           })}
         </ul>
 
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <LanguagePill position="inline" variant="light" />
           <SocialIcon href="https://www.facebook.com/globalceilidh" label="Facebook">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M9.5 21v-8H7v-3h2.5V7.5C9.5 5 11 3.5 13.5 3.5c1 0 2 .1 2.3.1V6h-1.4c-1.1 0-1.4.6-1.4 1.4V10H16l-.4 3h-2.6v8h-3.5z"/>

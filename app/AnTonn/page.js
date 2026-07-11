@@ -12,6 +12,7 @@
 // hotspots.
 
 import Link from "next/link";
+import LanguagePill from "../../components/LanguagePill";
 
 export const metadata = {
   title: "An Tonn — The Chronicle of the Gaelic Current",
@@ -66,6 +67,7 @@ export default function AnTonnCover() {
           lineHeight: 0, // strip the inline-block baseline gap under the image
         }}
       >
+        <LanguagePill position="top-left" variant="light" />
         <img
           src="/AnTonn/cover.png"
           alt="An Tonn — The Chronicle of the Gaelic Current. Pilot issue, Tuesday 9 Ògmhios 2026. The Gaelic Current This Week — Top 10 artists. Explore: Music, Books, Podcasts, Film & TV, Radio, Archive, Vote & Suggest."

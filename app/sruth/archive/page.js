@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getPublishedIssues, padded } from './data';
 import Wordplate from './Wordplate';
+import LanguagePill from '../../../components/LanguagePill';
 
 // ISR: re-read Supabase at most every 5 min. A real send writes html_archive,
 // so the new issue appears here within the window — no rebuild, no redeploy.
@@ -34,8 +35,10 @@ export default async function SruthArchive() {
         padding: '64px 24px 96px',
         fontFamily: 'Georgia, serif',
         color: '#111',
+        position: 'relative',
       }}
     >
+      <LanguagePill position="top-left" variant="light" offsetTop={20} offsetLeft={20} />
       <header style={{ marginBottom: 40 }}>
         <p
           style={{

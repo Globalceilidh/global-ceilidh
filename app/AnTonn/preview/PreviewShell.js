@@ -18,6 +18,7 @@ import { useEffect, useState, Component } from 'react'
 import dynamic from 'next/dynamic'
 import { ListView, SEOMirror } from './components/ListView'
 import { issue as week2 } from './data/week-2026-06-23'
+import LanguagePill from '../../../components/LanguagePill'
 
 const WallClient = dynamic(() => import('./WallClient'), {
   ssr: false,
@@ -33,7 +34,14 @@ export default function PreviewShell() {
     setWebglSupported(detectWebGL())
   }, [])
 
-  if (webglSupported === null) return <StaticCoverLoading />
+  if (webglSupported === null) {
+    return (
+      <>
+        <StaticCoverLoading />
+        <LanguagePill position="top-left" variant="dark" fixed />
+      </>
+    )
+  }
 
   if (!webglSupported || forceList || errored) {
     return (
@@ -47,6 +55,7 @@ export default function PreviewShell() {
           }}
         />
         <SEOMirror issue={week2} />
+        <LanguagePill position="top-left" variant="dark" fixed />
       </>
     )
   }
@@ -55,6 +64,7 @@ export default function PreviewShell() {
     <ErrorBoundary onError={() => setErrored(true)}>
       <WallClient />
       <SEOMirror issue={week2} />
+      <LanguagePill position="top-left" variant="dark" fixed />
     </ErrorBoundary>
   )
 }

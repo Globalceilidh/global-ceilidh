@@ -6,6 +6,7 @@
 
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import LanguagePill from '@/components/LanguagePill';
 
 function fmtDate(s, language) {
   if (!s) return '';
@@ -42,10 +43,11 @@ export default function NewsItemContent({ item }) {
     <div className="min-h-screen bg-gc-bg">
       {/* Back-link bar */}
       <nav className="bg-white border-b border-gc-border py-3">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <Link href="/news" className="text-tarheel-dark hover:text-tarheel text-xs font-display tracking-widest uppercase">
             ← {language === 'gd' ? 'Air ais gu Naidheachd' : 'Back to News'}
           </Link>
+          <LanguagePill position="inline" variant="light" />
         </div>
       </nav>
 

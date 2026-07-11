@@ -1,4 +1,6 @@
 // GC Future Features teaser page — design coming soon
+import LanguagePill from '../../components/LanguagePill';
+
 export default function ComingSoonFeatures() {
   return (
     <div style={{
@@ -14,6 +16,7 @@ export default function ComingSoonFeatures() {
       <p style={{ opacity: 0.4, letterSpacing: '2px', fontSize: '13px', textTransform: 'uppercase' }}>
         GlobalCeilidh.com — coming soon
       </p>
+      <LanguagePill position="top-left" variant="dark" />
     </div>
   );
 }
