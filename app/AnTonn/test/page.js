@@ -206,10 +206,6 @@ export default function AnTonnTest() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          /* Perspective on the column so the ring's 3D rotation gets
-             depth; without this, rotateY reads as a flat scale/skew. */
-          perspective: 1100px;
-          perspective-origin: 50% 40%;
         }
         .tile {
           width: 100%;
@@ -236,71 +232,45 @@ export default function AnTonnTest() {
             drop-shadow(0 0 22px rgba(255,255,255,0.35));
         }
 
-        /* Spinning name-ring beneath each tile. The ring is a real
-           metallic PNG; we rotate it around the Y axis so it reads
-           as a real 3D ring on a turntable. Two copies of the ring
-           image sit inside .ring-3d back-to-back — one at rotateY(0)
-           facing the viewer at rest, one at rotateY(180) facing away.
-           As the container rotates, whichever face is toward the
-           viewer stays visible (backface-visibility hides the reverse
-           of each) so the text is always correctly oriented, never
-           mirrored. */
-        .ring-3d {
-          position: relative;
-          width: 78%;
-          margin-top: -34px;
-          transform-style: preserve-3d;
-          animation: ring-spin 22s linear infinite;
-          pointer-events: none;
-        }
-        .ring-face {
+        /* Static name-ring tucked up under the graphic. Negative
+           margin-top pulls it into the bottom portion of the tile so
+           the figure appears to be standing on it. Alpha-keyed PNG,
+           so the wave shader shows through around the ring. Spin
+           returns once the 24-frame renders arrive. */
+        .ring-static {
           display: block;
-          width: 100%;
+          width: 78%;
           height: auto;
+          margin-top: -140px;
           user-select: none;
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
-        }
-        .ring-back {
-          position: absolute;
-          inset: 0;
-          transform: rotateY(180deg);
-        }
-        /* Clockwise viewed from above. CSS +rotateY is counter-clockwise
-           from top, so we go 0 → -360 for clockwise. */
-        @keyframes ring-spin {
-          from { transform: rotateY(0deg); }
-          to   { transform: rotateY(-360deg); }
+          pointer-events: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .sniomh-glint,
-          .ring-3d { animation: none; }
+          .sniomh-glint { animation: none; }
         }
       `}</style>
     </div>
   )
 }
 
-// One column of the tiles row: the graphic image + a spinning ring
-// beneath. The ring is a metallic PNG (alpha-keyed) spinning in 3D
-// around the Y axis so it reads as a real turntable, not a flat
-// 2D spin. Two copies of the ring image sit back-to-back inside the
-// rotating container — .ring-back is pre-rotated 180deg so as the
-// container turns, whichever face is toward the viewer always shows
-// the text in the correct orientation (backface-visibility hides
-// the reverse of each face).
+// One column of the tiles row: the graphic image + a static metallic
+// ring image tucked up underneath it. Spinning animation is temporarily
+// removed pending the 24-frame renders; the ring is still alpha-keyed
+// so the wave shader shows through around and behind it.
 function TileWithPlinth({ src, alt, ringSrc }) {
   return (
     <div className="tile-column">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={alt} className="tile" draggable={false} />
-      <div className="ring-3d">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={ringSrc} alt="" aria-hidden="true" className="ring-face ring-front" draggable={false} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={ringSrc} alt="" aria-hidden="true" className="ring-face ring-back" draggable={false} />
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={ringSrc}
+        alt=""
+        aria-hidden="true"
+        className="ring-static"
+        draggable={false}
+      />
     </div>
   )
 }
