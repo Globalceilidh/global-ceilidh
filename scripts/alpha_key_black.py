@@ -67,6 +67,7 @@ def main() -> int:
         "ring-leabhraichean.png",
         "ring-podcraoladh.png",
         "bhidio-wordmark.png",
+        "reidio-icon.png",
     ]
     print(f"Alpha-keying {len(targets)} images in {target_dir}")
     for name in targets:

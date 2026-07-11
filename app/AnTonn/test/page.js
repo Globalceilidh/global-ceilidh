@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useRef } from 'react'
 import dynamic from 'next/dynamic'
 import LanguagePill from '../../../components/LanguagePill'
+import RadioBot from '../../../components/RadioBot'
 import { useLanguage } from '../../../context/LanguageContext'
 
 // SSR-off — the canvas uses WebGL which needs `window`. Also lazy-loads
@@ -109,6 +110,11 @@ export default function AnTonnTest() {
         offsetBottom={56}
         offsetRight={30}
       />
+
+      {/* Reidio bot — persistent radio control, bottom-left. Reads
+          state from RadioProvider at the app root, so playback
+          survives navigation to another test page. */}
+      <RadioBot />
 
       <style>{`
         .sniomh-wrap {

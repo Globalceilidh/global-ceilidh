@@ -1,6 +1,7 @@
 import { Inter, Cinzel, EB_Garamond, IBM_Plex_Sans, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '../context/LanguageContext';
+import { RadioProvider } from '../context/RadioContext';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -44,7 +45,9 @@ export default function RootLayout({ children }) {
       <html lang="en" className={`${inter.variable} ${cinzel.variable} ${ebGaramond.variable} ${ibmPlexSans.variable} ${bebasNeue.variable}`}>
         <body className={`${inter.className} bg-white text-gc-text antialiased`}>
           <LanguageProvider>
-            {children}
+            <RadioProvider>
+              {children}
+            </RadioProvider>
           </LanguageProvider>
           <Analytics />
           <SpeedInsights />
