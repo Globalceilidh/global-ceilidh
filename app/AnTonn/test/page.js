@@ -69,16 +69,21 @@ export default function AnTonnTest() {
       {/* Four category tiles laid horizontally across the middle of
           the page: Ceòl (Music), Bhidio (Film), Leabhraichean (Books),
           Pod-chraoladh (Podcasts). Order matches the marble pill
-          stack and Whitey's sequence. Images are square 1:1. */}
-      <div className="tiles-row">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/music-ceol.png"        alt="Ceòl — Music"                className="tile" draggable={false} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/film-bhidio.png"       alt="Bhidio — Film"               className="tile" draggable={false} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/books-leabhraichean.png" alt="Leabhraichean — Books"     className="tile" draggable={false} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/podcast.png"           alt="Pod-chraoladh — Podcasts"    className="tile" draggable={false} />
+          stack. Images are square 1:1.
+          Outer wrapper flex-centers the row without needing `transform`
+          on the row itself — transform would create a stacking context
+          and trap the tiles' mix-blend-mode inside it. */}
+      <div className="tiles-outer">
+        <div className="tiles-row">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/AnTonn/test/music-ceol.png"        alt="Ceòl — Music"                className="tile" draggable={false} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/AnTonn/test/film-bhidio.png"       alt="Bhidio — Film"               className="tile" draggable={false} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/AnTonn/test/books-leabhraichean.png" alt="Leabhraichean — Books"     className="tile" draggable={false} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/AnTonn/test/podcast.png"           alt="Pod-chraoladh — Podcasts"    className="tile" draggable={false} />
+        </div>
       </div>
 
       {/* Let's Talk pill — same treatment as /AnTonn/radio + /AnTonn/marble. */}
@@ -157,16 +162,17 @@ export default function AnTonnTest() {
 
         /* An Tonn wordmark — page header. The source PNG is a square-ish
            canvas with the wordmark centred; the surrounding black padding
-           matches the page bg, so we just shift the whole image up with a
-           negative top. Letters land near the top of the viewport; the
-           invisible black padding sits above the viewport line. */
+           matches the page bg. We shift the whole image up with a negative
+           top, and centre horizontally with auto margins (NOT transform —
+           transform creates a stacking context and would trap the img's
+           mix-blend-mode inside it). */
         .antonn-title-wrap {
           position: absolute;
           top: -140px;
-          left: 50%;
-          transform: translateX(-50%);
+          left: 0;
+          right: 0;
+          margin: 0 auto;
           width: min(56vw, 520px);
-          /* No z-index — see note on .sniomh-wrap. */
           line-height: 0;
         }
         .antonn-title-img {
@@ -178,24 +184,28 @@ export default function AnTonnTest() {
           mix-blend-mode: screen;
         }
 
-        /* Four category tiles across the middle. Row is vertically
-           centred in the viewport; each tile is a square with equal
-           flex share so they space evenly across the row. Larger,
-           more presence-y sizing now (up from 260 → 340 max). */
-        .tiles-row {
+        /* Outer wrapper centres the tile row in the viewport using
+           flexbox — this avoids a `transform` on .tiles-row (transform
+           creates a stacking context, which would isolate the tiles'
+           mix-blend-mode). */
+        .tiles-outer {
           position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+        }
+        /* Four category tiles across the middle. Row is a flex container
+           so the tiles space evenly. No z-index or transform here — see
+           .tiles-outer note. Larger sizing (up from 260 → 340 max). */
+        .tiles-row {
           display: flex;
           gap: 32px;
           align-items: center;
           justify-content: center;
           width: min(94vw, 1500px);
-          /* No z-index — creating a stacking context here would trap
-             each tile's mix-blend-mode inside an empty container so
-             the black baked-in bg couldn't dissolve into the wave.
-             DOM order alone keeps the row above the wave canvas. */
+          pointer-events: auto;
         }
         .tile {
           flex: 1 1 0;
