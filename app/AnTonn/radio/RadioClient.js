@@ -250,16 +250,15 @@ export default function RadioClient() {
             pill on this page. Bilingual: "Let's Talk" / "Thig, bruidhinneas". */}
         <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
 
-        {/* Language toggle — EN⇄GD slider on a white pill, bottom-right.
-            Bottom 88 matches contentWrapperStyle's bottom padding so the
-            pill sits with the footer content, not below it. Right inset
-            mirrors the Let's Talk pill. */}
+        {/* Language toggle — EN⇄GD slider on a white pill. Right
+            viewport edge, 56px up from the bottom (mirrors Let's Talk's
+            56px-from-top inset). */}
         <LanguagePill
           position="bottom-right"
           layout="toggle"
           variant="white"
-          offsetBottom={88}
-          offsetRight={PILL_RIGHT_INSET}
+          offsetBottom={56}
+          offsetRight={30}
         />
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
@@ -743,17 +742,13 @@ const pageOuterStyle = {
   overflowX: 'hidden',
 };
 
-// Right-edge inset that matches the content wrapper's outer edge
-// (maxWidth 1200 centered, 20px horizontal padding). Both corner
-// pills use this so they sit inside the same visual gutter as the
-// header and footer content — not flush against the viewport edge.
-const PILL_RIGHT_INSET = 'max(20px, calc((100vw - 1200px) / 2 + 20px))';
-
-// Top pill: 56 = contentWrapperStyle's top padding, so the pill
-// baseline sits with the header content.
+// Corner pills sit at the right viewport edge, with a modest vertical
+// inset so they read as chrome rather than as page corners: 56px down
+// from the top for Let's Talk, 56px up from the bottom for the
+// language slider (see LanguagePill call).
 const letsTalkStyle = {
   position: 'absolute',
-  top: 56, right: PILL_RIGHT_INSET,
+  top: 56, right: 30,
   padding: '11px 26px',
   borderRadius: 999,
   background: '#FFFFFF',
