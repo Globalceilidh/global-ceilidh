@@ -17,6 +17,7 @@
 
 import { useState } from 'react'
 import { useLanguage } from '../../../../context/LanguageContext'
+import { VIDEO_CATALOG } from './videos'
 
 const CATEGORIES = [
   { slug: 'music',       en: 'Music',        gd: 'Ceòl' },
@@ -27,16 +28,26 @@ const CATEGORIES = [
   { slug: 'live',        en: 'Live Sessions', gd: 'Seiseanan Beò' },
 ]
 
-// Placeholder card set. Each category gets 12 for now so the columns
-// have real vertical content to scroll. Titles include the category
-// slug so debugging is obvious. Real content comes from the video
-// source pipeline later.
-function generateCards(slug) {
-  return Array.from({ length: 12 }, (_, i) => ({
-    id: `${slug}-${String(i + 1).padStart(2, '0')}`,
-    title: `${slug.charAt(0).toUpperCase() + slug.slice(1)} · Nº ${String(i + 1).padStart(2, '0')}`,
-    duration: `${Math.floor(2 + Math.random() * 8)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+// Returns the video list for a category. Reads from VIDEO_CATALOG
+// (./videos.js). Falls back to a small placeholder set when a category
+// is empty so the wall still looks alive during scaffolding.
+function getCards(slug) {
+  const real = VIDEO_CATALOG?.[slug] || []
+  if (real.length > 0) return real
+  return Array.from({ length: 4 }, (_, i) => ({
+    id: `${slug}-placeholder-${i + 1}`,
+    title: `Coming soon · ${slug}`,
+    duration: '—:—',
+    source: 'placeholder',
   }))
+}
+
+// YouTube gives us thumbnails free. hqdefault is 480x360 (16:9-ish
+// after they crop the letterbox); maxresdefault is 1280x720 when
+// available. hq works everywhere; max only exists for videos
+// uploaded past some resolution threshold.
+function youtubeThumb(id) {
+  return `https://img.youtube.com/vi/${id}/hqdefault.jpg`
 }
 
 // Inner-bend curve tuning. Wall curves TOWARD the viewer: the outer
@@ -99,7 +110,7 @@ export default function VideoWallCurved() {
               {language === 'gd' ? cat.gd : cat.en}
             </div>
             <div style={cardsWrapStyle}>
-              {generateCards(cat.slug).map((card) => (
+              {getCards(cat.slug).map((card) => (
                 <VideoCard key={card.id} {...card} onSelect={() => setSelected(card)} />
               ))}
             </div>
@@ -110,10 +121,19 @@ export default function VideoWallCurved() {
   )
 }
 
-function VideoCard({ title, duration, onSelect }) {
+function VideoCard({ id, title, duration, source, poster, onSelect }) {
+  // Prefer explicit `poster`; fall back to the YouTube thumb when the
+  // source is youtube; otherwise the linear-gradient placeholder in
+  // `thumbStyle` shows through.
+  const thumbUrl =
+    poster ||
+    (source === 'youtube' ? youtubeThumb(id) : null)
+  const thumbBg = thumbUrl
+    ? { backgroundImage: `url(${thumbUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : {}
   return (
     <button type="button" onClick={onSelect} style={cardStyle}>
-      <div style={thumbStyle}>
+      <div style={{ ...thumbStyle, ...thumbBg }}>
         <span style={durationStyle}>{duration}</span>
       </div>
       <div style={titleStyle}>{title}</div>
@@ -122,20 +142,45 @@ function VideoCard({ title, duration, onSelect }) {
 }
 
 // Full-viewport video player that replaces the wall on card select.
-// Placeholder body for now — swap to a YouTube <iframe> or <video>
-// element when real video IDs arrive.
+// - `source: 'youtube'` → YouTube nocookie embed (autoplays via URL
+//   param; browsers still gate on interaction, which the click did)
+// - `source: 'own' | 'submitted'` with a `videoUrl` → HTML5 <video>
+// - anything else (placeholder scaffolding) → text-only display
 function VideoPlayer({ video, onClose }) {
+  const isYouTube = video.source === 'youtube' && video.id
+  const isFile = (video.source === 'own' || video.source === 'submitted') && video.videoUrl
+
   return (
     <div style={playerStyle}>
       <button type="button" onClick={onClose} style={closeButtonStyle}>
         ← Back to wall
       </button>
       <div style={playerScreenStyle}>
-        <div style={playerPlaceholderStyle}>
-          <p style={playerLabelStyle}>Now playing</p>
-          <h2 style={playerTitleStyle}>{video.title}</h2>
-          <p style={playerDurationStyle}>{video.duration}</p>
-        </div>
+        {isYouTube ? (
+          <iframe
+            title={video.title}
+            src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            style={playerIframeStyle}
+            frameBorder="0"
+          />
+        ) : isFile ? (
+          /* eslint-disable-next-line jsx-a11y/media-has-caption */
+          <video
+            src={video.videoUrl}
+            poster={video.poster}
+            controls
+            autoPlay
+            style={playerIframeStyle}
+          />
+        ) : (
+          <div style={playerPlaceholderStyle}>
+            <p style={playerLabelStyle}>Now playing</p>
+            <h2 style={playerTitleStyle}>{video.title}</h2>
+            <p style={playerDurationStyle}>{video.duration}</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -293,6 +338,15 @@ const playerScreenStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+}
+
+const playerIframeStyle = {
+  width: '100%',
+  height: '100%',
+  display: 'block',
+  border: 'none',
+  background: '#000',
+  borderRadius: 6,
 }
 
 const playerPlaceholderStyle = {
