@@ -69,21 +69,16 @@ export default function AnTonnTest() {
       {/* Four category tiles laid horizontally across the middle of
           the page: Ceòl (Music), Bhidio (Film), Leabhraichean (Books),
           Pod-chraoladh (Podcasts). Order matches the marble pill
-          stack. Images are square 1:1.
-          Outer wrapper flex-centers the row without needing `transform`
-          on the row itself — transform would create a stacking context
-          and trap the tiles' mix-blend-mode inside it. */}
-      <div className="tiles-outer">
-        <div className="tiles-row">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/AnTonn/test/music-ceol.png"        alt="Ceòl — Music"                className="tile" draggable={false} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/AnTonn/test/film-bhidio.png"       alt="Bhidio — Film"               className="tile" draggable={false} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/AnTonn/test/books-leabhraichean.png" alt="Leabhraichean — Books"     className="tile" draggable={false} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/AnTonn/test/podcast.png"           alt="Pod-chraoladh — Podcasts"    className="tile" draggable={false} />
-        </div>
+          stack and Whitey's sequence. Images are square 1:1. */}
+      <div className="tiles-row">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/music-ceol.png"        alt="Ceòl — Music"                className="tile" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/film-bhidio.png"       alt="Bhidio — Film"               className="tile" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/books-leabhraichean.png" alt="Leabhraichean — Books"     className="tile" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/podcast.png"           alt="Pod-chraoladh — Podcasts"    className="tile" draggable={false} />
       </div>
 
       {/* Let's Talk pill — same treatment as /AnTonn/radio + /AnTonn/marble. */}
@@ -106,9 +101,7 @@ export default function AnTonnTest() {
           display: block;
           width: 180px;
           height: 180px;
-          /* No z-index — creating a stacking context here would trap
-             the sniomh-img's mix-blend-mode inside an empty context.
-             DOM order alone keeps this above the wave canvas. */
+          z-index: 30;
           line-height: 0;
         }
         .sniomh-img {
@@ -116,10 +109,6 @@ export default function AnTonnTest() {
           height: 100%;
           display: block;
           user-select: none;
-          /* Screen blend makes the PNG's baked black background contribute
-             nothing to the composite, so the wave shows through everything
-             that isn't part of the spiral. */
-          mix-blend-mode: screen;
         }
         .sniomh-glint {
           position: absolute;
@@ -160,19 +149,19 @@ export default function AnTonnTest() {
           to   { transform: rotate(360deg); }
         }
 
-        /* An Tonn wordmark — page header. Blend on the wrapper so the
-           whole element composites as one group against the backdrop.
-           (Blend on the img alone silently fails on some browsers when
-           the img is not filling a fixed-height container.) */
+        /* An Tonn wordmark — page header. The source PNG is a square-ish
+           canvas with the wordmark centred; the surrounding black padding
+           matches the page bg, so we just shift the whole image up with a
+           negative top. Letters land near the top of the viewport; the
+           invisible black padding sits above the viewport line. */
         .antonn-title-wrap {
           position: absolute;
           top: -140px;
-          left: 0;
-          right: 0;
-          margin: 0 auto;
+          left: 50%;
+          transform: translateX(-50%);
           width: min(56vw, 520px);
+          z-index: 20;
           line-height: 0;
-          mix-blend-mode: screen;
         }
         .antonn-title-img {
           width: 100%;
@@ -181,31 +170,21 @@ export default function AnTonnTest() {
           user-select: none;
         }
 
-        /* Outer wrapper centres the tile row in the viewport using
-           flexbox — this avoids a `transform` on .tiles-row (transform
-           creates a stacking context, which would isolate the tiles'
-           mix-blend-mode). */
-        .tiles-outer {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          pointer-events: none;
-        }
-        /* Four category tiles across the middle. Row is a flex container
-           so the tiles space evenly. Blend on the row so all four tiles
-           composite as one group against the wave backdrop (blending on
-           individual img children was silently failing inside the flex
-           layout on some browsers). */
+        /* Four category tiles across the middle. Row is vertically
+           centred in the viewport; each tile is a square with equal
+           flex share so they space evenly across the row. Larger,
+           more presence-y sizing now (up from 260 → 340 max). */
         .tiles-row {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
           display: flex;
           gap: 32px;
           align-items: center;
           justify-content: center;
           width: min(94vw, 1500px);
-          pointer-events: auto;
-          mix-blend-mode: screen;
+          z-index: 15;
         }
         .tile {
           flex: 1 1 0;
@@ -217,9 +196,8 @@ export default function AnTonnTest() {
           object-fit: contain;
           user-select: none;
           cursor: pointer;
-          /* Blend lives on .tiles-row now, not here — see comment
-             on .tiles-row. Individual tiles just handle sizing +
-             hover motion. */
+          filter: brightness(1) drop-shadow(0 0 0 rgba(255,255,255,0));
+          transform: translate3d(0, 0, 0) scale(1);
           transition:
             transform 320ms cubic-bezier(0.2, 0.7, 0.3, 1),
             filter   320ms ease;
@@ -248,13 +226,8 @@ export default function AnTonnTest() {
 const pageStyle = {
   position: 'fixed',
   inset: 0,
-  // DIAGNOSTIC bg — distinct dark blue so we can visually tell whether
-  // the tile black bg is dissolving into the page bg (via mix-blend-mode)
-  // or still rendering as opaque black. If we see blue where tile black
-  // used to be, blending works.
-  background: '#001133',
+  background: '#000000',
   overflow: 'hidden',
-  isolation: 'isolate',
 }
 
 // White pill matching /AnTonn/radio + /AnTonn/marble.

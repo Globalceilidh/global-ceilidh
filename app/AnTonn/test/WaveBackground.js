@@ -66,12 +66,11 @@ const fragmentShader = /* glsl */`
       }
     }
 
-    // DIAGNOSTIC: base bumped to visible dark-blue so we can see where
-    // the wave sits behind the tiles. Once blending is confirmed we can
-    // dial this back down.
-    float intensity = clamp(sum * 0.6, -0.6, 0.6);
-    vec3 base = vec3(0.05, 0.09, 0.16);
-    vec3 color = base + intensity * vec3(0.30, 0.32, 0.38);
+    // Very subtle brightness modulation on a near-black base — reads as
+    // "moonlit water" rather than a shader effect.
+    float intensity = clamp(sum * 0.32, -0.45, 0.45);
+    vec3 base = vec3(0.008, 0.012, 0.020);
+    vec3 color = base + intensity * vec3(0.14, 0.16, 0.20);
     gl_FragColor = vec4(color, 1.0);
   }
 `
@@ -177,10 +176,7 @@ export default function WaveBackground({ mouseRef }) {
       style={{
         position: 'fixed',
         inset: 0,
-        // No zIndex — creating a stacking context here would isolate
-        // the canvas from the tiles above, breaking their mix-blend-mode
-        // screen against the wave. DOM order (WaveBackground is the
-        // first child of pageStyle) keeps this beneath all visual chrome.
+        zIndex: 1,
         pointerEvents: 'none',
       }}
       camera={{ position: [0, 0, 1], near: 0.01, far: 10 }}
