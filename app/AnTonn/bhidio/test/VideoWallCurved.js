@@ -148,7 +148,7 @@ function VideoPlayer({ video, onClose }) {
 // bottom. Horizontal padding is minimal — Whitey wants edge-to-edge.
 const wallStyle = {
   position: 'fixed',
-  top: 220,
+  top: 203,
   bottom: 90,
   left: 12,
   right: 12,
