@@ -30,9 +30,13 @@ const CATEGORIES = [
 ]
 
 const STEP_DEG = 18
-const RADIUS_PX = 820
-const COL_W = 260
-const COL_H = 640
+// RADIUS + perspective set the apparent scale of the wall. Pulling the
+// radius in from 820 → 620 and stretching the perspective from 1200 →
+// 1600 brings the whole wall closer and cuts back the foreshortening,
+// so cards read much bigger without changing the curve depth.
+const RADIUS_PX = 620
+const COL_W = 340
+const COL_H = 820
 
 // Four placeholder cards per column, common across all categories for
 // now. Titles + durations are stand-ins; real values arrive with the
@@ -96,7 +100,7 @@ function VideoCard({ title, duration }) {
 const perspectiveStyle = {
   position: 'fixed',
   inset: 0,
-  perspective: '1200px',
+  perspective: '1600px',
   perspectiveOrigin: '50% 50%',
   transformStyle: 'preserve-3d',
   pointerEvents: 'none',
