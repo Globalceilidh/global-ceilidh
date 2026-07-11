@@ -39,28 +39,28 @@ function generateCards(slug) {
   }))
 }
 
-// Inner-bend curve tuning.
+// Inner-bend curve tuning. Wall curves TOWARD the viewer: the outer
+// columns sit near the front, the middle columns recede — same shape
+// as a wraparound cinema screen wrapping around the audience.
 //
-// Every column gets both a rotateY (tilt to face the viewer) AND a
-// translateZ (push back on the depth axis). Both scale with |distance
-// from centre|:
+// Every column gets both a rotateY (tilt so it faces the viewer's
+// centre) AND a translateZ (position along the depth axis). Both
+// scale with distance from the row's centre:
 //
-//   TILT_PER_UNIT   — how many degrees a column at 1 unit off centre tilts.
-//                     Grows linearly with distance; outer columns hit
-//                     ±(TILT_PER_UNIT × (n-1)/2).
-//   DEPTH_PER_UNIT² — how many px deeper a column is per unit-distance
-//                     SQUARED. Quadratic ramp so the middle columns
-//                     stay near the viewer plane and only the outer
-//                     ones recede. This is what turns individual "tilt"
-//                     into a coherent inner-bend curve.
+//   TILT_PER_UNIT   — degrees of tilt per unit of distance from centre.
+//                     Sign is inverted so outer columns face inward
+//                     (right column tilts left, left column tilts right).
+//   DEPTH_PER_UNIT² — px of depth per unit-distance SQUARED. Quadratic
+//                     so the middle recedes smoothly rather than
+//                     stepping; edges stay near Z=0.
 //
-// With 6 columns (index 0..5, centre at 2.5):
-//   col 0 : dist 2.5 → tilt -10°, depth ~94px behind
-//   col 1 : dist 1.5 → tilt  -6°, depth ~34px behind
-//   col 2 : dist 0.5 → tilt  -2°, depth ~4px  behind  (nearly flat)
-//   col 3 : dist 0.5 → tilt  +2°, depth ~4px  behind
-//   col 4 : dist 1.5 → tilt  +6°, depth ~34px behind
-//   col 5 : dist 2.5 → tilt +10°, depth ~94px behind
+// With 6 columns (index 0..5, centre at 2.5), MAX_OFFSET² = 6.25:
+//   col 0 : dist 2.5 → tilt +10°, depth ~0px    (near the viewer)
+//   col 1 : dist 1.5 → tilt  +6°, depth ~60px   behind
+//   col 2 : dist 0.5 → tilt  +2°, depth ~90px   behind
+//   col 3 : dist 0.5 → tilt  -2°, depth ~90px   behind
+//   col 4 : dist 1.5 → tilt  -6°, depth ~60px   behind
+//   col 5 : dist 2.5 → tilt -10°, depth ~0px    (near the viewer)
 const TILT_PER_UNIT = 4
 const DEPTH_PER_UNIT2 = 15
 
@@ -73,13 +73,20 @@ export default function VideoWallCurved() {
   }
 
   const centre = (CATEGORIES.length - 1) / 2
+  const maxOffset2 = centre * centre
 
   return (
     <div style={wallStyle}>
       {CATEGORIES.map((cat, i) => {
         const offset = i - centre
-        const tilt = offset * TILT_PER_UNIT
-        const depth = offset * offset * DEPTH_PER_UNIT2
+        // Negative sign so left columns tilt right (positive rotateY)
+        // and right columns tilt left — both facing inward toward the
+        // viewer's centre.
+        const tilt = -offset * TILT_PER_UNIT
+        // Middle columns get the most depth; edges near Z=0. Same
+        // quadratic ramp, just inverted around max² so the ramp
+        // curves the middle back instead of the edges.
+        const depth = (maxOffset2 - offset * offset) * DEPTH_PER_UNIT2
         return (
           <div
             key={cat.slug}
@@ -141,7 +148,7 @@ function VideoPlayer({ video, onClose }) {
 // bottom. Horizontal padding is minimal — Whitey wants edge-to-edge.
 const wallStyle = {
   position: 'fixed',
-  top: 170,
+  top: 220,
   bottom: 90,
   left: 12,
   right: 12,
