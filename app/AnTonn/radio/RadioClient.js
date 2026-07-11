@@ -246,14 +246,13 @@ export default function RadioClient() {
           </div>
         </main>
 
-        {/* Let's Talk pill — matches /AnTonn/marble corner pill (same
-            style, same position). Anchors to pageOuterStyle. */}
-        <a href="/contact" style={letsTalkStyle}>Let&apos;s Talk</a>
+        {/* Let's Talk pill — same white/Bebas Neue look as every other
+            pill on this page. Bilingual: "Let's Talk" / "Thig, bruidhinneas". */}
+        <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
 
-        {/* Language toggle — cream pill matching Let's Talk styling.
-            Sits in the bottom-right corner. Click flips the whole page
-            between English and Gàidhlig (see useLanguage()). */}
-        <LanguagePill position="bottom-right" layout="solid" />
+        {/* Language toggle — EN⇄GD slider on a white pill, bottom-right.
+            Click flips the whole page between English and Gàidhlig. */}
+        <LanguagePill position="bottom-right" layout="toggle" variant="white" />
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
         {showRequest && <RequestModal onClose={() => setShowRequest(false)} />}
@@ -736,18 +735,20 @@ const pageOuterStyle = {
   overflowX: 'hidden',
 };
 
-// Static pill in the top-right corner — mirrors /AnTonn/marble.
+// Static pill in the top-right corner. Same white / Bebas Neue
+// look as every other pill on the radio surface.
 const letsTalkStyle = {
   position: 'absolute',
   top: 26, right: 30,
   padding: '11px 26px',
   borderRadius: 999,
-  background: '#F2ECDC',
+  background: '#FFFFFF',
   color: '#0A0D14',
-  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
-  fontWeight: 500,
-  fontSize: 14,
-  letterSpacing: 0.3,
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
+  fontWeight: 400,
+  fontSize: 18,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
   textDecoration: 'none',
   boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
   zIndex: 30,
@@ -989,19 +990,20 @@ const pillRowStyle = {
   flexWrap: 'wrap',
 };
 
-// Cream pill matching the Let's Talk + language pill styling exactly.
-// Consistent visual language across all corner + inline pills on the
-// radio page — one type, one look.
+// Pure white pill in Bebas Neue — matches every other pill on the
+// radio page (Let's Talk, language slider, Vote, Request). One
+// consistent look across the surface.
 const pillStyle = {
   padding: '11px 26px',
   borderRadius: 999,
-  background: '#F2ECDC',
+  background: '#FFFFFF',
   color: '#0A0D14',
   border: 'none',
-  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
-  fontWeight: 500,
-  fontSize: 14,
-  letterSpacing: 0.3,
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
+  fontWeight: 400,
+  fontSize: 18,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
   cursor: 'pointer',
   boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
   transition: 'transform 220ms ease, box-shadow 220ms ease',

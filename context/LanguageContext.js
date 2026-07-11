@@ -80,6 +80,7 @@ export const translations = {
     close: { en: 'Close', gd: 'Dùin' },
     learn_more: { en: 'Learn more', gd: 'Ionnsaich tuilleadh' },
     formal_badge: { en: 'Formal', gd: 'Foirmeil' },
+    lets_talk: { en: "Let's Talk", gd: 'Thig, bruidhinneas' },
   },
   // Global Ceilidh Radio — /AnTonn/radio
   radio: {
