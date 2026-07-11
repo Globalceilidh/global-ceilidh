@@ -37,6 +37,7 @@ export default function TestSurface({
   waveBase,
   waveMod = '#242830',
   waveIntensity = 0.4,
+  children,
 }) {
   const { t } = useLanguage()
 
@@ -91,6 +92,10 @@ export default function TestSurface({
       {/* Let's Talk pill — matches /AnTonn/radio, /AnTonn/marble,
           /AnTonn/test. */}
       <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
+
+      {/* Page-specific content slot. Sits between the chrome
+          (brand strip, pills, wave) as the middle of the surface. */}
+      {children}
 
       {/* EN ⇄ GD slider — bottom-right, mirroring the top-right pill. */}
       <LanguagePill
