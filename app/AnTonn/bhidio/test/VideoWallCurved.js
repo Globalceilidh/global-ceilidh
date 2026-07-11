@@ -85,17 +85,22 @@ function VideoCard({ title, duration }) {
 
 // ── Styles ───────────────────────────────────────────────────────────
 
-// Fills the {children} slot, establishes perspective + a preserve-3d
-// context so columns can be translated back on the Z axis without
-// being flattened. Position: absolute inside TestSurface's pageStyle
-// (which is fixed inset:0), so this fills the viewport too.
+// Fills the viewport, establishes perspective + preserve-3d for the
+// columns. z-index: 2 explicitly stacks the wall ABOVE the wave canvas
+// — without it, the wave's GPU-composited canvas (position:fixed, no
+// z-index) can end up compositing on top of the wall on some browsers,
+// which is what caused the "flash then disappear" bug: the wall painted
+// for a frame at its layout position, then the wave layer covered it.
+// position:fixed keeps the wall and the wave in the same coordinate
+// space so there's no ambiguity about which one is on top.
 const perspectiveStyle = {
-  position: 'absolute',
+  position: 'fixed',
   inset: 0,
   perspective: '1200px',
   perspectiveOrigin: '50% 50%',
   transformStyle: 'preserve-3d',
   pointerEvents: 'none',
+  zIndex: 2,
 }
 
 // One category column: fixed COL_W x COL_H box positioned via calc so
