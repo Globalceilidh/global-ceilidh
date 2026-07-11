@@ -2,18 +2,34 @@
 
 // /AnTonn/test — sandbox surface. Solid black canvas with the standard
 // AnTonn chrome (Sniomh homepage icon top-left, Let's Talk pill top-right,
-// EN/GD language slider bottom-right). Nothing else — intentionally blank
-// as a jumping-off point for new experiments.
+// EN/GD language slider bottom-right). Plus a WebGL wave shader in the
+// background that trails ripples from the cursor.
 
 import Link from 'next/link'
+import { useRef } from 'react'
+import dynamic from 'next/dynamic'
 import LanguagePill from '../../../components/LanguagePill'
 import { useLanguage } from '../../../context/LanguageContext'
+
+// SSR-off — the canvas uses WebGL which needs `window`. Also lazy-loads
+// the R3F bundle so it doesn't block first paint.
+const WaveBackground = dynamic(() => import('./WaveBackground'), { ssr: false })
 
 export default function AnTonnTest() {
   const { t } = useLanguage()
 
+  // Cursor position ref, mutated on every pointermove. The WaveBackground
+  // reads this each frame; no React state = no re-renders while the mouse
+  // moves. Initialised to -1 so no ripple emits before the first move.
+  const mouseRef = useRef({ x: -1, y: -1 })
+  const onPointerMove = (e) => {
+    mouseRef.current.x = e.clientX
+    mouseRef.current.y = e.clientY
+  }
+
   return (
-    <div style={pageStyle}>
+    <div style={pageStyle} onPointerMove={onPointerMove}>
+      <WaveBackground mouseRef={mouseRef} />
       {/* Sniomh — the core GlobalCeilidh design motif. Links back to
           the homepage. Hover fires the light-glint sweep (see <style>). */}
       <Link
