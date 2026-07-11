@@ -168,11 +168,11 @@ const iconImgStyle = {
 // marquee) read at real size.
 const wordmarkWrapStyle = {
   position: 'absolute',
-  top: -140,
+  top: -95,
   left: 0,
   right: 0,
   margin: '0 auto',
-  width: 'min(48vw, 520px)',
+  width: 'min(32vw, 350px)',
   lineHeight: 0,
   pointerEvents: 'none',
   zIndex: 20,
