@@ -50,6 +50,21 @@ export default function AnTonnTest() {
         />
       </div>
 
+      {/* Four category tiles laid horizontally across the middle of
+          the page: Ceòl (Music), Bhidio (Film), Leabhraichean (Books),
+          Pod-chraoladh (Podcasts). Order matches the marble pill
+          stack and Whitey's sequence. Images are square 1:1. */}
+      <div className="tiles-row">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/music-ceol.png"        alt="Ceòl — Music"                className="tile" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/film-bhidio.png"       alt="Bhidio — Film"               className="tile" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/books-leabhraichean.png" alt="Leabhraichean — Books"     className="tile" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/AnTonn/test/podcast.png"           alt="Pod-chraoladh — Podcasts"    className="tile" draggable={false} />
+      </div>
+
       {/* Let's Talk pill — same treatment as /AnTonn/radio + /AnTonn/marble. */}
       <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
 
@@ -136,6 +151,32 @@ export default function AnTonnTest() {
           width: 100%;
           height: auto;
           display: block;
+          user-select: none;
+        }
+
+        /* Four category tiles across the middle. Row is vertically
+           centred in the viewport; each tile is a square with equal
+           flex share so they space evenly across the row. */
+        .tiles-row {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          display: flex;
+          gap: 24px;
+          align-items: center;
+          justify-content: center;
+          width: min(92vw, 1200px);
+          z-index: 15;
+        }
+        .tile {
+          flex: 1 1 0;
+          min-width: 0;
+          aspect-ratio: 1 / 1;
+          max-width: 260px;
+          height: auto;
+          display: block;
+          object-fit: contain;
           user-select: none;
         }
 
