@@ -16,7 +16,12 @@ export const metadata = {
 // slightly-lit disturbance of the same burgundy, not a colour shift.
 export default function BhidioTest() {
   return (
-    <TestSurface background="#2E0812" waveMod="#701A2C">
+    <TestSurface
+      background="#2E0812"
+      waveMod="#701A2C"
+      wordmarkSrc="/AnTonn/test/bhidio-wordmark.png"
+      wordmarkAlt="Bhidio"
+    >
       <VideoWallCurved />
     </TestSurface>
   )

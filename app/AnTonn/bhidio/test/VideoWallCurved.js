@@ -1,23 +1,21 @@
 'use client'
 
-// Deep-cylindrical video wall for /AnTonn/bhidio/test.
+// Video wall for /AnTonn/bhidio/test — full-viewport-width flex layout.
 //
-// Six category columns arranged on the inside of a cylinder around the
-// viewer — Music, Educational, Comedy, Drama, Documentary, Live Sessions.
-// Each column stacks a category header + 4 rectangular video cards
-// (16:9). Cards are placeholders for now — real content wires in later
-// when we start sourcing YouTube video IDs (thumbnails come free from
-// https://img.youtube.com/vi/{ID}/hqdefault.jpg).
+// Six category columns fill the width edge to edge. Each column has a
+// sticky category header at the top and scrolls its own list of video
+// cards independently — vertical wheel/touch on a column moves only
+// that column, so users can browse deep down one category while the
+// others sit still. "Free floating" per Whitey's brief.
 //
-// Geometry:
-//   - 18° per column, 6 columns → 90° total arc across the viewer's field.
-//   - Radius R = 820px (each column sits that distance behind the
-//     perspective plane, on the wall of the cylinder).
-//   - Perspective = 1200px (moderately deep — not fish-eye, not flat).
+// A subtle rotateY per column gives a gentle curve — not a cylinder,
+// just a slight bend toward the viewer at the edges. No overlap,
+// no cylinder-projection math.
 //
-// Layout is CSS 3D only; no external libs. Reduced-motion users get a
-// flat row (no curve) so they don't need to parse 3D perspective.
+// Card click → the whole wall replaces itself with a large video
+// player that takes up the same footprint. Close returns to the grid.
 
+import { useState } from 'react'
 import { useLanguage } from '../../../../context/LanguageContext'
 
 const CATEGORIES = [
@@ -29,46 +27,45 @@ const CATEGORIES = [
   { slug: 'live',        en: 'Live Sessions', gd: 'Seiseanan Beò' },
 ]
 
-const STEP_DEG = 18
-// RADIUS + perspective set the apparent scale of the wall. Pulling the
-// radius in from 820 → 620 and stretching the perspective from 1200 →
-// 1600 brings the whole wall closer and cuts back the foreshortening,
-// so cards read much bigger without changing the curve depth.
-const RADIUS_PX = 620
-const COL_W = 340
-const COL_H = 820
+// Placeholder card set. Each category gets 12 for now so the columns
+// have real vertical content to scroll. Titles include the category
+// slug so debugging is obvious. Real content comes from the video
+// source pipeline later.
+function generateCards(slug) {
+  return Array.from({ length: 12 }, (_, i) => ({
+    id: `${slug}-${String(i + 1).padStart(2, '0')}`,
+    title: `${slug.charAt(0).toUpperCase() + slug.slice(1)} · Nº ${String(i + 1).padStart(2, '0')}`,
+    duration: `${Math.floor(2 + Math.random() * 8)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+  }))
+}
 
-// Four placeholder cards per column, common across all categories for
-// now. Titles + durations are stand-ins; real values arrive with the
-// video source data.
-const PLACEHOLDER_CARDS = [
-  { title: 'Sruth · Nº 01', duration: '4:12' },
-  { title: 'Sruth · Nº 02', duration: '2:56' },
-  { title: 'Sruth · Nº 03', duration: '5:03' },
-  { title: 'Sruth · Nº 04', duration: '3:24' },
-]
+const TILT_DEG = 4 // Per-column tilt. Outer columns end up at ±10°.
 
 export default function VideoWallCurved() {
   const { language } = useLanguage()
+  const [selected, setSelected] = useState(null)
+
+  if (selected) {
+    return <VideoPlayer video={selected} onClose={() => setSelected(null)} />
+  }
 
   return (
-    <div style={perspectiveStyle}>
+    <div style={wallStyle}>
       {CATEGORIES.map((cat, i) => {
-        const angle = (i - (CATEGORIES.length - 1) / 2) * STEP_DEG
+        const tilt = (i - (CATEGORIES.length - 1) / 2) * TILT_DEG
         return (
           <div
             key={cat.slug}
-            style={{
-              ...columnStyle,
-              transform: `rotateY(${angle}deg) translateZ(-${RADIUS_PX}px)`,
-            }}
+            style={{ ...columnStyle, transform: `rotateY(${tilt}deg)` }}
           >
             <div style={headerStyle}>
               {language === 'gd' ? cat.gd : cat.en}
             </div>
-            {PLACEHOLDER_CARDS.map((card, j) => (
-              <VideoCard key={j} {...card} />
-            ))}
+            <div style={cardsWrapStyle}>
+              {generateCards(cat.slug).map((card) => (
+                <VideoCard key={card.id} {...card} onSelect={() => setSelected(card)} />
+              ))}
+            </div>
           </div>
         )
       })}
@@ -76,72 +73,109 @@ export default function VideoWallCurved() {
   )
 }
 
-function VideoCard({ title, duration }) {
+function VideoCard({ title, duration, onSelect }) {
   return (
-    <div style={cardStyle}>
+    <button type="button" onClick={onSelect} style={cardStyle}>
       <div style={thumbStyle}>
         <span style={durationStyle}>{duration}</span>
       </div>
       <div style={titleStyle}>{title}</div>
+    </button>
+  )
+}
+
+// Full-viewport video player that replaces the wall on card select.
+// Placeholder body for now — swap to a YouTube <iframe> or <video>
+// element when real video IDs arrive.
+function VideoPlayer({ video, onClose }) {
+  return (
+    <div style={playerStyle}>
+      <button type="button" onClick={onClose} style={closeButtonStyle}>
+        ← Back to wall
+      </button>
+      <div style={playerScreenStyle}>
+        <div style={playerPlaceholderStyle}>
+          <p style={playerLabelStyle}>Now playing</p>
+          <h2 style={playerTitleStyle}>{video.title}</h2>
+          <p style={playerDurationStyle}>{video.duration}</p>
+        </div>
+      </div>
     </div>
   )
 }
 
 // ── Styles ───────────────────────────────────────────────────────────
 
-// Fills the viewport, establishes perspective + preserve-3d for the
-// columns. z-index: 2 explicitly stacks the wall ABOVE the wave canvas
-// — without it, the wave's GPU-composited canvas (position:fixed, no
-// z-index) can end up compositing on top of the wall on some browsers,
-// which is what caused the "flash then disappear" bug: the wall painted
-// for a frame at its layout position, then the wave layer covered it.
-// position:fixed keeps the wall and the wave in the same coordinate
-// space so there's no ambiguity about which one is on top.
-const perspectiveStyle = {
+// The wall fills the viewport. Top and bottom padding leave room for
+// the wordmark header + brand strip on top and the language pill on
+// bottom. Horizontal padding is minimal — Whitey wants edge-to-edge.
+const wallStyle = {
   position: 'fixed',
-  inset: 0,
-  perspective: '1600px',
-  perspectiveOrigin: '50% 50%',
-  transformStyle: 'preserve-3d',
-  pointerEvents: 'none',
+  top: 170,
+  bottom: 90,
+  left: 12,
+  right: 12,
+  display: 'flex',
+  gap: 12,
+  perspective: '2400px',
+  perspectiveOrigin: '50% 40%',
   zIndex: 2,
+  pointerEvents: 'none',
 }
 
-// One category column: fixed COL_W x COL_H box positioned via calc so
-// its centre sits exactly on the viewport centre before the 3D transform
-// rotates it out onto the cylinder wall. Fixed dims (no auto sizing)
-// keep the layout deterministic — auto-sized 3D-transformed elements
-// were the source of the earlier "flash then disappear" bug where the
-// column briefly rendered at top-left then jumped off-screen.
+// Each column: equal flex share, own scroll container with sticky
+// header inside. rotateY comes in per-column so we can vary it.
 const columnStyle = {
-  position: 'absolute',
-  top: `calc(50% - ${COL_H / 2}px)`,
-  left: `calc(50% - ${COL_W / 2}px)`,
-  width: COL_W,
-  height: COL_H,
-  transformOrigin: 'center center',
-  transformStyle: 'preserve-3d',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 14,
+  flex: '1 1 0',
+  minWidth: 0,
+  overflowY: 'auto',
+  overflowX: 'hidden',
+  transformOrigin: 'center 40%',
+  background: 'rgba(46, 8, 18, 0.28)',
+  border: '1px solid rgba(242, 236, 220, 0.06)',
+  borderRadius: 6,
+  boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+  scrollbarWidth: 'thin',
+  scrollbarColor: 'rgba(242,236,220,0.18) transparent',
   pointerEvents: 'auto',
 }
 
+// Sticky header keeps the category name pinned at the top of its
+// column even as the card list scrolls beneath it.
 const headerStyle = {
-  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
-  fontSize: 18,
+  position: 'sticky',
+  top: 0,
+  padding: '12px 8px',
+  fontFamily: 'var(--font-bebas-neue), Impact, sans-serif',
+  fontSize: 16,
   fontWeight: 400,
-  letterSpacing: '0.18em',
+  letterSpacing: '0.2em',
   textTransform: 'uppercase',
-  color: 'rgba(242, 236, 220, 0.92)',
-  paddingBottom: 8,
-  borderBottom: '1px solid rgba(242, 236, 220, 0.18)',
+  color: 'rgba(242, 236, 220, 0.94)',
   textAlign: 'center',
+  background: 'rgba(20, 4, 10, 0.82)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  borderBottom: '1px solid rgba(242, 236, 220, 0.14)',
+  zIndex: 2,
+}
+
+const cardsWrapStyle = {
+  padding: 10,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
 }
 
 const cardStyle = {
+  display: 'block',
+  width: '100%',
+  padding: 0,
+  background: 'transparent',
+  border: 'none',
   cursor: 'pointer',
-  transition: 'transform 220ms cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 220ms ease',
+  textAlign: 'left',
+  color: 'inherit',
 }
 
 const thumbStyle = {
@@ -152,14 +186,14 @@ const thumbStyle = {
     'linear-gradient(160deg, rgba(70, 12, 24, 0.85), rgba(20, 4, 10, 0.95))',
   border: '1px solid rgba(242, 236, 220, 0.10)',
   borderRadius: 4,
-  boxShadow: '0 10px 28px rgba(0,0,0,0.55)',
+  boxShadow: '0 6px 18px rgba(0,0,0,0.5)',
   overflow: 'hidden',
 }
 
 const durationStyle = {
   position: 'absolute',
-  right: 8,
-  bottom: 8,
+  right: 6,
+  bottom: 6,
   padding: '2px 6px',
   background: 'rgba(0, 0, 0, 0.6)',
   color: 'rgba(242, 236, 220, 0.9)',
@@ -170,10 +204,84 @@ const durationStyle = {
 }
 
 const titleStyle = {
-  marginTop: 6,
+  marginTop: 5,
   fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
-  fontSize: 13,
+  fontSize: 12,
   color: 'rgba(242, 236, 220, 0.78)',
   lineHeight: 1.35,
   textAlign: 'center',
+}
+
+// ── Player (post-click) styles ───────────────────────────────────────
+
+const playerStyle = {
+  position: 'fixed',
+  top: 170,
+  bottom: 90,
+  left: 12,
+  right: 12,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  zIndex: 3,
+}
+
+const closeButtonStyle = {
+  alignSelf: 'flex-start',
+  padding: '8px 16px',
+  background: 'rgba(46, 8, 18, 0.7)',
+  border: '1px solid rgba(242, 236, 220, 0.18)',
+  borderRadius: 4,
+  color: 'rgba(242, 236, 220, 0.94)',
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontSize: 12,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+  backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)',
+}
+
+// The screen that replaces the wall — spans the same footprint the
+// grid did, so the transition reads as "the wall becomes the screen".
+const playerScreenStyle = {
+  flex: '1 1 auto',
+  background: 'linear-gradient(180deg, rgba(46, 8, 18, 0.5), rgba(10, 2, 6, 0.85))',
+  border: '1px solid rgba(242, 236, 220, 0.10)',
+  borderRadius: 6,
+  boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const playerPlaceholderStyle = {
+  textAlign: 'center',
+  color: 'rgba(242, 236, 220, 0.9)',
+}
+
+const playerLabelStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontSize: 11,
+  letterSpacing: '0.24em',
+  textTransform: 'uppercase',
+  color: 'rgba(242, 236, 220, 0.55)',
+  margin: '0 0 8px',
+}
+
+const playerTitleStyle = {
+  fontFamily: 'var(--font-bebas-neue), Impact, sans-serif',
+  fontSize: 42,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  margin: '0 0 12px',
+  color: 'rgba(242, 236, 220, 0.98)',
+}
+
+const playerDurationStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontSize: 12,
+  letterSpacing: '0.16em',
+  color: 'rgba(242, 236, 220, 0.6)',
+  margin: 0,
 }

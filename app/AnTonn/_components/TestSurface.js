@@ -37,6 +37,8 @@ export default function TestSurface({
   waveBase,
   waveMod = '#242830',
   waveIntensity = 0.4,
+  wordmarkSrc,
+  wordmarkAlt = '',
   children,
 }) {
   const { t } = useLanguage()
@@ -93,6 +95,21 @@ export default function TestSurface({
           /AnTonn/test. */}
       <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
 
+      {/* Optional centred vertical wordmark (Bhidio, Ceòl, etc.) —
+          alpha-keyed PNG, hangs at the top of the surface between the
+          two top-corner pills, above the page content. */}
+      {wordmarkSrc && (
+        <div style={wordmarkWrapStyle}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={wordmarkSrc}
+            alt={wordmarkAlt}
+            style={wordmarkImgStyle}
+            draggable={false}
+          />
+        </div>
+      )}
+
       {/* Page-specific content slot. Sits between the chrome
           (brand strip, pills, wave) as the middle of the surface. */}
       {children}
@@ -138,6 +155,29 @@ const iconLinkStyle = {
 const iconImgStyle = {
   width: '100%',
   height: '100%',
+  display: 'block',
+  userSelect: 'none',
+}
+
+// Centred vertical wordmark (Bhidio / Ceòl / etc.). Same negative-top
+// trick as /AnTonn/test's AN TONN wordmark: the source PNGs are square
+// canvases with letters in the middle band, so a negative top pulls
+// the visible letters up to the top of the viewport while the
+// transparent padding sits above the viewport line.
+const wordmarkWrapStyle = {
+  position: 'absolute',
+  top: -110,
+  left: 0,
+  right: 0,
+  margin: '0 auto',
+  width: 'min(42vw, 400px)',
+  lineHeight: 0,
+  pointerEvents: 'none',
+  zIndex: 20,
+}
+const wordmarkImgStyle = {
+  width: '100%',
+  height: 'auto',
   display: 'block',
   userSelect: 'none',
 }
