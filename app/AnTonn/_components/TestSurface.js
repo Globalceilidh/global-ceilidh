@@ -7,13 +7,17 @@
 // background, with per-vertical tonal palette.
 //
 // Props:
-//   background — any CSS colour string used as the page bg fallback.
-//   waveBase   — hex string for the wave's still-water colour. Set
-//                this to the same value as `background` so the wave
-//                surface and page bg read as one continuous colour.
-//   waveMod    — hex string for the wave's ripple accent colour.
-//                Ripples brighten toward this shade — usually a lighter
-//                complementary tone of the same palette.
+//   background     — any CSS colour string used as the page bg fallback.
+//   waveBase       — hex string for the wave's still-water colour. Set
+//                    this to the same value as `background` so the wave
+//                    surface and page bg read as one continuous colour.
+//   waveMod        — hex string for the wave's ripple accent colour.
+//                    Ripples brighten toward this shade — usually a
+//                    lighter complementary tone of the same palette.
+//   waveIntensity  — scales the wave brightness. Default 0.4 keeps the
+//                    coloured vertical surfaces from reading too loud;
+//                    the AnTonn/test parent page bypasses TestSurface
+//                    and gets the full 1.0 shader.
 
 import Link from 'next/link'
 import { useRef } from 'react'
@@ -32,6 +36,7 @@ export default function TestSurface({
   background = '#000000',
   waveBase,
   waveMod = '#242830',
+  waveIntensity = 0.4,
 }) {
   const { t } = useLanguage()
 
@@ -53,6 +58,7 @@ export default function TestSurface({
         mouseRef={mouseRef}
         baseColor={resolvedWaveBase}
         modColor={waveMod}
+        intensityScale={waveIntensity}
       />
 
       {/* Top-left brand strip: Sniomh (GlobalCeilidh home link) — dash —

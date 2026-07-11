@@ -55,6 +55,7 @@ const fragmentShader = /* glsl */`
   uniform vec2 uResolution;
   uniform vec3 uBaseColor;
   uniform vec3 uModColor;
+  uniform float uIntensityScale;
   // Each ripple: xy = origin UV, z = age in seconds (< 0 means inactive slot).
   uniform vec3 uRipples[${MAX_RIPPLES}];
 
@@ -83,14 +84,16 @@ const fragmentShader = /* glsl */`
 
     // Base is the "still water" colour — usually matched to the page
     // background so the wave surface reads as seamless with the page.
-    // Ripples modulate toward uModColor.
-    float intensity = clamp(sum * 0.32, -0.45, 0.45);
+    // Ripples modulate toward uModColor. uIntensityScale scales the
+    // overall wave brightness (per-page dimmer for the coloured
+    // vertical surfaces where the wave was too loud).
+    float intensity = clamp(sum * 0.32 * uIntensityScale, -0.45, 0.45);
     vec3 color = uBaseColor + intensity * uModColor;
     gl_FragColor = vec4(color, 1.0);
   }
 `
 
-function WavePlane({ mouseRef, reduceMotionRef, baseColor, modColor }) {
+function WavePlane({ mouseRef, reduceMotionRef, baseColor, modColor, intensityScale }) {
   const materialRef = useRef()
 
   // Ring buffer of ripple sources. Kept as a plain object so useFrame
@@ -108,16 +111,18 @@ function WavePlane({ mouseRef, reduceMotionRef, baseColor, modColor }) {
     uResolution: { value: new THREE.Vector2(1, 1) },
     uBaseColor: { value: hexToVec3(baseColor) },
     uModColor: { value: hexToVec3(modColor) },
+    uIntensityScale: { value: intensityScale },
     uRipples: {
       value: Array.from({ length: MAX_RIPPLES }, () => new THREE.Vector3(0, 0, -1)),
     },
   }), [])
 
-  // Keep the colour uniforms in sync if the props change (per-page palettes).
+  // Keep the colour + intensity uniforms in sync if the props change.
   useEffect(() => {
     uniforms.uBaseColor.value.copy(hexToVec3(baseColor))
     uniforms.uModColor.value.copy(hexToVec3(modColor))
-  }, [baseColor, modColor, uniforms])
+    uniforms.uIntensityScale.value = intensityScale
+  }, [baseColor, modColor, intensityScale, uniforms])
 
   useFrame(({ size, clock }) => {
     if (!materialRef.current) return
@@ -186,6 +191,7 @@ export default function WaveBackground({
   mouseRef,
   baseColor = '#020409',
   modColor = '#242830',
+  intensityScale = 1.0,
 }) {
   const reduceMotionRef = useRef(false)
 
@@ -215,6 +221,7 @@ export default function WaveBackground({
         reduceMotionRef={reduceMotionRef}
         baseColor={baseColor}
         modColor={modColor}
+        intensityScale={intensityScale}
       />
     </Canvas>
   )
