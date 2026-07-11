@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { Canvas } from '@react-three/fiber';
 import VortexBackground from '../preview/components/VortexBackground';
 import LanguagePill from '../../../components/LanguagePill';
+import { useLanguage } from '../../../context/LanguageContext';
 import { ARTISTS, FALLBACK, matchArtist } from './data/artists';
 
 const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so upstream still fires only ~15/min max
@@ -16,34 +17,34 @@ const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so up
 // different artist).
 const PHOTO_CAROUSEL_MS = 8500;
 
-const SPONSOR_TICKER_ITEM = {
-  text: 'Fàilte gu Global Ceilidh Rèidio — sponsor a spot on our ticker at globalceilidh@gmail.com',
-  href: 'mailto:globalceilidh@gmail.com',
-};
-
-// Ticker cycles through every artist WITH tour dates set, regardless
-// of what's on screen or on the Live365 stream. Artists in the library
-// without tourDates (i.e. added for photo rotation only) are matched
-// on-air but stay out of the ticker so we don't render "Name · null".
-const TICKER_ITEMS = [
-  ...ARTISTS
-    .filter((a) => a.tourDates)
-    .flatMap((a) => [
-      { text: `${a.emoji || ''} ${a.name} · ${a.tourDates}` },
-      { text: '·' },
-    ]),
-  SPONSOR_TICKER_ITEM,
-  { text: '·' },
-];
+// Base tour-date items — language-agnostic. The sponsor CTA is
+// re-derived per-render inside the component so it flips language.
+const TICKER_TOUR_ITEMS = ARTISTS
+  .filter((a) => a.tourDates)
+  .flatMap((a) => [
+    { text: `${a.emoji || ''} ${a.name} · ${a.tourDates}` },
+    { text: '·' },
+  ]);
 
 const ADSENSE_PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID;
 const ADSENSE_SLOT_RADIO_TOP = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RADIO_TOP;
 
 export default function RadioClient() {
+  const { t } = useLanguage();
+
   // Mouse tracking — feeds VortexBackground so the whirlpool follows
   // the cursor (An Tonn parity).
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 });
   const [docHidden, setDocHidden] = useState(false);
+
+  // Ticker cycles through every artist WITH tour dates set, plus the
+  // localised sponsor CTA at the end. Re-derived per render so the
+  // sponsor line flips when the user toggles language.
+  const tickerItems = [
+    ...TICKER_TOUR_ITEMS,
+    { text: t('radio.ticker_sponsor'), href: 'mailto:globalceilidh@gmail.com' },
+    { text: '·' },
+  ];
 
 
   // Live365 sync — poll /api/live365/nowplaying every LIVE365_POLL_MS,
@@ -126,9 +127,7 @@ export default function RadioClient() {
           <div className="gc-radio-wrapper" style={contentWrapperStyle}>
             <header style={mastheadStyle}>
               <h1 style={titleStyle}>Global Cèilidh Rèidio</h1>
-              <p style={taglineStyle}>
-                The soundtrack of an t-sruth streaming around the world.
-              </p>
+              <p style={taglineStyle}>{t('radio.tagline')}</p>
             </header>
 
             {/* AdSense above the panels */}
@@ -136,7 +135,7 @@ export default function RadioClient() {
               <AdSenseUnit
                 publisherId={ADSENSE_PUB_ID}
                 slot={ADSENSE_SLOT_RADIO_TOP}
-                label="Ad · above the wave"
+                label={t('radio.ad_label')}
               />
             </div>
 
@@ -164,11 +163,11 @@ export default function RadioClient() {
             <div style={pillRowStyle}>
               <button type="button" style={pillStyle} onClick={() => setShowVote(true)}>
                 <span style={pillDotStyle} aria-hidden="true">◆</span>
-                Vote
+                {t('radio.vote_pill')}
               </button>
               <button type="button" style={pillStyle} onClick={() => setShowRequest(true)}>
                 <span style={pillDotStyle} aria-hidden="true">♪</span>
-                Request a Song
+                {t('radio.request_pill')}
               </button>
             </div>
 
@@ -178,7 +177,7 @@ export default function RadioClient() {
             <div style={tickerOuterStyle} aria-label="Global Ceilidh Radio — tour dates and sponsor ticker">
               <div style={tickerViewportStyle}>
                 <div className="gc-ticker-track">
-                  {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+                  {[...tickerItems, ...tickerItems].map((item, i) => (
                     <TickerItem key={i} item={item} />
                   ))}
                 </div>
@@ -186,7 +185,7 @@ export default function RadioClient() {
             </div>
 
             <div style={footerStyle}>
-              Interested in reserving your spot on the ticker? Email
+              {t('radio.footer_ticker_ask')}
               {' '}
               <a href="mailto:globalceilidh@gmail.com" style={footerLinkStyle}>
                 globalceilidh@gmail.com
@@ -248,12 +247,14 @@ export default function RadioClient() {
           </div>
         </main>
 
-        {/* EN/GD language toggle — top-left, opposite corner from Let's Talk. */}
-        <LanguagePill position="top-left" variant="dark" />
-
         {/* Let's Talk pill — matches /AnTonn/marble corner pill (same
             style, same position). Anchors to pageOuterStyle. */}
         <a href="/contact" style={letsTalkStyle}>Let&apos;s Talk</a>
+
+        {/* Language toggle — cream pill matching Let's Talk styling.
+            Sits in the bottom-right corner. Click flips the whole page
+            between English and Gàidhlig (see useLanguage()). */}
+        <LanguagePill position="bottom-right" layout="solid" />
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
         {showRequest && <RequestModal onClose={() => setShowRequest(false)} />}
@@ -271,14 +272,21 @@ export default function RadioClient() {
 // skips a network round-trip on modal open and — more importantly —
 // stops the select from redrawing after the fetch resolves, which was
 // causing the modal to visibly "switch" into its final state a beat
-// after it opened.
-const VOTE_CATEGORIES = [
-  { id: 'best-artist', label: 'Best Artist' },
-  { id: 'best-song',   label: 'Best Song'   },
-  { id: 'best-album',  label: 'Best Album'  },
-];
+// after it opened. Labels resolved via t() so they follow the site language.
+const VOTE_CATEGORY_IDS = ['best-artist', 'best-song', 'best-album'];
+const VOTE_CATEGORY_LABEL_KEY = {
+  'best-artist': 'radio.best_artist',
+  'best-song':   'radio.best_song',
+  'best-album':  'radio.best_album',
+};
+const VOTE_WRITEIN_PLACEHOLDER_KEY = {
+  'best-artist': 'radio.writein_artist',
+  'best-song':   'radio.writein_song',
+  'best-album':  'radio.writein_album',
+};
 
 function VoteModal({ onClose }) {
+  const { t } = useLanguage();
   const [categoryId, setCategoryId] = useState('best-artist');
   const [nominees, setNominees] = useState([]);
   const [nomineesLoading, setNomineesLoading] = useState(true);
@@ -322,7 +330,7 @@ function VoteModal({ onClose }) {
         honeypot,
       };
     } else {
-      setStatus({ kind: 'error', message: 'Pick a nominee or type a write-in.' });
+      setStatus({ kind: 'error', message: t('radio.pick_or_writein') });
       return;
     }
 
@@ -338,42 +346,42 @@ function VoteModal({ onClose }) {
         setStatus({
           kind: 'ok',
           message: data.promoted
-            ? 'Vote recorded — your write-in just hit 5 votes and is now a nominee!'
-            : 'Vote recorded. Come back tomorrow for another.',
+            ? t('radio.vote_promoted')
+            : t('radio.vote_recorded'),
         });
       } else {
-        setStatus({ kind: 'error', message: data.error || 'Something went wrong.' });
+        setStatus({ kind: 'error', message: data.error || t('radio.generic_error') });
       }
     } catch (err) {
-      setStatus({ kind: 'error', message: 'Network error — try again.' });
+      setStatus({ kind: 'error', message: t('radio.network_error') });
     }
   };
 
   return (
-    <ModalShell title="Vote — Top 10" onClose={onClose}>
+    <ModalShell title={t('radio.vote_title')} onClose={onClose}>
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>Category</label>
+        <label style={modalLabelStyle}>{t('radio.category')}</label>
         <select
           value={categoryId}
           onChange={(e) => { setCategoryId(e.target.value); setStatus({ kind: 'idle' }); }}
           style={modalSelectStyle}
         >
-          {VOTE_CATEGORIES.map(c => (
-            <option key={c.id} value={c.id}>{c.label}</option>
+          {VOTE_CATEGORY_IDS.map(id => (
+            <option key={id} value={id}>{t(VOTE_CATEGORY_LABEL_KEY[id])}</option>
           ))}
         </select>
       </div>
 
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>Nominees</label>
+        <label style={modalLabelStyle}>{t('radio.nominees')}</label>
         <div style={nomineeListStyle}>
           {nomineesLoading ? (
             <div style={{ ...nomineeRowStyle, color: 'rgba(242,236,220,0.5)', fontStyle: 'italic' }}>
-              Loading nominees…
+              {t('radio.loading_nominees')}
             </div>
           ) : nominees.length === 0 ? (
             <div style={{ ...nomineeRowStyle, color: 'rgba(242,236,220,0.5)', fontStyle: 'italic' }}>
-              No nominees yet — be the first with a write-in below.
+              {t('radio.no_nominees')}
             </div>
           ) : (
             nominees.map(n => (
@@ -393,21 +401,17 @@ function VoteModal({ onClose }) {
       </div>
 
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>Or write in a nominee</label>
+        <label style={modalLabelStyle}>{t('radio.writein_label')}</label>
         <input
           type="text"
           value={writeIn}
           onChange={(e) => { setWriteIn(e.target.value); if (e.target.value) setSelectedTargetId(null); }}
-          placeholder={
-            categoryId === 'best-artist' ? 'Artist name'
-            : categoryId === 'best-song' ? 'Song title'
-            : 'Album title'
-          }
+          placeholder={t(VOTE_WRITEIN_PLACEHOLDER_KEY[categoryId])}
           maxLength={200}
           style={modalInputStyle}
         />
         <div style={modalHintStyle}>
-          Write-ins become official nominees after 5 votes.
+          {t('radio.writein_hint')}
         </div>
       </div>
 
@@ -431,7 +435,7 @@ function VoteModal({ onClose }) {
 
       <div style={modalActionRowStyle}>
         <button type="button" style={modalCancelStyle} onClick={onClose}>
-          {status.kind === 'ok' ? 'Close' : 'Cancel'}
+          {status.kind === 'ok' ? t('radio.close') : t('radio.cancel')}
         </button>
         {status.kind !== 'ok' && (
           <button
@@ -440,7 +444,7 @@ function VoteModal({ onClose }) {
             onClick={submit}
             disabled={status.kind === 'submitting'}
           >
-            {status.kind === 'submitting' ? 'Submitting…' : 'Cast vote'}
+            {status.kind === 'submitting' ? t('radio.submitting') : t('radio.cast_vote')}
           </button>
         )}
       </div>
@@ -451,6 +455,7 @@ function VoteModal({ onClose }) {
 // ── Request modal ─────────────────────────────────────────────────────
 // Open queue. Server throttles to 3 requests / 10 min per IP.
 function RequestModal({ onClose }) {
+  const { t } = useLanguage();
   const [songTitle, setSongTitle] = useState('');
   const [artistName, setArtistName] = useState('');
   const [albumName, setAlbumName] = useState('');
@@ -461,7 +466,7 @@ function RequestModal({ onClose }) {
   const submit = async () => {
     if (status.kind === 'submitting') return;
     if (!songTitle.trim()) {
-      setStatus({ kind: 'error', message: 'Song title required.' });
+      setStatus({ kind: 'error', message: t('radio.song_title_error') });
       return;
     }
     setStatus({ kind: 'submitting' });
@@ -481,20 +486,20 @@ function RequestModal({ onClose }) {
       if (res.ok && data.ok) {
         setStatus({
           kind: 'ok',
-          message: 'Request received — thanks! We\'ll queue it into the rotation.',
+          message: t('radio.request_received'),
         });
       } else {
-        setStatus({ kind: 'error', message: data.error || 'Something went wrong.' });
+        setStatus({ kind: 'error', message: data.error || t('radio.generic_error') });
       }
     } catch {
-      setStatus({ kind: 'error', message: 'Network error — try again.' });
+      setStatus({ kind: 'error', message: t('radio.network_error') });
     }
   };
 
   return (
-    <ModalShell title="Request a Song" onClose={onClose}>
+    <ModalShell title={t('radio.request_title')} onClose={onClose}>
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>Song title *</label>
+        <label style={modalLabelStyle}>{t('radio.song_title_required')}</label>
         <input
           type="text"
           value={songTitle}
@@ -504,7 +509,7 @@ function RequestModal({ onClose }) {
         />
       </div>
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>Artist</label>
+        <label style={modalLabelStyle}>{t('radio.artist')}</label>
         <input
           type="text"
           value={artistName}
@@ -514,7 +519,7 @@ function RequestModal({ onClose }) {
         />
       </div>
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>Album</label>
+        <label style={modalLabelStyle}>{t('radio.album')}</label>
         <input
           type="text"
           value={albumName}
@@ -524,7 +529,7 @@ function RequestModal({ onClose }) {
         />
       </div>
       <div style={modalFieldStyle}>
-        <label style={modalLabelStyle}>Notes (optional)</label>
+        <label style={modalLabelStyle}>{t('radio.notes_optional')}</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -549,7 +554,7 @@ function RequestModal({ onClose }) {
 
       <div style={modalActionRowStyle}>
         <button type="button" style={modalCancelStyle} onClick={onClose}>
-          {status.kind === 'ok' ? 'Close' : 'Cancel'}
+          {status.kind === 'ok' ? t('radio.close') : t('radio.cancel')}
         </button>
         {status.kind !== 'ok' && (
           <button
@@ -558,7 +563,7 @@ function RequestModal({ onClose }) {
             onClick={submit}
             disabled={status.kind === 'submitting'}
           >
-            {status.kind === 'submitting' ? 'Submitting…' : 'Send request'}
+            {status.kind === 'submitting' ? t('radio.submitting') : t('radio.send_request')}
           </button>
         )}
       </div>

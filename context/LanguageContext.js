@@ -81,6 +81,82 @@ export const translations = {
     learn_more: { en: 'Learn more', gd: 'Ionnsaich tuilleadh' },
     formal_badge: { en: 'Formal', gd: 'Foirmeil' },
   },
+  // Global Ceilidh Radio — /AnTonn/radio
+  radio: {
+    tagline: {
+      en: 'The soundtrack of an t-sruth streaming around the world.',
+      gd: 'Fuaim-cheòl an t-sruth a\' sruthadh air feadh an t-saoghail.',
+    },
+    ad_label: { en: 'Ad · above the wave', gd: 'Sanas · os cionn na tuinne' },
+    vote_pill: { en: 'Vote', gd: 'Bhòt' },
+    request_pill: { en: 'Request a Song', gd: 'Iarr Òran' },
+    ticker_sponsor: {
+      en: 'Welcome to Global Ceilidh Radio — sponsor a spot on our ticker at globalceilidh@gmail.com',
+      gd: 'Fàilte gu Global Cèilidh Rèidio — thoir taic do àite air an teichdear againn aig globalceilidh@gmail.com',
+    },
+    footer_ticker_ask: {
+      en: 'Interested in reserving your spot on the ticker? Email',
+      gd: 'A bheil ùidh agad ann an àite a ghlèidheadh air an teichdear? Cuir post-d gu',
+    },
+
+    // Vote modal
+    vote_title: { en: 'Vote — Top 10', gd: 'Bhòt — Prìomh 10' },
+    category: { en: 'Category', gd: 'Roinn' },
+    best_artist: { en: 'Best Artist', gd: 'Prìomh Neach-ciùil' },
+    best_song: { en: 'Best Song', gd: 'Prìomh Òran' },
+    best_album: { en: 'Best Album', gd: 'Prìomh Chlàr' },
+    nominees: { en: 'Nominees', gd: 'Ainmichean' },
+    loading_nominees: { en: 'Loading nominees…', gd: 'A\' luchdachadh ainmichean…' },
+    no_nominees: {
+      en: 'No nominees yet — be the first with a write-in below.',
+      gd: 'Chan eil ainmichean fhathast — bi a\' chiad neach le ainm a-steach gu h-ìseal.',
+    },
+    writein_label: { en: 'Or write in a nominee', gd: 'No sgrìobh ainm a-steach' },
+    writein_artist: { en: 'Artist name', gd: 'Ainm neach-ciùil' },
+    writein_song: { en: 'Song title', gd: 'Tiotal òrain' },
+    writein_album: { en: 'Album title', gd: 'Tiotal clàir' },
+    writein_hint: {
+      en: 'Write-ins become official nominees after 5 votes.',
+      gd: 'Bidh ainmean a-steach \'nan ainmichean oifigeil an dèidh 5 bhòtaichean.',
+    },
+    cast_vote: { en: 'Cast vote', gd: 'Cuir do bhòt' },
+    submitting: { en: 'Submitting…', gd: 'A\' cur a-steach…' },
+    cancel: { en: 'Cancel', gd: 'Sguir' },
+    close: { en: 'Close', gd: 'Dùin' },
+    vote_recorded: {
+      en: 'Vote recorded. Come back tomorrow for another.',
+      gd: 'Chaidh do bhòt a chlàradh. Till a-màireach airson tè eile.',
+    },
+    vote_promoted: {
+      en: 'Vote recorded — your write-in just hit 5 votes and is now a nominee!',
+      gd: 'Chaidh do bhòt a chlàradh — ràinig d\' ainm a-steach 5 bhòtaichean agus tha e a-nis \'na ainm oifigeil!',
+    },
+    pick_or_writein: {
+      en: 'Pick a nominee or type a write-in.',
+      gd: 'Tagh ainm no sgrìobh fear a-steach.',
+    },
+    network_error: {
+      en: 'Network error — try again.',
+      gd: 'Mearachd lìn — feuch a-rithist.',
+    },
+    generic_error: { en: 'Something went wrong.', gd: 'Chaidh rud-eigin ceàrr.' },
+
+    // Request modal
+    request_title: { en: 'Request a Song', gd: 'Iarr Òran' },
+    song_title_required: { en: 'Song title *', gd: 'Tiotal òrain *' },
+    artist: { en: 'Artist', gd: 'Neach-ciùil' },
+    album: { en: 'Album', gd: 'Clàr' },
+    notes_optional: { en: 'Notes (optional)', gd: 'Notaichean (roghainneil)' },
+    send_request: { en: 'Send request', gd: 'Cuir iarrtas' },
+    song_title_error: {
+      en: 'Song title required.',
+      gd: 'Feumar tiotal òrain.',
+    },
+    request_received: {
+      en: 'Request received — thanks! We\'ll queue it into the rotation.',
+      gd: 'Fhuaireadh d\' iarrtas — mòran taing! Cuiridh sinn a-steach dhan chuairt e.',
+    },
+  },
   // An Saoghal — the diaspora map page
   saoghal: {
     title: { en: 'The Gàidhlig World', gd: 'An Saoghal Gàidhealach' },
