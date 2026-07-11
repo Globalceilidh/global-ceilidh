@@ -139,16 +139,17 @@ const topLeftGroupStyle = {
   left: 30,
   display: 'flex',
   alignItems: 'center',
-  gap: 14,
+  gap: 10,
   zIndex: 30,
 }
 
-// Each icon (sniomh, An Tonn wordmark) sits in a fixed 180x180 box
-// so they read as peers of the same visual weight.
+// Each icon (sniomh, An Tonn wordmark) sits in a fixed 90x90 box —
+// halved from the previous 180x180 so the chrome takes less of the
+// page real estate now that the verticals carry their own content.
 const iconLinkStyle = {
   display: 'block',
-  width: 180,
-  height: 180,
+  width: 90,
+  height: 90,
   lineHeight: 0,
 }
 
@@ -167,11 +168,11 @@ const iconImgStyle = {
 // marquee) read at real size.
 const wordmarkWrapStyle = {
   position: 'absolute',
-  top: -140,
+  top: -70,
   left: 0,
   right: 0,
   margin: '0 auto',
-  width: 'min(48vw, 520px)',
+  width: 'min(24vw, 260px)',
   lineHeight: 0,
   pointerEvents: 'none',
   zIndex: 20,
@@ -189,7 +190,7 @@ const dashStyle = {
   color: 'rgba(242, 236, 220, 0.72)',
   fontFamily:
     'var(--font-bebas-neue), "Bebas Neue", Impact, "Arial Black", sans-serif',
-  fontSize: 40,
+  fontSize: 24,
   fontWeight: 400,
   lineHeight: 1,
   userSelect: 'none',
