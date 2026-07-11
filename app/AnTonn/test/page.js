@@ -109,6 +109,10 @@ export default function AnTonnTest() {
           height: 100%;
           display: block;
           user-select: none;
+          /* Screen blend makes the PNG's baked black background contribute
+             nothing to the composite, so the wave shows through everything
+             that isn't part of the spiral. */
+          mix-blend-mode: screen;
         }
         .sniomh-glint {
           position: absolute;
@@ -168,6 +172,8 @@ export default function AnTonnTest() {
           height: auto;
           display: block;
           user-select: none;
+          /* Dissolve the PNG's black padding into the backdrop. */
+          mix-blend-mode: screen;
         }
 
         /* Four category tiles across the middle. Row is vertically
@@ -196,6 +202,10 @@ export default function AnTonnTest() {
           object-fit: contain;
           user-select: none;
           cursor: pointer;
+          /* Screen blend dissolves each tile's black card background
+             into the wave; only the figure + spiral + glow remain
+             visible. */
+          mix-blend-mode: screen;
           filter: brightness(1) drop-shadow(0 0 0 rgba(255,255,255,0));
           transform: translate3d(0, 0, 0) scale(1);
           transition:
