@@ -66,19 +66,37 @@ export default function AnTonnTest() {
         />
       </div>
 
-      {/* Four category tiles laid horizontally across the middle of
-          the page: Ceòl (Music), Bhidio (Film), Leabhraichean (Books),
-          Pod-chraoladh (Podcasts). Order matches the marble pill
-          stack and Whitey's sequence. Images are square 1:1. */}
+      {/* Four category columns across the middle. Each column is
+          tile-on-top + spinning name-plinth beneath. The plinth is a
+          white ring with the vertical's Gàidhlig name punched through
+          in Bebas Neue block caps — the wave shader shows through the
+          letter cutouts. Ring rotates clockwise (left-to-right) at
+          ~22s per revolution; graphic above stays put. */}
       <div className="tiles-row">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/music-ceol.png"        alt="Ceòl — Music"                className="tile" draggable={false} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/film-bhidio.png"       alt="Bhidio — Film"               className="tile" draggable={false} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/books-leabhraichean.png" alt="Leabhraichean — Books"     className="tile" draggable={false} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/AnTonn/test/podcast.png"           alt="Pod-chraoladh — Podcasts"    className="tile" draggable={false} />
+        <TileWithPlinth
+          src="/AnTonn/test/music-ceol.png"
+          alt="Ceòl — Music"
+          ringText="CEÒL"
+          ringSlug="ceol"
+        />
+        <TileWithPlinth
+          src="/AnTonn/test/film-bhidio.png"
+          alt="Bhidio — Film"
+          ringText="BHIDIO"
+          ringSlug="bhidio"
+        />
+        <TileWithPlinth
+          src="/AnTonn/test/books-leabhraichean.png"
+          alt="Leabhraichean — Books"
+          ringText="LEABHRAICHEAN"
+          ringSlug="leabhraichean"
+        />
+        <TileWithPlinth
+          src="/AnTonn/test/podcast.png"
+          alt="Pod-chraoladh — Podcasts"
+          ringText="POD-CHRAOLADH"
+          ringSlug="podcraoladh"
+        />
       </div>
 
       {/* Let's Talk pill — same treatment as /AnTonn/radio + /AnTonn/marble. */}
@@ -170,10 +188,9 @@ export default function AnTonnTest() {
           user-select: none;
         }
 
-        /* Four category tiles across the middle. Row is vertically
-           centred in the viewport; each tile is a square with equal
-           flex share so they space evenly across the row. Larger,
-           more presence-y sizing now (up from 260 → 340 max). */
+        /* Four category columns across the middle. Row is vertically
+           centred in the viewport; each column takes equal flex share.
+           The column stacks tile-on-top + spinning name-plinth beneath. */
         .tiles-row {
           position: absolute;
           top: 50%;
@@ -181,19 +198,23 @@ export default function AnTonnTest() {
           transform: translate(-50%, -50%);
           display: flex;
           gap: 32px;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           width: min(94vw, 1500px);
           z-index: 15;
         }
-        .tile {
+        .tile-column {
           flex: 1 1 0;
           min-width: 0;
-          aspect-ratio: 1 / 1;
           max-width: 340px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .tile {
+          width: 100%;
           height: auto;
           display: block;
-          object-fit: contain;
           user-select: none;
           cursor: pointer;
           filter: brightness(1) drop-shadow(0 0 0 rgba(255,255,255,0));
@@ -215,11 +236,101 @@ export default function AnTonnTest() {
             drop-shadow(0 0 22px rgba(255,255,255,0.35));
         }
 
+        /* Spinning name-plinth beneath each tile. The SVG viewBox is
+           200x200 and the ring lives at r=70 with a 40-unit stroke, so
+           it occupies inner r=50 → outer r=90. The mask cuts the ring
+           into letter-shaped holes; wave shader shows through. Rotation
+           applied to the whole SVG — the ring's own shape is
+           rotationally symmetric, so the visible effect is text moving
+           clockwise around a static-looking band. */
+        .plinth-svg {
+          width: 78%;
+          height: auto;
+          display: block;
+          margin-top: -34px;
+          animation: plinth-spin 22s linear infinite;
+          pointer-events: none;
+        }
+        @keyframes plinth-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .sniomh-glint { animation: none; }
+          .sniomh-glint,
+          .plinth-svg { animation: none; }
         }
       `}</style>
     </div>
+  )
+}
+
+// One column of the tiles row: the graphic image + the spinning name
+// plinth beneath. The plinth's ring text is repeated to fill the
+// circumference — short names loop more times than long ones.
+function TileWithPlinth({ src, alt, ringText, ringSlug }) {
+  return (
+    <div className="tile-column">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="tile" draggable={false} />
+      <PlinthRing text={ringText} slug={ringSlug} />
+    </div>
+  )
+}
+
+// SVG spinning-plinth ring. The ring is a white stroked circle;
+// a mask paints the text on a circular path in BLACK — so the text
+// appears as holes cut through the ring. The whole SVG rotates via
+// CSS animation, and because the ring's shape is rotationally
+// symmetric, only the punched letters visually move.
+function PlinthRing({ text, slug }) {
+  const maskId = `plinth-mask-${slug}`
+  const pathId = `plinth-path-${slug}`
+  // Repeat count tuned so short words (CEÒL) fill the ring several
+  // times while long ones (LEABHRAICHEAN) don't overrun themselves.
+  const reps = text.length <= 6 ? 5 : text.length <= 10 ? 3 : 2
+  const bannerText = Array(reps).fill(text).join(' · ') + ' · '
+  return (
+    <svg viewBox="0 0 200 200" className="plinth-svg" aria-hidden="true">
+      <defs>
+        {/* Circle at r=70, traced clockwise from top so text on it
+            reads left→right at the top of the ring. */}
+        <path
+          id={pathId}
+          d="M 100,30 A 70,70 0 1,1 100,170 A 70,70 0 1,1 100,30"
+          fill="none"
+        />
+        <mask id={maskId} maskUnits="userSpaceOnUse">
+          {/* White = visible band. */}
+          <rect width="200" height="200" fill="white" />
+          {/* Black text on circular path = holes cut through the ring. */}
+          <text
+            fill="black"
+            style={{
+              fontFamily:
+                'var(--font-bebas-neue), "Bebas Neue", Impact, "Arial Black", sans-serif',
+              fontSize: 20,
+              fontWeight: 400,
+              letterSpacing: 3,
+            }}
+          >
+            <textPath href={`#${pathId}`} startOffset="0">
+              {bannerText}
+            </textPath>
+          </text>
+        </mask>
+      </defs>
+      {/* The ring: r=70 with stroke-width=40 → inner r=50, outer r=90. */}
+      <circle
+        cx="100"
+        cy="100"
+        r="70"
+        fill="none"
+        stroke="white"
+        strokeWidth="40"
+        mask={`url(#${maskId})`}
+      />
+    </svg>
   )
 }
 
