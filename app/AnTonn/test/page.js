@@ -15,15 +15,26 @@ export default function AnTonnTest() {
   return (
     <div style={pageStyle}>
       {/* Sniomh — the core GlobalCeilidh design motif. Links back to
-          the homepage. */}
-      <Link href="/" style={homeIconLinkStyle} aria-label="GlobalCeilidh home">
+          the homepage. Hover fires the light-glint sweep (see <style>). */}
+      <Link
+        href="/"
+        className="sniomh-wrap"
+        aria-label="GlobalCeilidh home"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/AnTonn/test/sniomh.png"
           alt="GlobalCeilidh — home"
-          style={homeIconImgStyle}
+          className="sniomh-img"
           draggable={false}
         />
+        {/* Glint overlay — a rotating conic gradient masked to the
+            spiral's own luminance, so the light appears only where the
+            spiral rings are (not on the black background). Screen blend
+            mode adds brightness rather than replacing pixels, so the
+            spiral geometry stays visible under the glint. Idle: hidden
+            + paused (zero cost). Hover: fade in + spin. */}
+        <span className="sniomh-glint" aria-hidden="true" />
       </Link>
 
       {/* Let's Talk pill — same treatment as /AnTonn/radio + /AnTonn/marble. */}
@@ -37,6 +48,66 @@ export default function AnTonnTest() {
         offsetBottom={56}
         offsetRight={30}
       />
+
+      <style>{`
+        .sniomh-wrap {
+          position: absolute;
+          top: 30px;
+          left: 30px;
+          display: block;
+          width: 180px;
+          height: 180px;
+          z-index: 30;
+          lineHeight: 0;
+        }
+        .sniomh-img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          user-select: none;
+        }
+        .sniomh-glint {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 330deg,
+            rgba(255,255,255,0.65) 348deg,
+            #FFFFFF 360deg,
+            rgba(255,255,255,0.65) 12deg,
+            transparent 30deg,
+            transparent 360deg
+          );
+          -webkit-mask-image: url(/AnTonn/test/sniomh.png);
+          mask-image: url(/AnTonn/test/sniomh.png);
+          -webkit-mask-size: 100% 100%;
+          mask-size: 100% 100%;
+          -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+          -webkit-mask-source-type: luminance;
+          mask-mode: luminance;
+          mix-blend-mode: screen;
+          filter: blur(4px);
+          opacity: 0;
+          animation: sniomh-spin 1.8s linear infinite;
+          animation-play-state: paused;
+          transition: opacity 320ms ease;
+        }
+        .sniomh-wrap:hover .sniomh-glint,
+        .sniomh-wrap:focus-visible .sniomh-glint {
+          opacity: 1;
+          animation-play-state: running;
+        }
+        @keyframes sniomh-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .sniomh-glint { animation: none; }
+        }
+      `}</style>
     </div>
   )
 }
@@ -46,22 +117,6 @@ const pageStyle = {
   inset: 0,
   background: '#000000',
   overflow: 'hidden',
-}
-
-const homeIconLinkStyle = {
-  position: 'absolute',
-  top: 30,
-  left: 30,
-  display: 'block',
-  lineHeight: 0,
-  zIndex: 30,
-}
-
-const homeIconImgStyle = {
-  width: 96,
-  height: 96,
-  display: 'block',
-  userSelect: 'none',
 }
 
 // White pill matching /AnTonn/radio + /AnTonn/marble.
