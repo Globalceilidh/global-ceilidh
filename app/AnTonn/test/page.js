@@ -67,31 +67,34 @@ export default function AnTonnTest() {
       </div>
 
       {/* Four category columns across the middle. Each column is
-          graphic-on-top + spinning name-ring beneath. Rings are the
-          alpha-keyed metallic ring PNGs; they rotate clockwise around
-          the Y (vertical) axis at ~22s per revolution — same effect
-          as a real ring spinning on a turntable, viewed from above.
-          Graphic above stays put. */}
+          graphic-on-top + static ring beneath. Two clickable hotspots
+          per column: a small circular target over the bright vortex
+          centre of the graphic, and the whole name-ring — both link
+          to the vertical's own sandbox surface. */}
       <div className="tiles-row">
         <TileWithPlinth
           src="/AnTonn/test/music-ceol.png"
           alt="Ceòl — Music"
           ringSrc="/AnTonn/test/ring-ceol.png"
+          href="/AnTonn/ceol/test"
         />
         <TileWithPlinth
           src="/AnTonn/test/film-bhidio.png"
           alt="Bhidio — Film"
           ringSrc="/AnTonn/test/ring-bhidio.png"
+          href="/AnTonn/bhidio/test"
         />
         <TileWithPlinth
           src="/AnTonn/test/books-leabhraichean.png"
           alt="Leabhraichean — Books"
           ringSrc="/AnTonn/test/ring-leabhraichean.png"
+          href="/AnTonn/leabhraichean/test"
         />
         <TileWithPlinth
           src="/AnTonn/test/podcast.png"
           alt="Pod-chraoladh — Podcasts"
           ringSrc="/AnTonn/test/ring-podcraoladh.png"
+          href="/AnTonn/podcraoladh/test"
         />
       </div>
 
@@ -207,24 +210,28 @@ export default function AnTonnTest() {
           flex-direction: column;
           align-items: center;
         }
+        /* Positioned so the vortex hotspot can anchor to it. */
+        .tile-wrap {
+          position: relative;
+          width: 100%;
+          line-height: 0;
+        }
         .tile {
           width: 100%;
           height: auto;
           display: block;
           user-select: none;
-          cursor: pointer;
           filter: brightness(1) drop-shadow(0 0 0 rgba(255,255,255,0));
           transform: translate3d(0, 0, 0) scale(1);
           transition:
             transform 320ms cubic-bezier(0.2, 0.7, 0.3, 1),
             filter   320ms ease;
         }
-        /* Hover: brighten + lift slightly forward. translate3d nudges
-           the tile up + toward camera (subtle z-cue via slight scale),
-           filter adds a soft white glow so the whole graphic reads as
-           "lit". */
-        .tile:hover,
-        .tile:focus-visible {
+        /* Hover: brighten + lift slightly forward. Fires on the whole
+           column so hovering the ring or the vortex hotspot both lift
+           the graphic — reads as "the whole column is one thing". */
+        .tile-column:hover .tile,
+        .tile-column:focus-within .tile {
           transform: translate3d(0, -14px, 0) scale(1.05);
           filter:
             brightness(1.28)
@@ -232,18 +239,49 @@ export default function AnTonnTest() {
             drop-shadow(0 0 22px rgba(255,255,255,0.35));
         }
 
-        /* Static name-ring tucked up under the graphic. Negative
-           margin-top pulls it into the bottom portion of the tile so
-           the figure appears to be standing on it. Alpha-keyed PNG,
-           so the wave shader shows through around the ring. Spin
+        /* Bright-centre vortex hotspot — small circle over the graphic's
+           bright core. Kept transparent so the artwork underneath shows
+           through; cursor + hover halo signal that it's the click target. */
+        .tile-hotspot {
+          position: absolute;
+          left: 41%;
+          top: 56%;
+          width: 18%;
+          height: 18%;
+          border-radius: 50%;
+          cursor: pointer;
+          z-index: 5;
+          transition: box-shadow 220ms ease, background 220ms ease;
+        }
+        .tile-hotspot:hover,
+        .tile-hotspot:focus-visible {
+          outline: none;
+          background: radial-gradient(
+            circle,
+            rgba(255,255,255,0.28) 0%,
+            rgba(255,255,255,0.10) 55%,
+            rgba(255,255,255,0.00) 80%
+          );
+          box-shadow: 0 0 26px rgba(255,255,255,0.28);
+        }
+
+        /* Ring is wrapped in a Link that carries the clickable width
+           so anywhere on the ring image counts as a hit. */
+        .ring-link {
+          display: block;
+          width: 78%;
+          margin-top: -140px;
+          cursor: pointer;
+          line-height: 0;
+        }
+        /* Static name-ring tucked up under the graphic. Alpha-keyed
+           PNG, so the wave shader shows through around the ring. Spin
            returns once the 24-frame renders arrive. */
         .ring-static {
           display: block;
-          width: 78%;
+          width: 100%;
           height: auto;
-          margin-top: -140px;
           user-select: none;
-          pointer-events: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -255,22 +293,32 @@ export default function AnTonnTest() {
 }
 
 // One column of the tiles row: the graphic image + a static metallic
-// ring image tucked up underneath it. Spinning animation is temporarily
-// removed pending the 24-frame renders; the ring is still alpha-keyed
-// so the wave shader shows through around and behind it.
-function TileWithPlinth({ src, alt, ringSrc }) {
+// ring image tucked up underneath it. Two clickable hotspots — a small
+// circle over the bright vortex centre of the graphic, and the whole
+// name-ring — both linking to `href` (the vertical's sandbox surface).
+// The rest of the graphic is intentionally NOT clickable; the entrances
+// to each vertical are the vortex and the word.
+function TileWithPlinth({ src, alt, ringSrc, href }) {
   return (
     <div className="tile-column">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="tile" draggable={false} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={ringSrc}
-        alt=""
-        aria-hidden="true"
-        className="ring-static"
-        draggable={false}
-      />
+      <div className="tile-wrap">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={alt} className="tile" draggable={false} />
+        {/* Bright-centre vortex hotspot. All four graphics have their
+            bright vortex point at roughly (50%, 65%) of the image, so
+            one hotspot geometry works for all. */}
+        <Link href={href} className="tile-hotspot" aria-label={`Enter ${alt}`} />
+      </div>
+      <Link href={href} className="ring-link" aria-label={alt}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={ringSrc}
+          alt=""
+          aria-hidden="true"
+          className="ring-static"
+          draggable={false}
+        />
+      </Link>
     </div>
   )
 }
