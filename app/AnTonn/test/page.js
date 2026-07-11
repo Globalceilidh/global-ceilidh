@@ -160,12 +160,10 @@ export default function AnTonnTest() {
           to   { transform: rotate(360deg); }
         }
 
-        /* An Tonn wordmark — page header. The source PNG is a square-ish
-           canvas with the wordmark centred; the surrounding black padding
-           matches the page bg. We shift the whole image up with a negative
-           top, and centre horizontally with auto margins (NOT transform —
-           transform creates a stacking context and would trap the img's
-           mix-blend-mode inside it). */
+        /* An Tonn wordmark — page header. Blend on the wrapper so the
+           whole element composites as one group against the backdrop.
+           (Blend on the img alone silently fails on some browsers when
+           the img is not filling a fixed-height container.) */
         .antonn-title-wrap {
           position: absolute;
           top: -140px;
@@ -174,14 +172,13 @@ export default function AnTonnTest() {
           margin: 0 auto;
           width: min(56vw, 520px);
           line-height: 0;
+          mix-blend-mode: screen;
         }
         .antonn-title-img {
           width: 100%;
           height: auto;
           display: block;
           user-select: none;
-          /* Dissolve the PNG's black padding into the backdrop. */
-          mix-blend-mode: screen;
         }
 
         /* Outer wrapper centres the tile row in the viewport using
@@ -197,8 +194,10 @@ export default function AnTonnTest() {
           pointer-events: none;
         }
         /* Four category tiles across the middle. Row is a flex container
-           so the tiles space evenly. No z-index or transform here — see
-           .tiles-outer note. Larger sizing (up from 260 → 340 max). */
+           so the tiles space evenly. Blend on the row so all four tiles
+           composite as one group against the wave backdrop (blending on
+           individual img children was silently failing inside the flex
+           layout on some browsers). */
         .tiles-row {
           display: flex;
           gap: 32px;
@@ -206,6 +205,7 @@ export default function AnTonnTest() {
           justify-content: center;
           width: min(94vw, 1500px);
           pointer-events: auto;
+          mix-blend-mode: screen;
         }
         .tile {
           flex: 1 1 0;
@@ -217,13 +217,9 @@ export default function AnTonnTest() {
           object-fit: contain;
           user-select: none;
           cursor: pointer;
-          /* Screen blend dissolves each tile's black card background
-             into whatever's behind it; only the figure + spiral +
-             glow remain visible.
-             NB: no base-state filter or transform — even identity
-             values would create a compositor layer that can interfere
-             with the blend on some browsers. Hover state gets both. */
-          mix-blend-mode: screen;
+          /* Blend lives on .tiles-row now, not here — see comment
+             on .tiles-row. Individual tiles just handle sizing +
+             hover motion. */
           transition:
             transform 320ms cubic-bezier(0.2, 0.7, 0.3, 1),
             filter   320ms ease;
