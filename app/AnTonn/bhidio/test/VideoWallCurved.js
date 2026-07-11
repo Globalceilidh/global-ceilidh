@@ -31,6 +31,8 @@ const CATEGORIES = [
 
 const STEP_DEG = 18
 const RADIUS_PX = 820
+const COL_W = 260
+const COL_H = 640
 
 // Four placeholder cards per column, common across all categories for
 // now. Titles + durations are stand-ins; real values arrive with the
@@ -46,30 +48,26 @@ export default function VideoWallCurved() {
   const { language } = useLanguage()
 
   return (
-    <div style={outerStyle}>
-      <div style={perspectiveStyle}>
-        <div style={stageStyle}>
-          {CATEGORIES.map((cat, i) => {
-            const angle = (i - (CATEGORIES.length - 1) / 2) * STEP_DEG
-            return (
-              <div
-                key={cat.slug}
-                style={{
-                  ...columnStyle,
-                  transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(-${RADIUS_PX}px)`,
-                }}
-              >
-                <div style={headerStyle}>
-                  {language === 'gd' ? cat.gd : cat.en}
-                </div>
-                {PLACEHOLDER_CARDS.map((card, j) => (
-                  <VideoCard key={j} {...card} />
-                ))}
-              </div>
-            )
-          })}
-        </div>
-      </div>
+    <div style={perspectiveStyle}>
+      {CATEGORIES.map((cat, i) => {
+        const angle = (i - (CATEGORIES.length - 1) / 2) * STEP_DEG
+        return (
+          <div
+            key={cat.slug}
+            style={{
+              ...columnStyle,
+              transform: `rotateY(${angle}deg) translateZ(-${RADIUS_PX}px)`,
+            }}
+          >
+            <div style={headerStyle}>
+              {language === 'gd' ? cat.gd : cat.en}
+            </div>
+            {PLACEHOLDER_CARDS.map((card, j) => (
+              <VideoCard key={j} {...card} />
+            ))}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -87,53 +85,37 @@ function VideoCard({ title, duration }) {
 
 // ── Styles ───────────────────────────────────────────────────────────
 
-// Full-viewport centre anchor.
-const outerStyle = {
+// Fills the {children} slot, establishes perspective + a preserve-3d
+// context so columns can be translated back on the Z axis without
+// being flattened. Position: absolute inside TestSurface's pageStyle
+// (which is fixed inset:0), so this fills the viewport too.
+const perspectiveStyle = {
   position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  inset: 0,
+  perspective: '1200px',
+  perspectiveOrigin: '50% 50%',
+  transformStyle: 'preserve-3d',
   pointerEvents: 'none',
 }
 
-// Establishes the perspective + preserves 3D for children.
-const perspectiveStyle = {
-  perspective: '1200px',
-  perspectiveOrigin: '50% 50%',
-  width: '100%',
-  height: '100%',
-  position: 'relative',
-  pointerEvents: 'auto',
-}
-
-// Cylinder centre — columns rotate around this origin then translateZ back.
-const stageStyle = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  width: 0,
-  height: 0,
-  transformStyle: 'preserve-3d',
-}
-
-// One category column: stacks header + 4 cards. Fixed width because
-// flexible width doesn't play well with the 3D transform pipeline.
+// One category column: fixed COL_W x COL_H box positioned via calc so
+// its centre sits exactly on the viewport centre before the 3D transform
+// rotates it out onto the cylinder wall. Fixed dims (no auto sizing)
+// keep the layout deterministic — auto-sized 3D-transformed elements
+// were the source of the earlier "flash then disappear" bug where the
+// column briefly rendered at top-left then jumped off-screen.
 const columnStyle = {
   position: 'absolute',
-  top: 0,
-  left: 0,
-  width: 260,
-  transformOrigin: '50% 50%',
+  top: `calc(50% - ${COL_H / 2}px)`,
+  left: `calc(50% - ${COL_W / 2}px)`,
+  width: COL_W,
+  height: COL_H,
+  transformOrigin: 'center center',
   transformStyle: 'preserve-3d',
   display: 'flex',
   flexDirection: 'column',
   gap: 14,
-  // Centre the card stack vertically around the cylinder axis.
-  marginTop: -320,
+  pointerEvents: 'auto',
 }
 
 const headerStyle = {
