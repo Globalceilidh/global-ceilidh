@@ -159,14 +159,13 @@ export default function RadioClient() {
             </div>
 
             {/* Vote + Request pills — Vote drives An Tonn Top-10s (Best
-                Artist / Song / Album). Requests land in sruth-admin. */}
+                Artist / Song / Album). Requests land in sruth-admin.
+                Same cream pill styling as Let's Talk + language pill. */}
             <div style={pillRowStyle}>
               <button type="button" style={pillStyle} onClick={() => setShowVote(true)}>
-                <span style={pillDotStyle} aria-hidden="true">◆</span>
                 {t('radio.vote_pill')}
               </button>
               <button type="button" style={pillStyle} onClick={() => setShowRequest(true)}>
-                <span style={pillDotStyle} aria-hidden="true">♪</span>
                 {t('radio.request_pill')}
               </button>
             </div>
@@ -990,30 +989,22 @@ const pillRowStyle = {
   flexWrap: 'wrap',
 };
 
+// Cream pill matching the Let's Talk + language pill styling exactly.
+// Consistent visual language across all corner + inline pills on the
+// radio page — one type, one look.
 const pillStyle = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 8,
-  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
-  fontSize: 13,
-  fontWeight: 600,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  color: '#F2ECDC',
-  background: 'rgba(20, 30, 45, 0.72)',
-  border: '1px solid rgba(201, 160, 71, 0.45)',
+  padding: '11px 26px',
   borderRadius: 999,
-  padding: '11px 22px',
-  cursor: 'pointer',
-  transition: 'background 200ms ease, border-color 200ms ease, transform 120ms ease',
-  backdropFilter: 'blur(6px)',
-  WebkitBackdropFilter: 'blur(6px)',
-};
-
-const pillDotStyle = {
-  color: '#C9A047',
+  background: '#F2ECDC',
+  color: '#0A0D14',
+  border: 'none',
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
+  fontWeight: 500,
   fontSize: 14,
-  lineHeight: 1,
+  letterSpacing: 0.3,
+  cursor: 'pointer',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+  transition: 'transform 220ms ease, box-shadow 220ms ease',
 };
 
 const modalBackdropStyle = {
