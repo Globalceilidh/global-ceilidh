@@ -251,8 +251,16 @@ export default function RadioClient() {
         <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
 
         {/* Language toggle — EN⇄GD slider on a white pill, bottom-right.
-            Click flips the whole page between English and Gàidhlig. */}
-        <LanguagePill position="bottom-right" layout="toggle" variant="white" />
+            Bottom 88 matches contentWrapperStyle's bottom padding so the
+            pill sits with the footer content, not below it. Right inset
+            mirrors the Let's Talk pill. */}
+        <LanguagePill
+          position="bottom-right"
+          layout="toggle"
+          variant="white"
+          offsetBottom={88}
+          offsetRight={PILL_RIGHT_INSET}
+        />
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
         {showRequest && <RequestModal onClose={() => setShowRequest(false)} />}
@@ -735,11 +743,17 @@ const pageOuterStyle = {
   overflowX: 'hidden',
 };
 
-// Static pill in the top-right corner. Same white / Bebas Neue
-// look as every other pill on the radio surface.
+// Right-edge inset that matches the content wrapper's outer edge
+// (maxWidth 1200 centered, 20px horizontal padding). Both corner
+// pills use this so they sit inside the same visual gutter as the
+// header and footer content — not flush against the viewport edge.
+const PILL_RIGHT_INSET = 'max(20px, calc((100vw - 1200px) / 2 + 20px))';
+
+// Top pill: 56 = contentWrapperStyle's top padding, so the pill
+// baseline sits with the header content.
 const letsTalkStyle = {
   position: 'absolute',
-  top: 26, right: 30,
+  top: 56, right: PILL_RIGHT_INSET,
   padding: '11px 26px',
   borderRadius: 999,
   background: '#FFFFFF',
