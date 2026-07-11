@@ -37,6 +37,21 @@ export default function AnTonnTest() {
         <span className="sniomh-glint" aria-hidden="true" />
       </Link>
 
+      {/* An Tonn wordmark — page title, centred horizontally at the
+          top. Same glint-on-hover treatment as the sniomh (masked to
+          the letterforms' own luminance so the light sweeps only
+          through the letters, not the black background). */}
+      <div className="antonn-title-wrap">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/AnTonn/test/antonn-wordmark.png"
+          alt="An Tonn"
+          className="antonn-title-img"
+          draggable={false}
+        />
+        <span className="antonn-title-glint" aria-hidden="true" />
+      </div>
+
       {/* Let's Talk pill — same treatment as /AnTonn/radio + /AnTonn/marble. */}
       <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
 
@@ -58,7 +73,7 @@ export default function AnTonnTest() {
           width: 180px;
           height: 180px;
           z-index: 30;
-          lineHeight: 0;
+          line-height: 0;
         }
         .sniomh-img {
           width: 100%;
@@ -104,8 +119,64 @@ export default function AnTonnTest() {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
+
+        /* An Tonn wordmark — page title. Same glint pattern as sniomh,
+           masked to the letterforms so the light only sweeps through
+           the letters and not the black background. */
+        .antonn-title-wrap {
+          position: absolute;
+          top: 40px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: block;
+          width: min(60vw, 560px);
+          z-index: 20;
+          line-height: 0;
+          pointer-events: auto;
+        }
+        .antonn-title-img {
+          width: 100%;
+          height: auto;
+          display: block;
+          user-select: none;
+        }
+        .antonn-title-glint {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 330deg,
+            rgba(255,255,255,0.65) 348deg,
+            #FFFFFF 360deg,
+            rgba(255,255,255,0.65) 12deg,
+            transparent 30deg,
+            transparent 360deg
+          );
+          -webkit-mask-image: url(/AnTonn/test/antonn-wordmark.png);
+          mask-image: url(/AnTonn/test/antonn-wordmark.png);
+          -webkit-mask-size: 100% 100%;
+          mask-size: 100% 100%;
+          -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+          -webkit-mask-source-type: luminance;
+          mask-mode: luminance;
+          mix-blend-mode: screen;
+          filter: blur(4px);
+          opacity: 0;
+          animation: sniomh-spin 1.8s linear infinite;
+          animation-play-state: paused;
+          transition: opacity 320ms ease;
+        }
+        .antonn-title-wrap:hover .antonn-title-glint {
+          opacity: 1;
+          animation-play-state: running;
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .sniomh-glint { animation: none; }
+          .sniomh-glint,
+          .antonn-title-glint { animation: none; }
         }
       `}</style>
     </div>
