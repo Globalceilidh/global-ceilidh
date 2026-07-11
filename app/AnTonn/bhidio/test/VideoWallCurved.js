@@ -39,7 +39,30 @@ function generateCards(slug) {
   }))
 }
 
-const TILT_DEG = 4 // Per-column tilt. Outer columns end up at ±10°.
+// Inner-bend curve tuning.
+//
+// Every column gets both a rotateY (tilt to face the viewer) AND a
+// translateZ (push back on the depth axis). Both scale with |distance
+// from centre|:
+//
+//   TILT_PER_UNIT   — how many degrees a column at 1 unit off centre tilts.
+//                     Grows linearly with distance; outer columns hit
+//                     ±(TILT_PER_UNIT × (n-1)/2).
+//   DEPTH_PER_UNIT² — how many px deeper a column is per unit-distance
+//                     SQUARED. Quadratic ramp so the middle columns
+//                     stay near the viewer plane and only the outer
+//                     ones recede. This is what turns individual "tilt"
+//                     into a coherent inner-bend curve.
+//
+// With 6 columns (index 0..5, centre at 2.5):
+//   col 0 : dist 2.5 → tilt -10°, depth ~94px behind
+//   col 1 : dist 1.5 → tilt  -6°, depth ~34px behind
+//   col 2 : dist 0.5 → tilt  -2°, depth ~4px  behind  (nearly flat)
+//   col 3 : dist 0.5 → tilt  +2°, depth ~4px  behind
+//   col 4 : dist 1.5 → tilt  +6°, depth ~34px behind
+//   col 5 : dist 2.5 → tilt +10°, depth ~94px behind
+const TILT_PER_UNIT = 4
+const DEPTH_PER_UNIT2 = 15
 
 export default function VideoWallCurved() {
   const { language } = useLanguage()
@@ -49,14 +72,21 @@ export default function VideoWallCurved() {
     return <VideoPlayer video={selected} onClose={() => setSelected(null)} />
   }
 
+  const centre = (CATEGORIES.length - 1) / 2
+
   return (
     <div style={wallStyle}>
       {CATEGORIES.map((cat, i) => {
-        const tilt = (i - (CATEGORIES.length - 1) / 2) * TILT_DEG
+        const offset = i - centre
+        const tilt = offset * TILT_PER_UNIT
+        const depth = offset * offset * DEPTH_PER_UNIT2
         return (
           <div
             key={cat.slug}
-            style={{ ...columnStyle, transform: `rotateY(${tilt}deg)` }}
+            style={{
+              ...columnStyle,
+              transform: `translateZ(${-depth}px) rotateY(${tilt}deg)`,
+            }}
           >
             <div style={headerStyle}>
               {language === 'gd' ? cat.gd : cat.en}
@@ -117,8 +147,11 @@ const wallStyle = {
   right: 12,
   display: 'flex',
   gap: 12,
-  perspective: '2400px',
-  perspectiveOrigin: '50% 40%',
+  // Perspective tighter now that outer columns actually recede on Z —
+  // 1600 gives a visible ~6% shrink at the deepest columns without
+  // fish-eyeing the middle.
+  perspective: '1600px',
+  perspectiveOrigin: '50% 45%',
   zIndex: 2,
   pointerEvents: 'none',
 }
