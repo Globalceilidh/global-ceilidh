@@ -67,35 +67,31 @@ export default function AnTonnTest() {
       </div>
 
       {/* Four category columns across the middle. Each column is
-          tile-on-top + spinning name-plinth beneath. The plinth is a
-          white ring with the vertical's Gàidhlig name punched through
-          in Bebas Neue block caps — the wave shader shows through the
-          letter cutouts. Ring rotates clockwise (left-to-right) at
-          ~22s per revolution; graphic above stays put. */}
+          graphic-on-top + spinning name-ring beneath. Rings are the
+          alpha-keyed metallic ring PNGs; they rotate clockwise around
+          the Y (vertical) axis at ~22s per revolution — same effect
+          as a real ring spinning on a turntable, viewed from above.
+          Graphic above stays put. */}
       <div className="tiles-row">
         <TileWithPlinth
           src="/AnTonn/test/music-ceol.png"
           alt="Ceòl — Music"
-          ringText="CEÒL"
-          ringSlug="ceol"
+          ringSrc="/AnTonn/test/ring-ceol.png"
         />
         <TileWithPlinth
           src="/AnTonn/test/film-bhidio.png"
           alt="Bhidio — Film"
-          ringText="BHIDIO"
-          ringSlug="bhidio"
+          ringSrc="/AnTonn/test/ring-bhidio.png"
         />
         <TileWithPlinth
           src="/AnTonn/test/books-leabhraichean.png"
           alt="Leabhraichean — Books"
-          ringText="LEABHRAICHEAN"
-          ringSlug="leabhraichean"
+          ringSrc="/AnTonn/test/ring-leabhraichean.png"
         />
         <TileWithPlinth
           src="/AnTonn/test/podcast.png"
           alt="Pod-chraoladh — Podcasts"
-          ringText="POD-CHRAOLADH"
-          ringSlug="podcraoladh"
+          ringSrc="/AnTonn/test/ring-podcraoladh.png"
         />
       </div>
 
@@ -210,6 +206,10 @@ export default function AnTonnTest() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          /* Perspective on the column so the ring's 3D rotation gets
+             depth; without this, rotateY reads as a flat scale/skew. */
+          perspective: 1100px;
+          perspective-origin: 50% 40%;
         }
         .tile {
           width: 100%;
@@ -236,101 +236,72 @@ export default function AnTonnTest() {
             drop-shadow(0 0 22px rgba(255,255,255,0.35));
         }
 
-        /* Spinning name-plinth beneath each tile. The SVG viewBox is
-           200x200 and the ring lives at r=70 with a 40-unit stroke, so
-           it occupies inner r=50 → outer r=90. The mask cuts the ring
-           into letter-shaped holes; wave shader shows through. Rotation
-           applied to the whole SVG — the ring's own shape is
-           rotationally symmetric, so the visible effect is text moving
-           clockwise around a static-looking band. */
-        .plinth-svg {
+        /* Spinning name-ring beneath each tile. The ring is a real
+           metallic PNG; we rotate it around the Y axis so it reads
+           as a real 3D ring on a turntable. Two copies of the ring
+           image sit inside .ring-3d back-to-back — one at rotateY(0)
+           facing the viewer at rest, one at rotateY(180) facing away.
+           As the container rotates, whichever face is toward the
+           viewer stays visible (backface-visibility hides the reverse
+           of each) so the text is always correctly oriented, never
+           mirrored. */
+        .ring-3d {
+          position: relative;
           width: 78%;
-          height: auto;
-          display: block;
           margin-top: -34px;
-          animation: plinth-spin 22s linear infinite;
+          transform-style: preserve-3d;
+          animation: ring-spin 22s linear infinite;
           pointer-events: none;
         }
-        @keyframes plinth-spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
+        .ring-face {
+          display: block;
+          width: 100%;
+          height: auto;
+          user-select: none;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+        .ring-back {
+          position: absolute;
+          inset: 0;
+          transform: rotateY(180deg);
+        }
+        /* Clockwise viewed from above. CSS +rotateY is counter-clockwise
+           from top, so we go 0 → -360 for clockwise. */
+        @keyframes ring-spin {
+          from { transform: rotateY(0deg); }
+          to   { transform: rotateY(-360deg); }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .sniomh-glint,
-          .plinth-svg { animation: none; }
+          .ring-3d { animation: none; }
         }
       `}</style>
     </div>
   )
 }
 
-// One column of the tiles row: the graphic image + the spinning name
-// plinth beneath. The plinth's ring text is repeated to fill the
-// circumference — short names loop more times than long ones.
-function TileWithPlinth({ src, alt, ringText, ringSlug }) {
+// One column of the tiles row: the graphic image + a spinning ring
+// beneath. The ring is a metallic PNG (alpha-keyed) spinning in 3D
+// around the Y axis so it reads as a real turntable, not a flat
+// 2D spin. Two copies of the ring image sit back-to-back inside the
+// rotating container — .ring-back is pre-rotated 180deg so as the
+// container turns, whichever face is toward the viewer always shows
+// the text in the correct orientation (backface-visibility hides
+// the reverse of each face).
+function TileWithPlinth({ src, alt, ringSrc }) {
   return (
     <div className="tile-column">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={alt} className="tile" draggable={false} />
-      <PlinthRing text={ringText} slug={ringSlug} />
+      <div className="ring-3d">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={ringSrc} alt="" aria-hidden="true" className="ring-face ring-front" draggable={false} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={ringSrc} alt="" aria-hidden="true" className="ring-face ring-back" draggable={false} />
+      </div>
     </div>
-  )
-}
-
-// SVG spinning-plinth ring. The ring is a white stroked circle;
-// a mask paints the text on a circular path in BLACK — so the text
-// appears as holes cut through the ring. The whole SVG rotates via
-// CSS animation, and because the ring's shape is rotationally
-// symmetric, only the punched letters visually move.
-function PlinthRing({ text, slug }) {
-  const maskId = `plinth-mask-${slug}`
-  const pathId = `plinth-path-${slug}`
-  // Repeat count tuned so short words (CEÒL) fill the ring several
-  // times while long ones (LEABHRAICHEAN) don't overrun themselves.
-  const reps = text.length <= 6 ? 5 : text.length <= 10 ? 3 : 2
-  const bannerText = Array(reps).fill(text).join(' · ') + ' · '
-  return (
-    <svg viewBox="0 0 200 200" className="plinth-svg" aria-hidden="true">
-      <defs>
-        {/* Circle at r=70, traced clockwise from top so text on it
-            reads left→right at the top of the ring. */}
-        <path
-          id={pathId}
-          d="M 100,30 A 70,70 0 1,1 100,170 A 70,70 0 1,1 100,30"
-          fill="none"
-        />
-        <mask id={maskId} maskUnits="userSpaceOnUse">
-          {/* White = visible band. */}
-          <rect width="200" height="200" fill="white" />
-          {/* Black text on circular path = holes cut through the ring. */}
-          <text
-            fill="black"
-            style={{
-              fontFamily:
-                'var(--font-bebas-neue), "Bebas Neue", Impact, "Arial Black", sans-serif',
-              fontSize: 20,
-              fontWeight: 400,
-              letterSpacing: 3,
-            }}
-          >
-            <textPath href={`#${pathId}`} startOffset="0">
-              {bannerText}
-            </textPath>
-          </text>
-        </mask>
-      </defs>
-      {/* The ring: r=70 with stroke-width=40 → inner r=50, outer r=90. */}
-      <circle
-        cx="100"
-        cy="100"
-        r="70"
-        fill="none"
-        stroke="white"
-        strokeWidth="40"
-        mask={`url(#${maskId})`}
-      />
-    </svg>
   )
 }
 
