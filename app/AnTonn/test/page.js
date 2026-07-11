@@ -119,17 +119,16 @@ export default function AnTonnTest() {
         }
 
         /* An Tonn wordmark — page header. The source PNG is a square-ish
-           canvas with the wordmark in the middle band; we crop the visible
-           slice via a fixed-height wrap + negative margin-top on the img,
-           so only the letters show (no black padding above/below). */
+           canvas with the wordmark centred; the surrounding black padding
+           matches the page bg, so we just shift the whole image up with a
+           negative top. Letters land near the top of the viewport; the
+           invisible black padding sits above the viewport line. */
         .antonn-title-wrap {
           position: absolute;
-          top: 20px;
+          top: -140px;
           left: 50%;
           transform: translateX(-50%);
           width: min(56vw, 520px);
-          height: 130px;
-          overflow: hidden;
           z-index: 20;
           line-height: 0;
         }
@@ -137,7 +136,6 @@ export default function AnTonnTest() {
           width: 100%;
           height: auto;
           display: block;
-          margin-top: -33%;
           user-select: none;
         }
 
