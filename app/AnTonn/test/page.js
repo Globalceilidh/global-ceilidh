@@ -156,28 +156,47 @@ export default function AnTonnTest() {
 
         /* Four category tiles across the middle. Row is vertically
            centred in the viewport; each tile is a square with equal
-           flex share so they space evenly across the row. */
+           flex share so they space evenly across the row. Larger,
+           more presence-y sizing now (up from 260 → 340 max). */
         .tiles-row {
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
           display: flex;
-          gap: 24px;
+          gap: 32px;
           align-items: center;
           justify-content: center;
-          width: min(92vw, 1200px);
+          width: min(94vw, 1500px);
           z-index: 15;
         }
         .tile {
           flex: 1 1 0;
           min-width: 0;
           aspect-ratio: 1 / 1;
-          max-width: 260px;
+          max-width: 340px;
           height: auto;
           display: block;
           object-fit: contain;
           user-select: none;
+          cursor: pointer;
+          filter: brightness(1) drop-shadow(0 0 0 rgba(255,255,255,0));
+          transform: translate3d(0, 0, 0) scale(1);
+          transition:
+            transform 320ms cubic-bezier(0.2, 0.7, 0.3, 1),
+            filter   320ms ease;
+        }
+        /* Hover: brighten + lift slightly forward. translate3d nudges
+           the tile up + toward camera (subtle z-cue via slight scale),
+           filter adds a soft white glow so the whole graphic reads as
+           "lit". */
+        .tile:hover,
+        .tile:focus-visible {
+          transform: translate3d(0, -14px, 0) scale(1.05);
+          filter:
+            brightness(1.28)
+            drop-shadow(0 22px 34px rgba(0,0,0,0.55))
+            drop-shadow(0 0 22px rgba(255,255,255,0.35));
         }
 
         @media (prefers-reduced-motion: reduce) {
