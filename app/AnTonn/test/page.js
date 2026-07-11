@@ -218,11 +218,12 @@ export default function AnTonnTest() {
           user-select: none;
           cursor: pointer;
           /* Screen blend dissolves each tile's black card background
-             into the wave; only the figure + spiral + glow remain
-             visible. */
+             into whatever's behind it; only the figure + spiral +
+             glow remain visible.
+             NB: no base-state filter or transform — even identity
+             values would create a compositor layer that can interfere
+             with the blend on some browsers. Hover state gets both. */
           mix-blend-mode: screen;
-          filter: brightness(1) drop-shadow(0 0 0 rgba(255,255,255,0));
-          transform: translate3d(0, 0, 0) scale(1);
           transition:
             transform 320ms cubic-bezier(0.2, 0.7, 0.3, 1),
             filter   320ms ease;
@@ -251,10 +252,12 @@ export default function AnTonnTest() {
 const pageStyle = {
   position: 'fixed',
   inset: 0,
-  background: '#000000',
+  // DIAGNOSTIC bg — distinct dark blue so we can visually tell whether
+  // the tile black bg is dissolving into the page bg (via mix-blend-mode)
+  // or still rendering as opaque black. If we see blue where tile black
+  // used to be, blending works.
+  background: '#001133',
   overflow: 'hidden',
-  // Root isolation so mix-blend-mode on descendants blends against
-  // the wave canvas + page bg, not against anything above this page.
   isolation: 'isolate',
 }
 
