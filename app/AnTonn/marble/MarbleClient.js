@@ -33,6 +33,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import VortexBackground from '../preview/components/VortexBackground'
 import LanguagePill from '../../../components/LanguagePill'
+import { useLanguage } from '../../../context/LanguageContext'
 
 const PILLS = [
   { id: 'ceol',          label: 'Ceòl' },
@@ -112,6 +113,7 @@ function bearingCardinal(lat1, lng1, lat2, lng2) {
 }
 
 export default function MarbleClient() {
+  const { t } = useLanguage()
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 })
   const [reduceMotion, setReduceMotion] = useState(false)
   const [docHidden, setDocHidden] = useState(false)
@@ -300,14 +302,24 @@ export default function MarbleClient() {
           Talk pill in the corner. All static; do not orbit the sphere. */}
       <div style={mastheadStyle}>AN TONN</div>
       <div style={clockPositionStyle}><Clock /></div>
-      <LanguagePill position="top-left" variant="dark" />
-      <a href="/contact" style={letsTalkStyle}>Let&apos;s Talk</a>
+      <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
+
+      {/* Language toggle — EN⇄GD slider on a white pill. Right viewport
+          edge, 56px up from the bottom (mirrors Let's Talk's 56px-from-top
+          inset). Same treatment as /AnTonn/radio. */}
+      <LanguagePill
+        position="bottom-right"
+        layout="toggle"
+        variant="white"
+        offsetBottom={56}
+        offsetRight={30}
+      />
 
       {/* Center point — a small anchor marker at the sphere's origin so
           the user always knows where "straight ahead" is. Non-interactive. */}
       <div style={centerPointStyle} aria-hidden="true" />
 
-      <div style={helpStyle}>Drag anywhere — the sphere rotates around you</div>
+      <div style={helpStyle}>{t('marble.help')}</div>
     </div>
   )
 }
@@ -545,19 +557,21 @@ const clockPositionStyle = {
   zIndex: 25,
   pointerEvents: 'none',
 }
-// Static pill in the top-right corner. Small, high-contrast, always on
-// top of everything so it survives the sphere behind it.
+// Static pill in the top-right corner. Pure white + Bebas Neue —
+// matches /AnTonn/radio's pill visual so both surfaces feel like the
+// same product. 56px down from the top so it doesn't hug the edge.
 const letsTalkStyle = {
   position: 'absolute',
-  top: 26, right: 30,
+  top: 56, right: 30,
   padding: '11px 26px',
   borderRadius: 999,
-  background: '#F2ECDC',
+  background: '#FFFFFF',
   color: '#0A0D14',
-  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
-  fontWeight: 500,
-  fontSize: 14,
-  letterSpacing: 0.3,
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
+  fontWeight: 400,
+  fontSize: 18,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
   textDecoration: 'none',
   boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
   zIndex: 30,

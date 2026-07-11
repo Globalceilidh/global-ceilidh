@@ -82,6 +82,13 @@ export const translations = {
     formal_badge: { en: 'Formal', gd: 'Foirmeil' },
     lets_talk: { en: "Let's Talk", gd: 'Thig, bruidhinneas' },
   },
+  // AnTonn marble — /AnTonn/marble
+  marble: {
+    help: {
+      en: 'Drag anywhere — the sphere rotates around you',
+      gd: 'Slaod àite sam bith — cuairsgidh an cruinne mun cuairt ort',
+    },
+  },
   // Global Ceilidh Radio — /AnTonn/radio
   radio: {
     tagline: {
