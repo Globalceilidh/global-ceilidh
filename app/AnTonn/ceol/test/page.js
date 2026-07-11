@@ -8,6 +8,9 @@ export const metadata = {
   description: 'Ceòl (Music) vertical test surface for the An Tonn wing.',
 }
 
+// Palette: dark navy still water, ripples brighten toward a colder,
+// electric-blue peak — the kind of colour a spot on a dance floor
+// throws through fog.
 export default function CeolTest() {
-  return <TestSurface background="#0B1739" />
+  return <TestSurface background="#0B1739" waveMod="#3A6ACF" />
 }

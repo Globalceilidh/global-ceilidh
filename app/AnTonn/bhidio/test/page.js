@@ -8,6 +8,8 @@ export const metadata = {
   description: 'Bhidio (Film / Video) vertical test surface for the An Tonn wing.',
 }
 
+// Palette: deep burgundy still water, ripples peak toward a warm
+// crimson — velvet curtain catching a light backstage.
 export default function BhidioTest() {
-  return <TestSurface background="#2E0812" />
+  return <TestSurface background="#2E0812" waveMod="#B4223F" />
 }

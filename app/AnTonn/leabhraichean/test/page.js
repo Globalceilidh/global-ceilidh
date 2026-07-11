@@ -8,6 +8,8 @@ export const metadata = {
   description: 'Leabhraichean (Books) vertical test surface for the An Tonn wing.',
 }
 
+// Palette: dark brassy gold still water, ripples peak toward a warm
+// polished-brass — lamp catching gold leaf on an old spine.
 export default function LeabhraicheanTest() {
-  return <TestSurface background="#2E2108" />
+  return <TestSurface background="#2E2108" waveMod="#C69A2A" />
 }

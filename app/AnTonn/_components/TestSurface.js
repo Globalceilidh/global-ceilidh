@@ -3,21 +3,58 @@
 // Shared sandbox surface for the four AnTonn vertical test pages
 // (Ceòl, Bhidio, Leabhraichean, Pod-chraoladh). Same chrome as the
 // parent /AnTonn/test — Sniomh homepage icon top-left, Let's Talk pill
-// top-right, EN/GD slider bottom-right — but with a per-vertical tonal
-// background.
+// top-right, EN/GD slider bottom-right — plus the wave shader in the
+// background, with per-vertical tonal palette.
 //
-// One prop: `background` — any CSS colour string. Defaults to black so
-// this stays a drop-in for the base test page if ever needed.
+// Props:
+//   background — any CSS colour string used as the page bg fallback.
+//   waveBase   — hex string for the wave's still-water colour. Set
+//                this to the same value as `background` so the wave
+//                surface and page bg read as one continuous colour.
+//   waveMod    — hex string for the wave's ripple accent colour.
+//                Ripples brighten toward this shade — usually a lighter
+//                complementary tone of the same palette.
 
 import Link from 'next/link'
+import { useRef } from 'react'
+import dynamic from 'next/dynamic'
 import LanguagePill from '../../../components/LanguagePill'
 import { useLanguage } from '../../../context/LanguageContext'
 
-export default function TestSurface({ background = '#000000' }) {
+// SSR-off — the canvas uses WebGL which needs `window`. Also lazy-loads
+// the R3F bundle so it doesn't block first paint.
+const WaveBackground = dynamic(
+  () => import('../test/WaveBackground'),
+  { ssr: false },
+)
+
+export default function TestSurface({
+  background = '#000000',
+  waveBase,
+  waveMod = '#242830',
+}) {
   const { t } = useLanguage()
 
+  // Cursor position ref, mutated on every pointermove. WaveBackground
+  // reads this each frame; no React state = no re-renders on mousemove.
+  const mouseRef = useRef({ x: -1, y: -1 })
+  const onPointerMove = (e) => {
+    mouseRef.current.x = e.clientX
+    mouseRef.current.y = e.clientY
+  }
+
+  // Default waveBase to the page bg so the still-water colour blends
+  // seamlessly with the fallback bg on any browser without WebGL.
+  const resolvedWaveBase = waveBase || background
+
   return (
-    <div style={{ ...pageStyle, background }}>
+    <div style={{ ...pageStyle, background }} onPointerMove={onPointerMove}>
+      <WaveBackground
+        mouseRef={mouseRef}
+        baseColor={resolvedWaveBase}
+        modColor={waveMod}
+      />
+
       {/* Sniomh — GlobalCeilidh design motif; homepage link. Reuses
           the alpha-keyed asset from the parent /AnTonn/test surface
           so we only ship one copy. */}

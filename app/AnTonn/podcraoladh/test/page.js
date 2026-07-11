@@ -9,6 +9,8 @@ export const metadata = {
   description: 'Pod-chraoladh (Podcasts) vertical test surface for the An Tonn wing.',
 }
 
+// Palette: deep purple still water, ripples peak toward a lit violet —
+// mixing console after hours, glowing keys.
 export default function PodcraoladhTest() {
-  return <TestSurface background="#180831" />
+  return <TestSurface background="#180831" waveMod="#7139D6" />
 }

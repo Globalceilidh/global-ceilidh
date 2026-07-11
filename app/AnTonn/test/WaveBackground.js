@@ -28,6 +28,19 @@ const RIPPLE_LIFETIME_SEC = 4.0
 const EMIT_THROTTLE_SEC = 0.06
 const EMIT_MIN_PX = 6
 
+// Convert a #RRGGBB hex string to a THREE.Vector3 of normalised
+// 0..1 floats. Uses Vector3 (not THREE.Color) to bypass THREE's
+// automatic sRGB↔linear conversion — we want the shader output to
+// land at exactly the sRGB values the CSS page bg is using, so the
+// wave surface and page bg read as one continuous colour.
+function hexToVec3(hex) {
+  const h = String(hex).replace('#', '').padStart(6, '0')
+  const r = parseInt(h.substring(0, 2), 16) / 255
+  const g = parseInt(h.substring(2, 4), 16) / 255
+  const b = parseInt(h.substring(4, 6), 16) / 255
+  return new THREE.Vector3(r, g, b)
+}
+
 const vertexShader = /* glsl */`
   varying vec2 vUv;
   void main() {
@@ -40,6 +53,8 @@ const fragmentShader = /* glsl */`
   precision highp float;
   varying vec2 vUv;
   uniform vec2 uResolution;
+  uniform vec3 uBaseColor;
+  uniform vec3 uModColor;
   // Each ripple: xy = origin UV, z = age in seconds (< 0 means inactive slot).
   uniform vec3 uRipples[${MAX_RIPPLES}];
 
@@ -66,16 +81,16 @@ const fragmentShader = /* glsl */`
       }
     }
 
-    // Very subtle brightness modulation on a near-black base — reads as
-    // "moonlit water" rather than a shader effect.
+    // Base is the "still water" colour — usually matched to the page
+    // background so the wave surface reads as seamless with the page.
+    // Ripples modulate toward uModColor.
     float intensity = clamp(sum * 0.32, -0.45, 0.45);
-    vec3 base = vec3(0.008, 0.012, 0.020);
-    vec3 color = base + intensity * vec3(0.14, 0.16, 0.20);
+    vec3 color = uBaseColor + intensity * uModColor;
     gl_FragColor = vec4(color, 1.0);
   }
 `
 
-function WavePlane({ mouseRef, reduceMotionRef }) {
+function WavePlane({ mouseRef, reduceMotionRef, baseColor, modColor }) {
   const materialRef = useRef()
 
   // Ring buffer of ripple sources. Kept as a plain object so useFrame
@@ -91,10 +106,18 @@ function WavePlane({ mouseRef, reduceMotionRef }) {
   // frame (THREE picks up the new values automatically).
   const uniforms = useMemo(() => ({
     uResolution: { value: new THREE.Vector2(1, 1) },
+    uBaseColor: { value: hexToVec3(baseColor) },
+    uModColor: { value: hexToVec3(modColor) },
     uRipples: {
       value: Array.from({ length: MAX_RIPPLES }, () => new THREE.Vector3(0, 0, -1)),
     },
   }), [])
+
+  // Keep the colour uniforms in sync if the props change (per-page palettes).
+  useEffect(() => {
+    uniforms.uBaseColor.value.copy(hexToVec3(baseColor))
+    uniforms.uModColor.value.copy(hexToVec3(modColor))
+  }, [baseColor, modColor, uniforms])
 
   useFrame(({ size, clock }) => {
     if (!materialRef.current) return
@@ -159,7 +182,11 @@ function WavePlane({ mouseRef, reduceMotionRef }) {
   )
 }
 
-export default function WaveBackground({ mouseRef }) {
+export default function WaveBackground({
+  mouseRef,
+  baseColor = '#020409',
+  modColor = '#242830',
+}) {
   const reduceMotionRef = useRef(false)
 
   useEffect(() => {
@@ -183,7 +210,12 @@ export default function WaveBackground({ mouseRef }) {
       gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       dpr={[1, 1.5]}
     >
-      <WavePlane mouseRef={mouseRef} reduceMotionRef={reduceMotionRef} />
+      <WavePlane
+        mouseRef={mouseRef}
+        reduceMotionRef={reduceMotionRef}
+        baseColor={baseColor}
+        modColor={modColor}
+      />
     </Canvas>
   )
 }
