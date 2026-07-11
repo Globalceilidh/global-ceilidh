@@ -55,18 +55,32 @@ export default function TestSurface({
         modColor={waveMod}
       />
 
-      {/* Sniomh — GlobalCeilidh design motif; homepage link. Reuses
-          the alpha-keyed asset from the parent /AnTonn/test surface
-          so we only ship one copy. */}
-      <Link href="/" style={sniomhLinkStyle} aria-label="GlobalCeilidh home">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/AnTonn/test/sniomh.png"
-          alt="GlobalCeilidh — home"
-          style={sniomhImgStyle}
-          draggable={false}
-        />
-      </Link>
+      {/* Top-left brand strip: Sniomh (GlobalCeilidh home link) — dash —
+          An Tonn wordmark (links back to the /AnTonn/test parent surface
+          where all four vertical entrances live). Both icons at the same
+          180x180 footprint. Assets reused from /AnTonn/test so we ship
+          one copy of each. */}
+      <div style={topLeftGroupStyle}>
+        <Link href="/" style={iconLinkStyle} aria-label="GlobalCeilidh home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/AnTonn/test/sniomh.png"
+            alt="GlobalCeilidh — home"
+            style={iconImgStyle}
+            draggable={false}
+          />
+        </Link>
+        <span style={dashStyle} aria-hidden="true">—</span>
+        <Link href="/AnTonn/test" style={iconLinkStyle} aria-label="An Tonn">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/AnTonn/test/antonn-wordmark.png"
+            alt="An Tonn"
+            style={iconImgStyle}
+            draggable={false}
+          />
+        </Link>
+      </div>
 
       {/* Let's Talk pill — matches /AnTonn/radio, /AnTonn/marble,
           /AnTonn/test. */}
@@ -90,22 +104,44 @@ const pageStyle = {
   overflow: 'hidden',
 }
 
-const sniomhLinkStyle = {
+// Flex row anchoring the two brand icons in the top-left corner.
+const topLeftGroupStyle = {
   position: 'absolute',
   top: 30,
   left: 30,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 14,
+  zIndex: 30,
+}
+
+// Each icon (sniomh, An Tonn wordmark) sits in a fixed 180x180 box
+// so they read as peers of the same visual weight.
+const iconLinkStyle = {
   display: 'block',
   width: 180,
   height: 180,
   lineHeight: 0,
-  zIndex: 30,
 }
 
-const sniomhImgStyle = {
+const iconImgStyle = {
   width: '100%',
   height: '100%',
   display: 'block',
   userSelect: 'none',
+}
+
+// Small dash between the two icons. Bebas Neue-ish weight, cream
+// colour so it stays readable on every vertical's tonal background.
+const dashStyle = {
+  color: 'rgba(242, 236, 220, 0.72)',
+  fontFamily:
+    'var(--font-bebas-neue), "Bebas Neue", Impact, "Arial Black", sans-serif',
+  fontSize: 40,
+  fontWeight: 400,
+  lineHeight: 1,
+  userSelect: 'none',
+  pointerEvents: 'none',
 }
 
 // White pill matching every other AnTonn corner pill.
