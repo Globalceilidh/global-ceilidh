@@ -15,7 +15,7 @@
 // Card click → the whole wall replaces itself with a large video
 // player that takes up the same footprint. Close returns to the grid.
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../../../../context/LanguageContext'
 
 const CATEGORIES = [
@@ -27,16 +27,19 @@ const CATEGORIES = [
   { slug: 'live',        en: 'Live Sessions', gd: 'Seiseanan Beò' },
 ]
 
-// Returns the video list for a category from the server-provided
-// catalog. Real videos come first; "Coming soon" placeholder fillers
-// are appended so every column keeps a minimum visual weight of
-// MIN_CARDS cards even when it only has one or two real videos.
-// Without the padding, a partially-filled column collapsed visually
-// while its siblings still looked full.
+// Wall displays TOP_N real videos per category — the Billboard-Top-10
+// slot. Empty slots pad up to MIN_CARDS so every column keeps a
+// consistent visual weight even before the catalog fills.
+//
+// The full queue (all published videos in the category, not sliced)
+// is what the player walks through; users clicking a top-10 card
+// start the queue at that video and the player continues down the
+// full list until interrupted or the session cap is reached.
+const TOP_N = 10
 const MIN_CARDS = 10
 
 function getCards(catalog, slug) {
-  const real = catalog?.[slug] || []
+  const real = (catalog?.[slug] || []).slice(0, TOP_N)
   const padCount = Math.max(0, MIN_CARDS - real.length)
   const pads = Array.from({ length: padCount }, (_, i) => ({
     id: `${slug}-placeholder-${i + 1}`,
@@ -45,6 +48,10 @@ function getCards(catalog, slug) {
     source: 'placeholder',
   }))
   return [...real, ...pads]
+}
+
+function getQueue(catalog, slug) {
+  return catalog?.[slug] || []
 }
 
 // YouTube gives us thumbnails free. hqdefault is 480x360 (16:9-ish
@@ -82,10 +89,17 @@ const DEPTH_PER_UNIT2 = 15
 
 export default function VideoWallCurved({ catalog }) {
   const { language } = useLanguage()
+  // selected shape: { queue: [videos], startIndex: number, categorySlug: string }
   const [selected, setSelected] = useState(null)
 
   if (selected) {
-    return <VideoPlayer video={selected} onClose={() => setSelected(null)} />
+    return (
+      <VideoPlayer
+        queue={selected.queue}
+        startIndex={selected.startIndex}
+        onClose={() => setSelected(null)}
+      />
+    )
   }
 
   const centre = (CATEGORIES.length - 1) / 2
@@ -116,7 +130,25 @@ export default function VideoWallCurved({ catalog }) {
             </div>
             <div style={cardsWrapStyle}>
               {getCards(catalog, cat.slug).map((card) => (
-                <VideoCard key={card.id} {...card} onSelect={() => setSelected(card)} />
+                <VideoCard
+                  key={card.id}
+                  {...card}
+                  onSelect={() => {
+                    // Real cards → open player with the FULL category queue
+                    // starting at this card's position. Slot cards have
+                    // source='placeholder' and short-circuit inside
+                    // VideoCard so this handler doesn't even fire.
+                    const queue = getQueue(catalog, cat.slug)
+                    const idx = queue.findIndex((v) => v.id === card.id)
+                    if (idx >= 0) {
+                      setSelected({
+                        queue,
+                        startIndex: idx,
+                        categorySlug: cat.slug,
+                      })
+                    }
+                  }}
+                />
               ))}
             </div>
           </div>
@@ -152,44 +184,238 @@ function VideoCard({ id, title, duration, source, poster, onSelect }) {
   )
 }
 
-// Full-viewport video player that replaces the wall on card select.
-// - `source: 'youtube'` → YouTube nocookie embed (autoplays via URL
-//   param; browsers still gate on interaction, which the click did)
-// - `source: 'own' | 'submitted'` with a `videoUrl` → HTML5 <video>
-// - anything else (placeholder scaffolding) → text-only display
-function VideoPlayer({ video, onClose }) {
-  const isYouTube = video.source === 'youtube' && video.id
-  const isFile = (video.source === 'own' || video.source === 'submitted') && video.videoUrl
+// Queue-aware full-viewport video player. Walks a category's videos
+// end-to-end using the YouTube IFrame Player API so we can hear the
+// ENDED state event. Between videos, an overlay offers the two-pill
+// choice — Back to Wall / Play Next Video — with a 10-sec autoplay
+// countdown. After 60 min of continuous playback, the overlay flips
+// to "Continue Watching?" with a 3-min timeout; if unanswered, the
+// player returns to the wall.
+//
+// props:
+//   queue      — array of video rows in play order (all real, no slots)
+//   startIndex — which entry to start on
+//   onClose    — called when the session ends or the user hits Back
+
+const SESSION_HOUR_MS = 60 * 60 * 1000     // 1 hour session cap
+const AUTOPLAY_COUNTDOWN_S = 10             // between-video prompt
+const CONTINUE_COUNTDOWN_S = 3 * 60         // continue-watching prompt
+
+function VideoPlayer({ queue, startIndex, onClose }) {
+  const { language } = useLanguage()
+  const [index, setIndex] = useState(startIndex)
+  // phase: 'playing' | 'between' | 'continue' — controls the overlay.
+  const [phase, setPhase] = useState('playing')
+  const [countdown, setCountdown] = useState(0)
+
+  const ytContainerRef = useRef(null)
+  const playerRef = useRef(null)
+  const timerRef = useRef(null)
+  const sessionStartRef = useRef(Date.now())
+
+  const currentVideo = queue[index]
+  const hasNext = index < queue.length - 1
+
+  // Setup + teardown the YouTube player. Runs once on mount; the
+  // player is reused across videos via loadVideoById in a separate
+  // effect, so we don't tear down and rebuild the iframe every time.
+  useEffect(() => {
+    if (!currentVideo || currentVideo.source !== 'youtube') return
+    let cancelled = false
+
+    const init = () => {
+      if (cancelled || !ytContainerRef.current || playerRef.current) return
+      // eslint-disable-next-line no-undef
+      playerRef.current = new window.YT.Player(ytContainerRef.current, {
+        videoId: currentVideo.id,
+        playerVars: {
+          autoplay: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+        },
+        events: {
+          onStateChange: (e) => {
+            // ENDED = 0 in YT.PlayerState.
+            if (e?.data === 0) handleVideoEnd()
+          },
+        },
+      })
+    }
+
+    if (window.YT?.Player) {
+      init()
+    } else {
+      // Inject the API script once. onYouTubeIframeAPIReady is a
+      // global YouTube looks for after script load; chain any prior
+      // handler so we don't stomp on a coexisting player elsewhere.
+      if (!document.getElementById('yt-iframe-api')) {
+        const tag = document.createElement('script')
+        tag.id = 'yt-iframe-api'
+        tag.src = 'https://www.youtube.com/iframe_api'
+        document.head.appendChild(tag)
+      }
+      const prevReady = window.onYouTubeIframeAPIReady
+      window.onYouTubeIframeAPIReady = () => {
+        if (prevReady) prevReady()
+        init()
+      }
+    }
+
+    return () => {
+      cancelled = true
+      if (timerRef.current) clearInterval(timerRef.current)
+      if (playerRef.current?.destroy) {
+        try { playerRef.current.destroy() } catch (_) { /* nothing to clean */ }
+        playerRef.current = null
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Switch to a new video when index changes — using loadVideoById
+  // instead of recreating the whole player keeps the transition tight.
+  useEffect(() => {
+    if (!playerRef.current?.loadVideoById || !currentVideo) return
+    if (currentVideo.source !== 'youtube') return
+    playerRef.current.loadVideoById(currentVideo.id)
+    setPhase('playing')
+    setCountdown(0)
+    if (timerRef.current) clearInterval(timerRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index])
+
+  const handleVideoEnd = () => {
+    const elapsed = Date.now() - sessionStartRef.current
+    if (elapsed >= SESSION_HOUR_MS) {
+      // Session cap hit — flip to continue prompt.
+      setPhase('continue')
+      startCountdown(CONTINUE_COUNTDOWN_S, onClose)
+      return
+    }
+    if (!hasNext) {
+      // Queue exhausted — nothing to auto-advance to.
+      onClose()
+      return
+    }
+    setPhase('between')
+    startCountdown(AUTOPLAY_COUNTDOWN_S, playNext)
+  }
+
+  const startCountdown = (seconds, onZero) => {
+    setCountdown(seconds)
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(timerRef.current)
+          timerRef.current = null
+          onZero()
+          return 0
+        }
+        return c - 1
+      })
+    }, 1000)
+  }
+
+  const cancelCountdown = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+    setCountdown(0)
+  }
+
+  const playNext = () => {
+    cancelCountdown()
+    if (!hasNext) { onClose(); return }
+    setIndex((i) => i + 1)
+  }
+
+  const continueWatching = () => {
+    cancelCountdown()
+    // Reset the session clock — the user asked for another hour.
+    sessionStartRef.current = Date.now()
+    setPhase('playing')
+    // Advance to the next video if we're capable, otherwise close.
+    if (hasNext) setIndex((i) => i + 1)
+    else onClose()
+  }
+
+  // Render — non-YouTube sources fall back to the older behaviours
+  // (HTML5 <video> for own/submitted, text-only for placeholders).
+  const isYouTube = currentVideo?.source === 'youtube' && currentVideo?.id
+  const isFile =
+    (currentVideo?.source === 'own' || currentVideo?.source === 'submitted') &&
+    currentVideo?.videoUrl
 
   return (
     <div style={playerStyle}>
       <button type="button" onClick={onClose} style={closeButtonStyle}>
-        ← Back to wall
+        ← {language === 'gd' ? 'Air ais dhan Bhalla' : 'Back to wall'}
       </button>
+
       <div style={playerScreenStyle}>
         {isYouTube ? (
-          <iframe
-            title={video.title}
-            src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            style={playerIframeStyle}
-            frameBorder="0"
-          />
+          <div ref={ytContainerRef} style={playerIframeStyle} />
         ) : isFile ? (
           /* eslint-disable-next-line jsx-a11y/media-has-caption */
           <video
-            src={video.videoUrl}
-            poster={video.poster}
+            src={currentVideo.videoUrl}
+            poster={currentVideo.poster}
             controls
             autoPlay
+            onEnded={handleVideoEnd}
             style={playerIframeStyle}
           />
         ) : (
           <div style={playerPlaceholderStyle}>
             <p style={playerLabelStyle}>Now playing</p>
-            <h2 style={playerTitleStyle}>{video.title}</h2>
-            <p style={playerDurationStyle}>{video.duration}</p>
+            <h2 style={playerTitleStyle}>{currentVideo?.title}</h2>
+            <p style={playerDurationStyle}>{currentVideo?.duration}</p>
+          </div>
+        )}
+
+        {phase === 'between' && (
+          <div style={overlayStyle}>
+            <div style={overlayInnerStyle}>
+              <p style={overlayEyebrowStyle}>
+                {language === 'gd' ? 'Cluich a-rithist' : 'Up next'}
+              </p>
+              {queue[index + 1] && (
+                <h3 style={overlayTitleStyle}>{queue[index + 1].title}</h3>
+              )}
+              <div style={overlayButtonsStyle}>
+                <button type="button" style={pillButtonStyle} onClick={() => { cancelCountdown(); onClose() }}>
+                  {language === 'gd' ? 'Air ais a Bhalla' : 'Back to Wall'}
+                </button>
+                <button type="button" style={pillButtonStyle} onClick={playNext}>
+                  {language === 'gd' ? 'Cluich an Ath Bhidio' : 'Play Next Video'}
+                </button>
+              </div>
+              <p style={overlayCountdownStyle}>
+                {language === 'gd' ? 'Ath bhidio ann an' : 'Next in'} {countdown}s
+              </p>
+            </div>
+          </div>
+        )}
+
+        {phase === 'continue' && (
+          <div style={overlayStyle}>
+            <div style={overlayInnerStyle}>
+              <p style={overlayEyebrowStyle}>
+                {language === 'gd' ? 'Uair a thìde de bhidiothan' : "You've been watching for an hour"}
+              </p>
+              <div style={overlayButtonsStyle}>
+                <button type="button" style={pillButtonStyle} onClick={continueWatching}>
+                  {language === 'gd' ? 'Cùm A\' Coimhead?' : 'Continue Watching?'}
+                </button>
+              </div>
+              <p style={overlayCountdownStyle}>
+                {language === 'gd' ? 'Cuairt a\' crìochnachadh ann an' : 'Session ends in'}{' '}
+                {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -352,6 +578,7 @@ const closeButtonStyle = {
 // The screen that replaces the wall — spans the same footprint the
 // grid did, so the transition reads as "the wall becomes the screen".
 const playerScreenStyle = {
+  position: 'relative',
   flex: '1 1 auto',
   background: 'linear-gradient(180deg, rgba(46, 8, 18, 0.5), rgba(10, 2, 6, 0.85))',
   border: '1px solid rgba(242, 236, 220, 0.10)',
@@ -374,6 +601,73 @@ const playerIframeStyle = {
 const playerPlaceholderStyle = {
   textAlign: 'center',
   color: 'rgba(242, 236, 220, 0.9)',
+}
+
+// End-of-video overlay — semi-transparent scrim on top of the last
+// frame of the video, centred pill buttons + countdown text.
+const overlayStyle = {
+  position: 'absolute',
+  inset: 0,
+  background: 'rgba(10, 2, 6, 0.72)',
+  backdropFilter: 'blur(4px)',
+  WebkitBackdropFilter: 'blur(4px)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 6,
+  zIndex: 4,
+}
+const overlayInnerStyle = {
+  textAlign: 'center',
+  color: 'rgba(242, 236, 220, 0.98)',
+  padding: '32px 40px',
+  maxWidth: 720,
+}
+const overlayEyebrowStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontSize: 11,
+  letterSpacing: '0.28em',
+  textTransform: 'uppercase',
+  color: 'rgba(242, 236, 220, 0.6)',
+  margin: '0 0 12px',
+}
+const overlayTitleStyle = {
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
+  fontSize: 34,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  margin: '0 0 22px',
+  lineHeight: 1.1,
+}
+const overlayButtonsStyle = {
+  display: 'flex',
+  gap: 14,
+  justifyContent: 'center',
+  flexWrap: 'wrap',
+  margin: '0 0 18px',
+}
+const pillButtonStyle = {
+  padding: '13px 28px',
+  borderRadius: 999,
+  background: '#FFFFFF',
+  color: '#0A0D14',
+  border: 'none',
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
+  fontWeight: 400,
+  fontSize: 18,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+  transition: 'transform 220ms ease, box-shadow 220ms ease',
+}
+const overlayCountdownStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace',
+  fontSize: 12,
+  letterSpacing: '0.22em',
+  textTransform: 'uppercase',
+  color: 'rgba(242, 236, 220, 0.55)',
+  margin: 0,
 }
 
 const playerLabelStyle = {
