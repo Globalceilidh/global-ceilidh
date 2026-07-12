@@ -17,7 +17,6 @@
 
 import { useState } from 'react'
 import { useLanguage } from '../../../../context/LanguageContext'
-import { VIDEO_CATALOG } from './videos'
 
 const CATEGORIES = [
   { slug: 'music',       en: 'Music',        gd: 'Ceòl' },
@@ -28,11 +27,11 @@ const CATEGORIES = [
   { slug: 'live',        en: 'Live Sessions', gd: 'Seiseanan Beò' },
 ]
 
-// Returns the video list for a category. Reads from VIDEO_CATALOG
-// (./videos.js). Falls back to a small placeholder set when a category
-// is empty so the wall still looks alive during scaffolding.
-function getCards(slug) {
-  const real = VIDEO_CATALOG?.[slug] || []
+// Returns the video list for a category from the server-provided
+// catalog. Falls back to a small placeholder set when a category is
+// empty so the wall stays alive during scaffolding.
+function getCards(catalog, slug) {
+  const real = catalog?.[slug] || []
   if (real.length > 0) return real
   return Array.from({ length: 4 }, (_, i) => ({
     id: `${slug}-placeholder-${i + 1}`,
@@ -75,7 +74,7 @@ function youtubeThumb(id) {
 const TILT_PER_UNIT = 4
 const DEPTH_PER_UNIT2 = 15
 
-export default function VideoWallCurved() {
+export default function VideoWallCurved({ catalog }) {
   const { language } = useLanguage()
   const [selected, setSelected] = useState(null)
 
@@ -110,7 +109,7 @@ export default function VideoWallCurved() {
               {language === 'gd' ? cat.gd : cat.en}
             </div>
             <div style={cardsWrapStyle}>
-              {getCards(cat.slug).map((card) => (
+              {getCards(catalog, cat.slug).map((card) => (
                 <VideoCard key={card.id} {...card} onSelect={() => setSelected(card)} />
               ))}
             </div>
