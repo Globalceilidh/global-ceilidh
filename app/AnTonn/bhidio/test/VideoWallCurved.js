@@ -33,7 +33,7 @@ const CATEGORIES = [
 // MIN_CARDS cards even when it only has one or two real videos.
 // Without the padding, a partially-filled column collapsed visually
 // while its siblings still looked full.
-const MIN_CARDS = 6
+const MIN_CARDS = 10
 
 function getCards(catalog, slug) {
   const real = catalog?.[slug] || []
@@ -127,9 +127,15 @@ export default function VideoWallCurved({ catalog }) {
 }
 
 function VideoCard({ id, title, duration, source, poster, onSelect }) {
-  // Prefer explicit `poster`; fall back to the YouTube thumb when the
-  // source is youtube; otherwise the linear-gradient placeholder in
-  // `thumbStyle` shows through.
+  // Empty slot: dashed 16:9 rectangle, no thumbnail, no title, no
+  // click affordance. Reads as "future video goes here" rather than
+  // as a real card users might try to interact with.
+  if (source === 'placeholder') {
+    return <div style={slotStyle} aria-hidden="true" />
+  }
+
+  // Real card: real image + real click behaviour. Poster wins over
+  // the derived YouTube thumb.
   const thumbUrl =
     poster ||
     (source === 'youtube' ? youtubeThumb(id) : null)
@@ -266,6 +272,17 @@ const cardStyle = {
   cursor: 'pointer',
   textAlign: 'left',
   color: 'inherit',
+}
+
+// Empty slot placeholder — 16:9 dashed rectangle. No thumbnail, no
+// title, non-interactive. Reads visually as "reserved space for a
+// future video" without competing with the real cards nearby.
+const slotStyle = {
+  width: '100%',
+  aspectRatio: '16 / 9',
+  border: '1px dashed rgba(242, 236, 220, 0.14)',
+  borderRadius: 4,
+  background: 'rgba(70, 12, 24, 0.12)',
 }
 
 const thumbStyle = {
