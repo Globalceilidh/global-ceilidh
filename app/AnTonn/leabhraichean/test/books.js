@@ -20,6 +20,7 @@
 //   https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg
 
 export const GENRES = [
+  { slug: 'new-releases', en: 'New Releases',      gd: 'Foillseachaidhean Ùra' },
   { slug: 'fiction',      en: 'Fiction',           gd: 'Ficsean' },
   { slug: 'poetry',       en: 'Poetry',            gd: 'Bàrdachd' },
   { slug: 'non-fiction',  en: 'Non-fiction',       gd: 'Neo-fhicsean' },
@@ -29,6 +30,7 @@ export const GENRES = [
 ]
 
 export const BOOK_CATALOG = {
+  'new-releases': [],
   fiction: [],
   poetry: [],
   'non-fiction': [],
