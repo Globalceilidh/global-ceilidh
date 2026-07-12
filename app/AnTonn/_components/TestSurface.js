@@ -40,6 +40,7 @@ export default function TestSurface({
   waveIntensity = 0.4,
   wordmarkSrc,
   wordmarkAlt = '',
+  wordmarkText,
   children,
 }) {
   const { t } = useLanguage()
@@ -109,6 +110,12 @@ export default function TestSurface({
             draggable={false}
           />
         </div>
+      )}
+
+      {/* Text-only wordmark fallback for verticals that don't yet
+          have a designed image. Bebas Neue centred at the top. */}
+      {!wordmarkSrc && wordmarkText && (
+        <div style={wordmarkTextStyle}>{wordmarkText}</div>
       )}
 
       {/* Page-specific content slot. Sits between the chrome
@@ -187,6 +194,24 @@ const wordmarkImgStyle = {
   width: '100%',
   height: 'auto',
   display: 'block',
+  userSelect: 'none',
+}
+
+// Text-only wordmark for verticals still awaiting a designed image.
+const wordmarkTextStyle = {
+  position: 'absolute',
+  top: 40,
+  left: 0,
+  right: 0,
+  textAlign: 'center',
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, "Arial Black", sans-serif',
+  fontWeight: 400,
+  fontSize: 'clamp(36px, 5vw, 60px)',
+  letterSpacing: '0.12em',
+  color: 'rgba(242, 236, 220, 0.94)',
+  textShadow: '0 4px 24px rgba(0, 0, 0, 0.6)',
+  pointerEvents: 'none',
+  zIndex: 20,
   userSelect: 'none',
 }
 
