@@ -28,17 +28,23 @@ const CATEGORIES = [
 ]
 
 // Returns the video list for a category from the server-provided
-// catalog. Falls back to a small placeholder set when a category is
-// empty so the wall stays alive during scaffolding.
+// catalog. Real videos come first; "Coming soon" placeholder fillers
+// are appended so every column keeps a minimum visual weight of
+// MIN_CARDS cards even when it only has one or two real videos.
+// Without the padding, a partially-filled column collapsed visually
+// while its siblings still looked full.
+const MIN_CARDS = 6
+
 function getCards(catalog, slug) {
   const real = catalog?.[slug] || []
-  if (real.length > 0) return real
-  return Array.from({ length: 4 }, (_, i) => ({
+  const padCount = Math.max(0, MIN_CARDS - real.length)
+  const pads = Array.from({ length: padCount }, (_, i) => ({
     id: `${slug}-placeholder-${i + 1}`,
     title: `Coming soon · ${slug}`,
     duration: '—:—',
     source: 'placeholder',
   }))
+  return [...real, ...pads]
 }
 
 // YouTube gives us thumbnails free. hqdefault is 480x360 (16:9-ish
