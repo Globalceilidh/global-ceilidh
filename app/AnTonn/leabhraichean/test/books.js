@@ -1,23 +1,23 @@
 // Book catalog for /AnTonn/leabhraichean/test.
 //
-// Frontend-only placeholder for now — moves to sruth-backend +
-// admin editorial workflow once the layout is approved (same
-// path we took with Bhidio Videos).
+// Sourced from sruth-backend's `/books?vertical=leabhraichean` endpoint,
+// which reads the gc_books Supabase table. Editors curate the catalog
+// in sruth-admin → "Leabhraichean Books"; no code edits needed to add
+// or remove books.
 //
-// Per-entry shape:
+// The endpoint is cached at the Vercel edge for 5 minutes so we don't
+// hit Railway on every visitor — after an editorial change, users see
+// the new book within 5 minutes of publish.
+//
+// Backend response shape (per row from gc_books):
 //   {
-//     id:        'stable id (isbn preferred, else uuid)',
-//     title:     'Book title',
-//     author:    'Author name',
-//     isbn:      '9781000000000'   (optional — enables auto-cover)
-//     coverUrl:  'https://…'       (optional — explicit override)
-//     linkUrl:   'https://…'       (bookseller / review / library link)
-//     year:      2026              (optional; shown under the cover)
+//     id, vertical, category, isbn, title, author, publisher, year,
+//     cover_url, link_url, description, display_order, is_published
 //   }
 //
-// When `isbn` is set and no `coverUrl` is provided, we derive the
-// cover from OpenLibrary:
-//   https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg
+// We normalise into the shape BookshelfWall.js expects — `coverUrl`
+// mirrors cover_url, `linkUrl` mirrors link_url. Cover fallback via
+// OpenLibrary ISBN URL is handled by coverFor() below.
 
 export const GENRES = [
   { slug: 'new-releases', en: 'New Releases',      gd: 'Foillseachaidhean Ùra' },
@@ -29,6 +29,50 @@ export const GENRES = [
   { slug: 'history',      en: 'History',           gd: 'Eachdraidh' },
 ]
 
+const CATEGORIES = GENRES.map((g) => g.slug)
+
+const RAILWAY_URL =
+  process.env.NEXT_PUBLIC_SRUTH_API ||
+  'https://insightful-purpose-production-faf9.up.railway.app'
+
+// Async loader — used by the page's server component. Returns a
+// normalised { category: [books] } catalog. Falls back to an empty
+// catalog on any error so a Railway blip doesn't blank the wall.
+export async function loadCatalog() {
+  try {
+    const res = await fetch(`${RAILWAY_URL}/books?vertical=leabhraichean`, {
+      next: { revalidate: 300 },
+    })
+    if (!res.ok) throw new Error(`books api ${res.status}`)
+    const raw = await res.json()
+    const out = {}
+    for (const cat of CATEGORIES) {
+      const rows = raw?.[cat] || []
+      out[cat] = rows.map(normaliseRow)
+    }
+    return out
+  } catch (err) {
+    console.error('[leabhraichean/test] loadCatalog failed:', err)
+    return Object.fromEntries(CATEGORIES.map((c) => [c, []]))
+  }
+}
+
+function normaliseRow(row) {
+  return {
+    id: row.id,
+    isbn: row.isbn || undefined,
+    title: row.title,
+    author: row.author || undefined,
+    publisher: row.publisher || undefined,
+    year: row.year || undefined,
+    coverUrl: row.cover_url || undefined,
+    linkUrl: row.link_url || undefined,
+    description: row.description || undefined,
+  }
+}
+
+// Kept for backward compatibility if the wall is imported without a
+// catalog prop; empty by default so no stale data leaks.
 export const BOOK_CATALOG = {
   'new-releases': [],
   fiction: [],
