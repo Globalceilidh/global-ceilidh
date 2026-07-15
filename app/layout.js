@@ -41,7 +41,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/home"
+      signUpFallbackRedirectUrl="/home"
+    >
       <html lang="en" className={`${inter.variable} ${cinzel.variable} ${ebGaramond.variable} ${ibmPlexSans.variable} ${bebasNeue.variable}`}>
         <body className={`${inter.className} bg-white text-gc-text antialiased`}>
           <LanguageProvider>
