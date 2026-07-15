@@ -15,7 +15,7 @@
 //   4. Handoff to <LiveKitRoom/>.
 
 import { useEffect, useState } from 'react';
-import { useUser, SignInButton } from '@clerk/nextjs';
+import { useUser, useAuth, SignInButton } from '@clerk/nextjs';
 import {
   LiveKitRoom,
   VideoConference,
@@ -75,6 +75,7 @@ export default function RoomClient({ room }) {
 
 
 function RoomConnector({ room, displayName }) {
+  const { getToken } = useAuth();
   const [token, setToken] = useState(null);
   const [url, setUrl]     = useState(null);
   const [error, setError] = useState(null);
@@ -83,9 +84,18 @@ function RoomConnector({ room, displayName }) {
     let cancelled = false;
     (async () => {
       try {
+        // Send the Clerk session token explicitly as a Bearer header.
+        // The __session cookie doesn't reliably reach the server across
+        // this Clerk setup's subdomains, so server-side auth() sees null
+        // and 401s even when the client is signed in. Handing the token
+        // to the route directly sidesteps the cookie entirely.
+        const sessionToken = await getToken();
         const res = await fetch(`/api/rooms/${room.slug}/token`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
+          },
           body: JSON.stringify({ displayName }),
         });
         const body = await res.json();
@@ -101,7 +111,7 @@ function RoomConnector({ room, displayName }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [room.slug, displayName]);
+  }, [room.slug, displayName, getToken]);
 
   if (error) {
     return (
