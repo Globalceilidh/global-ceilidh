@@ -20,13 +20,15 @@
 // OpenLibrary ISBN URL is handled by coverFor() below.
 
 export const GENRES = [
-  { slug: 'new-releases', en: 'New Releases',      gd: 'Foillseachaidhean Ùra' },
-  { slug: 'fiction',      en: 'Fiction',           gd: 'Ficsean' },
-  { slug: 'poetry',       en: 'Poetry',            gd: 'Bàrdachd' },
-  { slug: 'non-fiction',  en: 'Non-fiction',       gd: 'Neo-fhicsean' },
-  { slug: 'children',     en: "Children's",        gd: 'Cloinne' },
-  { slug: 'language',     en: 'Gaelic Language',   gd: 'Cànan' },
-  { slug: 'history',      en: 'History',           gd: 'Eachdraidh' },
+  { slug: 'top-10-week',  en: 'GC Top 10 of the Week',    gd: 'Deich as Fheàrr na Seachdain' },
+  { slug: 'new-releases', en: 'New Releases',             gd: 'Foillseachaidhean Ùra' },
+  { slug: 'fiction',      en: 'Fiction',                  gd: 'Ficsean' },
+  { slug: 'sci-fi',       en: 'Science Fiction',          gd: 'Ficsean-saidheans' },
+  { slug: 'non-fiction',  en: 'Non-fiction',              gd: 'Neo-fhicsean' },
+  { slug: 'children',     en: "Children's Literature",    gd: 'Litreachas Chloinne' },
+  { slug: 'poetry',       en: 'Poetry',                   gd: 'Bàrdachd' },
+  { slug: 'history',      en: 'History',                  gd: 'Eachdraidh' },
+  { slug: 'language',     en: 'Gàidhlig Language Learning', gd: 'Ionnsachadh na Gàidhlig' },
 ]
 
 const CATEGORIES = GENRES.map((g) => g.slug)
@@ -74,13 +76,15 @@ function normaliseRow(row) {
 // Kept for backward compatibility if the wall is imported without a
 // catalog prop; empty by default so no stale data leaks.
 export const BOOK_CATALOG = {
+  'top-10-week': [],
   'new-releases': [],
   fiction: [],
-  poetry: [],
+  'sci-fi': [],
   'non-fiction': [],
   children: [],
-  language: [],
+  poetry: [],
   history: [],
+  language: [],
 }
 
 const MIN_SLOTS_PER_SHELF = 8
