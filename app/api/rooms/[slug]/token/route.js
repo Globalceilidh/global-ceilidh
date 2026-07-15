@@ -28,50 +28,27 @@ import { NextResponse } from 'next/server';
 // directly with the Clerk secret key and read `sub` as the user id.
 // Falls back to cookie-based auth() if no header is present.
 async function resolveUserId(request) {
-  // TEMP DIAGNOSTIC: dbg records exactly why auth resolves the way it
-  // does, surfaced in the 401 message so we can see it from the browser.
-  // Remove once the join flow is confirmed working.
-  const dbg = [];
-  const rawSecret = process.env.CLERK_SECRET_KEY || '';
-  const cleanSecret = rawSecret.replace(/^﻿/, '').trim();
-  const pk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
-  // Non-sensitive identifiers only: key *prefix* (sk_live_/sk_test_) and
-  // the instance domains encoded in pk / token issuer. The pk is already
-  // public; the sk secret body is never emitted.
-  const b64dec = (s) => { try { return Buffer.from(s, 'base64').toString('utf8'); } catch { return '?'; } };
-  dbg.push(`skPrefix=${cleanSecret.slice(0, 8)}`);
-  dbg.push(`skBomOrWs=${rawSecret.length !== cleanSecret.length ? 'YES' : 'no'}`);
-  const pkDomain = pk.startsWith('pk_') ? b64dec(pk.split('_')[2] || '').replace(/\$$/, '') : '?';
-  dbg.push(`pkDomain=${pkDomain}`);
+  // The client sends its Clerk session token as `Authorization: Bearer
+  // <jwt>` (see RoomClient.js); we verify it directly with the secret key
+  // and read `sub`. This avoids the __session cookie, which doesn't
+  // reliably reach the server across this Clerk setup's subdomains. The
+  // secret is trimmed defensively — a BOM/whitespace-corrupted env value
+  // would otherwise fail verification with `secret-key-invalid`.
+  const secretKey = (process.env.CLERK_SECRET_KEY || '').replace(/^﻿/, '').trim();
   const authz = request.headers.get('authorization') || '';
-  dbg.push(`hdr=${authz ? (authz.slice(0, 7) || 'present') : 'none'}`);
   if (authz.startsWith('Bearer ')) {
     const token = authz.slice(7).trim();
-    dbg.push(`tokenLen=${token.length}`);
-    try {
-      const payload = JSON.parse(b64dec(token.split('.')[1] || ''));
-      dbg.push(`tokIss=${payload?.iss || '?'}`);
-    } catch { dbg.push('tokIss=decode-fail'); }
     if (token) {
-      // Try the cleaned key first — if this succeeds, the stored value
-      // was just BOM/whitespace-corrupted.
       try {
-        const claims = await verifyToken(token, { secretKey: cleanSecret });
-        dbg.push(`verifiedClean sub=${claims?.sub || 'none'}`);
-        if (claims?.sub) return { userId: claims.sub, dbg };
-      } catch (e) {
-        dbg.push(`cleanErr=${e?.reason || e?.name || e?.message || 'unknown'}`);
+        const claims = await verifyToken(token, { secretKey });
+        if (claims?.sub) return claims.sub;
+      } catch {
+        // fall through to cookie auth below
       }
     }
   }
-  try {
-    const { userId } = await auth();
-    dbg.push(`cookieAuth=${userId || 'null'}`);
-    if (userId) return { userId, dbg };
-  } catch (e) {
-    dbg.push(`cookieErr=${e?.message || 'unknown'}`);
-  }
-  return { userId: null, dbg };
+  const { userId } = await auth();
+  return userId || null;
 }
 
 function jerr(status, code, message) {
@@ -122,10 +99,10 @@ export async function POST(request, { params }) {
 
   // 1. Clerk auth — verify the Bearer session token directly (cookie
   //    __session isn't reliable across this setup's subdomains).
-  const { userId, dbg } = await resolveUserId(request);
+  const userId = await resolveUserId(request);
   if (!userId) {
     return jerr(401, 'not_signed_in',
-      `Auth failed [${(dbg || []).join(' | ')}]`);
+      'Sign in to Global Ceilidh to join this room.');
   }
 
   // Display name comes from the client body; if missing we look it up
