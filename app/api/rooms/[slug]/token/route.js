@@ -32,21 +32,35 @@ async function resolveUserId(request) {
   // does, surfaced in the 401 message so we can see it from the browser.
   // Remove once the join flow is confirmed working.
   const dbg = [];
+  const rawSecret = process.env.CLERK_SECRET_KEY || '';
+  const cleanSecret = rawSecret.replace(/^﻿/, '').trim();
+  const pk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+  // Non-sensitive identifiers only: key *prefix* (sk_live_/sk_test_) and
+  // the instance domains encoded in pk / token issuer. The pk is already
+  // public; the sk secret body is never emitted.
+  const b64dec = (s) => { try { return Buffer.from(s, 'base64').toString('utf8'); } catch { return '?'; } };
+  dbg.push(`skPrefix=${cleanSecret.slice(0, 8)}`);
+  dbg.push(`skBomOrWs=${rawSecret.length !== cleanSecret.length ? 'YES' : 'no'}`);
+  const pkDomain = pk.startsWith('pk_') ? b64dec(pk.split('_')[2] || '').replace(/\$$/, '') : '?';
+  dbg.push(`pkDomain=${pkDomain}`);
   const authz = request.headers.get('authorization') || '';
   dbg.push(`hdr=${authz ? (authz.slice(0, 7) || 'present') : 'none'}`);
-  dbg.push(`secret=${process.env.CLERK_SECRET_KEY ? 'set' : 'MISSING'}`);
   if (authz.startsWith('Bearer ')) {
     const token = authz.slice(7).trim();
     dbg.push(`tokenLen=${token.length}`);
+    try {
+      const payload = JSON.parse(b64dec(token.split('.')[1] || ''));
+      dbg.push(`tokIss=${payload?.iss || '?'}`);
+    } catch { dbg.push('tokIss=decode-fail'); }
     if (token) {
+      // Try the cleaned key first — if this succeeds, the stored value
+      // was just BOM/whitespace-corrupted.
       try {
-        const claims = await verifyToken(token, {
-          secretKey: process.env.CLERK_SECRET_KEY,
-        });
-        dbg.push(`verified sub=${claims?.sub || 'none'}`);
+        const claims = await verifyToken(token, { secretKey: cleanSecret });
+        dbg.push(`verifiedClean sub=${claims?.sub || 'none'}`);
         if (claims?.sub) return { userId: claims.sub, dbg };
       } catch (e) {
-        dbg.push(`verifyErr=${e?.reason || e?.name || e?.message || 'unknown'}`);
+        dbg.push(`cleanErr=${e?.reason || e?.name || e?.message || 'unknown'}`);
       }
     }
   }
