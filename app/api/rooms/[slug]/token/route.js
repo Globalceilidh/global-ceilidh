@@ -28,22 +28,36 @@ import { NextResponse } from 'next/server';
 // directly with the Clerk secret key and read `sub` as the user id.
 // Falls back to cookie-based auth() if no header is present.
 async function resolveUserId(request) {
+  // TEMP DIAGNOSTIC: dbg records exactly why auth resolves the way it
+  // does, surfaced in the 401 message so we can see it from the browser.
+  // Remove once the join flow is confirmed working.
+  const dbg = [];
   const authz = request.headers.get('authorization') || '';
+  dbg.push(`hdr=${authz ? (authz.slice(0, 7) || 'present') : 'none'}`);
+  dbg.push(`secret=${process.env.CLERK_SECRET_KEY ? 'set' : 'MISSING'}`);
   if (authz.startsWith('Bearer ')) {
     const token = authz.slice(7).trim();
+    dbg.push(`tokenLen=${token.length}`);
     if (token) {
       try {
         const claims = await verifyToken(token, {
           secretKey: process.env.CLERK_SECRET_KEY,
         });
-        if (claims?.sub) return claims.sub;
-      } catch {
-        // fall through to cookie auth below
+        dbg.push(`verified sub=${claims?.sub || 'none'}`);
+        if (claims?.sub) return { userId: claims.sub, dbg };
+      } catch (e) {
+        dbg.push(`verifyErr=${e?.reason || e?.name || e?.message || 'unknown'}`);
       }
     }
   }
-  const { userId } = await auth();
-  return userId || null;
+  try {
+    const { userId } = await auth();
+    dbg.push(`cookieAuth=${userId || 'null'}`);
+    if (userId) return { userId, dbg };
+  } catch (e) {
+    dbg.push(`cookieErr=${e?.message || 'unknown'}`);
+  }
+  return { userId: null, dbg };
 }
 
 function jerr(status, code, message) {
@@ -94,10 +108,10 @@ export async function POST(request, { params }) {
 
   // 1. Clerk auth — verify the Bearer session token directly (cookie
   //    __session isn't reliable across this setup's subdomains).
-  const userId = await resolveUserId(request);
+  const { userId, dbg } = await resolveUserId(request);
   if (!userId) {
     return jerr(401, 'not_signed_in',
-      'Sign in to Global Ceilidh to join this room.');
+      `Auth failed [${(dbg || []).join(' | ')}]`);
   }
 
   // Display name comes from the client body; if missing we look it up
