@@ -17,9 +17,34 @@
 // moderation and analytics tie cleanly back to our user table.
 
 import { createClient } from '@supabase/supabase-js';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { auth, currentUser, verifyToken } from '@clerk/nextjs/server';
 import { AccessToken } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
+
+// Resolve the signed-in Clerk user id without depending on the __session
+// cookie, which doesn't reliably reach the server across this Clerk
+// setup's subdomains. The client sends its session token as
+// `Authorization: Bearer <jwt>` (see RoomClient.js); we verify that JWT
+// directly with the Clerk secret key and read `sub` as the user id.
+// Falls back to cookie-based auth() if no header is present.
+async function resolveUserId(request) {
+  const authz = request.headers.get('authorization') || '';
+  if (authz.startsWith('Bearer ')) {
+    const token = authz.slice(7).trim();
+    if (token) {
+      try {
+        const claims = await verifyToken(token, {
+          secretKey: process.env.CLERK_SECRET_KEY,
+        });
+        if (claims?.sub) return claims.sub;
+      } catch {
+        // fall through to cookie auth below
+      }
+    }
+  }
+  const { userId } = await auth();
+  return userId || null;
+}
 
 function jerr(status, code, message) {
   return NextResponse.json({ error: code, message }, { status });
@@ -67,10 +92,9 @@ export async function POST(request, { params }) {
       'LiveKit credentials missing on the server.');
   }
 
-  // 1. Clerk auth — embedded sign-in on the app domain means __session
-  //    lands on globalceilidh.com directly, so auth() sees the user
-  //    without the cross-subdomain dance the Account Portal required.
-  const { userId } = await auth();
+  // 1. Clerk auth — verify the Bearer session token directly (cookie
+  //    __session isn't reliable across this setup's subdomains).
+  const userId = await resolveUserId(request);
   if (!userId) {
     return jerr(401, 'not_signed_in',
       'Sign in to Global Ceilidh to join this room.');
