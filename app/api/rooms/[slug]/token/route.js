@@ -13,15 +13,13 @@
 //                               (host is always allowed regardless of tier)
 //
 // On pass, returns a LiveKit JWT scoped to this user + this room only.
-// The browser SDK uses this token to negotiate WebRTC with LiveKit
-// Cloud. The token's identity is the Clerk user id so server-side
-// participant moderation and analytics tie cleanly back to our user
-// table.
+// The token's identity is the Clerk user id so server-side participant
+// moderation and analytics tie cleanly back to our user table.
 
 import { createClient } from '@supabase/supabase-js';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { AccessToken } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
-import crypto from 'node:crypto';
 
 function jerr(status, code, message) {
   return NextResponse.json({ error: code, message }, { status });
@@ -69,12 +67,32 @@ export async function POST(request, { params }) {
       'LiveKit credentials missing on the server.');
   }
 
-  // 1. Display name from the client (MVP: prompt, not Clerk profile)
-  let displayName = 'Guest';
+  // 1. Clerk auth — embedded sign-in on the app domain means __session
+  //    lands on globalceilidh.com directly, so auth() sees the user
+  //    without the cross-subdomain dance the Account Portal required.
+  const { userId } = await auth();
+  if (!userId) {
+    return jerr(401, 'not_signed_in',
+      'Sign in to Global Ceilidh to join this room.');
+  }
+
+  // Display name comes from the client body; if missing we look it up
+  // from Clerk. Clients pass it explicitly so the room can render
+  // participant labels before the token round-trip completes.
+  let displayName = null;
   try {
     const body = await request.json();
     if (body?.displayName) displayName = String(body.displayName).slice(0, 60);
-  } catch { /* empty body OK; fall through to Guest */ }
+  } catch { /* empty body ok */ }
+  if (!displayName) {
+    const user = await currentUser();
+    displayName =
+      user?.fullName ||
+      user?.firstName ||
+      user?.username ||
+      user?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
+      'Ceilidh Guest';
+  }
 
   const supabase = db();
 
@@ -90,18 +108,30 @@ export async function POST(request, { params }) {
     return jerr(410, 'room_closed', `Room "${slug}" is ${room.status}.`);
   }
 
-  // 3. Access tier gate — MVP: only 'public' rooms supported until Clerk
-  // is wired back in. The other tiers return 403 instead of unsafely
-  // letting anyone through.
-  if (room.access_tier !== 'public') {
-    return jerr(403, 'auth_required_for_tier',
-      `Access tier "${room.access_tier}" is not yet available — Clerk auth is being re-wired. Try a public room.`);
+  // 3. Access tier gate — Clerk is back in, so the group_members and
+  //    paid tiers are live again. Host bypasses every check.
+  const isHost = room.host_user_id && room.host_user_id === userId;
+  if (!isHost) {
+    if (room.access_tier === 'group_members_free') {
+      const ok = await userHasGroupMembership(supabase, room.group_id, userId);
+      if (!ok) {
+        return jerr(403, 'not_a_group_member',
+          'This room is for members of its group only.');
+      }
+    } else if (room.access_tier === 'paid') {
+      const ok = await userHasActiveGrant(supabase, room.id, userId);
+      if (!ok) {
+        return jerr(403, 'no_active_grant',
+          'This room requires a paid access grant. Purchase one to join.');
+      }
+    }
+    // 'public' tier: any signed-in user passes.
   }
 
-  // 4. Mint the LiveKit token with a per-tab random identity
-  const identity = `guest_${crypto.randomBytes(6).toString('hex')}`;
+  // 4. Mint the LiveKit token. Identity = Clerk user id so moderation
+  //    and analytics tie to the real user record; name is display-only.
   const at = new AccessToken(apiKey, apiSecret, {
-    identity,
+    identity: userId,
     name: displayName,
     ttl: '2h',
   });

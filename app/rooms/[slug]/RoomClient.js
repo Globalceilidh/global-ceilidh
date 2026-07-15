@@ -1,17 +1,21 @@
 'use client';
 
-// Browser-side LiveKit room. MVP build: Clerk auth disabled so the
-// vertical slice works while we fix Clerk's cross-subdomain setup in
-// a follow-up. Public rooms (the only kind right now) just need a
-// display name. We'll re-add the Clerk gate in the next PR once the
-// __session cookie reliably reaches globalceilidh.com.
+// Browser-side LiveKit room, Clerk-gated. The old guest-name form is
+// gone — with embedded sign-in on the app domain, __session lands on
+// globalceilidh.com and both server-side auth() (in the token route)
+// and client-side useUser() (here) see the signed-in user cleanly.
 //
 // Flow:
-//   1. Prompt for a display name on first mount.
-//   2. POST /api/rooms/[slug]/token with the name in the body.
-//   3. Hand the returned LiveKit JWT to <LiveKitRoom/>.
+//   1. Clerk not loaded yet → spinner.
+//   2. Signed out → "Sign in to join" button linking to
+//      /sign-in?redirect_url=/rooms/<slug>, which brings the user back
+//      here right after Clerk finishes.
+//   3. Signed in → POST /api/rooms/[slug]/token; server-side check
+//      re-validates the Clerk session before minting a LiveKit JWT.
+//   4. Handoff to <LiveKitRoom/>.
 
 import { useEffect, useState } from 'react';
+import { useUser, SignInButton } from '@clerk/nextjs';
 import {
   LiveKitRoom,
   VideoConference,
@@ -20,54 +24,53 @@ import {
 import '@livekit/components-styles';
 
 export default function RoomClient({ room }) {
-  const [name, setName] = useState('');
-  const [submittedName, setSubmittedName] = useState(null);
+  const { isLoaded, isSignedIn, user } = useUser();
 
-  if (!submittedName) {
+  if (!isLoaded) {
     return (
       <main style={msgWrap}>
         <h1 style={msgTitle}>{room.name}</h1>
-        <p style={{ marginTop: 8, marginBottom: 16, maxWidth: 420, textAlign: 'center' }}>
-          {room.description}
+        <p style={{ marginTop: 8, fontStyle: 'italic', color: '#8B6914' }}>
+          Checking your Global Ceilidh account…
         </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const trimmed = name.trim();
-            if (trimmed) setSubmittedName(trimmed);
-          }}
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
-        >
-          <label style={{ fontSize: 13, color: '#6B4E1F', letterSpacing: 1.5, textTransform: 'uppercase' }}>
-            Your name (visible in the room)
-          </label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Scott"
-            autoFocus
-            style={{
-              padding: '10px 12px',
-              fontSize: 16,
-              fontFamily: 'Georgia, serif',
-              border: '1px solid #D6CFC0',
-              borderRadius: 4,
-              minWidth: 280,
-            }}
-          />
-          <button
-            type="submit"
-            disabled={!name.trim()}
-            style={{ ...signInButton, opacity: name.trim() ? 1 : 0.5 }}
-          >
-            Join the room
-          </button>
-        </form>
       </main>
     );
   }
 
-  return <RoomConnector room={room} displayName={submittedName} />;
+  if (!isSignedIn) {
+    const redirectUrl = `/rooms/${room.slug}`;
+    return (
+      <main style={msgWrap}>
+        <h1 style={msgTitle}>{room.name}</h1>
+        {room.description && (
+          <p style={{ marginTop: 8, marginBottom: 20, maxWidth: 420, textAlign: 'center' }}>
+            {room.description}
+          </p>
+        )}
+        <p style={{ marginBottom: 16, color: '#3A2A0C', textAlign: 'center', maxWidth: 420 }}>
+          Sign in to your Global Ceilidh account to join this room.
+        </p>
+        <SignInButton mode="redirect" forceRedirectUrl={redirectUrl} signUpForceRedirectUrl={redirectUrl}>
+          <button type="button" style={signInButton}>Sign in to join</button>
+        </SignInButton>
+        <a
+          href={`/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`}
+          style={secondaryLink}
+        >
+          New here? Create an account
+        </a>
+      </main>
+    );
+  }
+
+  const displayName =
+    user.fullName ||
+    user.firstName ||
+    user.username ||
+    user.primaryEmailAddress?.emailAddress?.split('@')[0] ||
+    'Ceilidh Guest';
+
+  return <RoomConnector room={room} displayName={displayName} />;
 }
 
 
@@ -167,12 +170,22 @@ const msgLink = {
 
 const signInButton = {
   background: '#1A3A2A',
-  color: '#F0E6CC',
+  color: '#FFFFFF',
   border: 'none',
-  padding: '12px 24px',
-  fontFamily: 'Georgia, serif',
-  fontSize: 15,
-  fontWeight: 700,
-  letterSpacing: 0.5,
+  padding: '12px 26px',
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
+  fontSize: 16,
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
   cursor: 'pointer',
+  borderRadius: 4,
+};
+
+const secondaryLink = {
+  marginTop: 14,
+  fontSize: 12,
+  color: '#6B4E1F',
+  textDecoration: 'underline',
+  fontFamily: '"IBM Plex Mono", monospace',
+  letterSpacing: 0.5,
 };

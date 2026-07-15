@@ -28,6 +28,12 @@ const PUBLIC_PREFIXES = [
   "/radio",
   "/AnTonn/radio",
   "/AnTonn/bhidio",
+  // Clerk embedded sign-in / sign-up. These MUST be reachable without
+  // the pre-launch cookie key — a first-time invitee following a room
+  // link has no cookie yet, and would loop through /sign-in?redirect_
+  // url=... straight back to "/" if the middleware bounced them.
+  "/sign-in",
+  "/sign-up",
   "/ads.txt",
   "/api/",
   "/_next/",
