@@ -34,6 +34,10 @@ const PUBLIC_PREFIXES = [
   // url=... straight back to "/" if the middleware bounced them.
   "/sign-in",
   "/sign-up",
+  // Per-contributor upload links (globalceilidh.com/contribute/<token>).
+  // These are personal, tokened, and noindexed — a contributor with no
+  // Clerk account and no cookie key must be able to reach their link.
+  "/contribute",
   "/ads.txt",
   "/api/",
   "/_next/",
