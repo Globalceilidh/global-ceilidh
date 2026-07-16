@@ -40,7 +40,22 @@
       "Bash(kill %1)",
       "Bash(identify \"C:/Dev/global-ceilidh/public/sruth_sign_up.png\")",
       "Bash(winget *)",
-      "Bash(cmd.exe *)"
+      "Bash(cmd.exe *)",
+      "PowerShell(git *)",
+      "Bash(git -C /c/Dev/sruth-backend log --oneline --all -20 -- app/email/template.py)",
+      "Bash(git -C /c/Dev/sruth-backend log --oneline --since=\"2026-06-01\")",
+      "Bash(git -C /c/Dev/sruth-admin log --oneline --since=\"2026-06-01\")",
+      "Bash(git -C /c/Dev/global-ceilidh log --oneline --since=\"2026-06-01\")",
+      "Bash(git -C /c/Dev/sruth-backend add app/llm/workbench.py)",
+      "Bash(git -C /c/Dev/sruth-backend commit -m ' *)",
+      "Bash(git -C /c/Dev/sruth-backend push)",
+      "Bash(git -C /c/Dev/sruth-backend add app/llm/workbench.py app/routers/workbench.py)",
+      "Bash(git -C /c/Dev/sruth-admin add src/renderer/App.jsx src/renderer/pages/Workbench.jsx)",
+      "Bash(git -C /c/Dev/sruth-admin commit -m ' *)",
+      "Bash(git -C /c/Dev/sruth-admin push)",
+      "WebSearch",
+      "PowerShell(npm run *)",
+      "PowerShell(npx next build 2>&1 | Select-Object -Last 40)"
     ]
   }
 }

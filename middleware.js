@@ -22,9 +22,9 @@ const PUBLIC_PREFIXES = [
   // entry — see app/rooms/[slug]/page.js and the token route.
   "/rooms",
   // Global Ceilidh Radio + An Tonn Bhidio: public for listener/viewer
-  // traffic + AdSense revenue. /radio is legacy; the 308 redirect in
-  // next.config.js sends it to /AnTonn/radio, so both need to be
-  // reachable without the cookie gate.
+  // traffic + AdSense revenue. Radio now lives at the top-level /radio;
+  // /AnTonn/radio 308-redirects to it (next.config.js) but is kept public
+  // as a belt-and-braces so the redirect never trips the cookie gate.
   "/radio",
   "/AnTonn/radio",
   "/AnTonn/bhidio",

@@ -51,7 +51,7 @@ const HOTSPOTS = [
   { top: "74%",  left: "16.5%", width: "12.7%", height: "21%", href: "/AnTonn/books",    label: "Books Current" },
   { top: "74%",  left: "30%",  width: "12.7%", height: "21%", href: "/AnTonn/podcasts",  label: "Podcast Current" },
   { top: "74%",  left: "43.5%", width: "12.7%", height: "21%", href: "/AnTonn/film",     label: "Film & TV Current" },
-  { top: "74%",  left: "57%",  width: "12.7%", height: "21%", href: "/AnTonn/radio",     label: "Radio (Coming Soon)" },
+  { top: "74%",  left: "57%",  width: "12.7%", height: "21%", href: "/radio",     label: "Radio (Coming Soon)" },
   { top: "74%",  left: "70.5%", width: "12.7%", height: "21%", href: "/AnTonn/archive",  label: "Archive" },
   { top: "74%",  left: "84%",  width: "12.7%", height: "21%", href: "/AnTonn/vote",     label: "Vote & Suggest" },
 ];

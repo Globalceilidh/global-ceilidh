@@ -14,13 +14,14 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Global Ceilidh Radio moved under An Tonn 2026-07-05. The old
-      // /radio URL was set as the "station website" on the Live365 App
-      // and may be tapped from listener directories. 308 preserves
-      // method and is permanent so search engines migrate the canonical.
+      // Global Ceilidh Radio now lives at the top-level /radio (2026-07-15)
+      // — cleaner share URL, and it's the "station website" set on the
+      // Live365 App. It briefly lived under /AnTonn/radio (2026-07-05);
+      // this 308 keeps any listener-directory or shared /AnTonn/radio
+      // links working by sending them to the canonical /radio.
       {
-        source: '/radio',
-        destination: '/AnTonn/radio',
+        source: '/AnTonn/radio',
+        destination: '/radio',
         permanent: true,
       },
     ];
