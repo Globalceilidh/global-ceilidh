@@ -6,11 +6,12 @@ import RadioClient from './RadioClient';
 // radio").
 const SHARE_URL = 'https://globalceilidh.com/radio';
 
-// OG image resolution is a bit above Facebook's recommended 1200x630
-// (we ship 1495x1052 — the existing wide-tile art). Facebook will
-// letterbox in feed but it looks correct in the preview card. Swap in
-// a purpose-built 1200x630 hero later without touching this file.
-const OG_IMAGE = '/radio/gc-radio-logo-wide.png';
+// Purpose-built 1200x630 share card (Facebook's exact recommended size):
+// the rèidio emblem — broadcast tower rising from the Sniomh swirl —
+// centered on black, so the card reads as one seamless image with no
+// letterboxing. Facebook renders the OG title beneath it. Kept separate
+// from gc-radio-logo-wide.png, which is still used as the on-page logo.
+const OG_IMAGE = '/radio/gc-radio-og.png';
 
 export const metadata = {
   title: 'Global Cèilidh Rèidio · Rèidio Ceilidh Cruinne',
@@ -30,8 +31,8 @@ export const metadata = {
     images: [
       {
         url: OG_IMAGE,
-        width: 1495,
-        height: 1052,
+        width: 1200,
+        height: 630,
         alt: 'Global Cèilidh Rèidio',
       },
     ],
