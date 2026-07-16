@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import VortexBackground from '../preview/components/VortexBackground';
-import LanguagePill from '../../../components/LanguagePill';
-import { useLanguage } from '../../../context/LanguageContext';
+import VortexBackground from '../AnTonn/preview/components/VortexBackground';
+import LanguagePill from '../../components/LanguagePill';
+import { useLanguage } from '../../context/LanguageContext';
 import { ARTISTS, FALLBACK, matchArtist } from './data/artists';
 
 const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so upstream still fires only ~15/min max
