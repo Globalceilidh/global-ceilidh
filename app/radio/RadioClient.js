@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Script from 'next/script';
 import { Canvas } from '@react-three/fiber';
 import VortexBackground from '../preview/components/VortexBackground';
 import LanguagePill from '../../../components/LanguagePill';
@@ -25,9 +24,6 @@ const TICKER_TOUR_ITEMS = ARTISTS
     { text: `${a.emoji || ''} ${a.name} · ${a.tourDates}` },
     { text: '·' },
   ]);
-
-const ADSENSE_PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID;
-const ADSENSE_SLOT_RADIO_TOP = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RADIO_TOP;
 
 export default function RadioClient() {
   const { t } = useLanguage();
@@ -96,16 +92,6 @@ export default function RadioClient() {
 
   return (
     <>
-      {ADSENSE_PUB_ID && (
-        <Script
-          id="adsense-loader"
-          async
-          strategy="afterInteractive"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUB_ID}`}
-          crossOrigin="anonymous"
-        />
-      )}
-
       <div style={pageOuterStyle} onPointerMove={onPointerMove}>
         {/* Vortex canvas — full viewport behind everything, follows cursor */}
         <div style={vortexLayerStyle}>
@@ -126,24 +112,15 @@ export default function RadioClient() {
         <main style={contentLayerStyle}>
           <div className="gc-radio-wrapper" style={contentWrapperStyle}>
             <header style={mastheadStyle}>
-              <h1 style={titleStyle}>Global Cèilidh Rèidio</h1>
-              <p style={taglineStyle}>{t('radio.tagline')}</p>
+              <h1 className="gc-radio-title" style={titleStyle}>Global Cèilidh Rèidio</h1>
+              <p className="gc-radio-tagline" style={taglineStyle}>{t('radio.tagline')}</p>
             </header>
-
-            {/* AdSense above the panels */}
-            <div style={adWrapperStyle}>
-              <AdSenseUnit
-                publisherId={ADSENSE_PUB_ID}
-                slot={ADSENSE_SLOT_RADIO_TOP}
-                label={t('radio.ad_label')}
-              />
-            </div>
 
             {/* Three panels: photo · Live365 · video (or photo carousel).
                 When featured is null (no Live365 match, or before Phase 3
                 is wired) both flanking tiles render their empty state. */}
-            <div style={featuredRowStyle}>
-              <div style={playerFrameStyle}>
+            <div className="gc-featured-row" style={featuredRowStyle}>
+              <div className="gc-radio-tile" style={playerFrameStyle}>
                 <iframe
                   title="Global Ceilidh Radio — Live365 player"
                   frameBorder="0"
@@ -213,13 +190,33 @@ export default function RadioClient() {
               @media (prefers-reduced-motion: reduce) {
                 .gc-ticker-track { animation: none; }
               }
-              /* Tighten vertical rhythm on phones — reclaim ~90px of
-                 vertical space by trimming top/bottom padding and the
-                 flex-column gap. Desktop untouched. */
+              /* Phones — stack the player above the media tile, let both
+                 go full width, and bump the type that read too small
+                 (tagline + ticker). Vertical rhythm tightened too. */
               @media (max-width: 768px) {
                 .gc-radio-wrapper {
-                  padding: 24px 12px 32px !important;
-                  gap: 20px !important;
+                  padding: 20px 12px 28px !important;
+                  gap: 18px !important;
+                }
+                .gc-featured-row {
+                  flex-direction: column !important;
+                  align-items: center !important;
+                  flex: 0 0 auto !important;
+                }
+                .gc-radio-tile {
+                  width: 100% !important;
+                  max-width: 460px !important;
+                }
+                .gc-radio-title {
+                  font-size: 52px !important;
+                }
+                .gc-radio-tagline {
+                  font-size: 18px !important;
+                  line-height: 1.45 !important;
+                  color: rgba(242, 236, 220, 0.9) !important;
+                }
+                .gc-ticker-text {
+                  font-size: 17px !important;
                 }
               }
               /* Wide fallback logo — the source image has generous
@@ -257,8 +254,9 @@ export default function RadioClient() {
           position="bottom-right"
           layout="toggle"
           variant="white"
-          offsetBottom={56}
-          offsetRight={30}
+          fixed
+          offsetBottom={24}
+          offsetRight={20}
         />
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
@@ -597,7 +595,7 @@ function TickerItem({ item }) {
       {item.text && <span style={tickerTextStyle}>{item.text}</span>}
     </span>
   ) : (
-    <span style={item.text === '·' ? tickerBulletStyle : tickerTextStyle}>
+    <span className={item.text === '·' ? '' : 'gc-ticker-text'} style={item.text === '·' ? tickerBulletStyle : tickerTextStyle}>
       {item.text}
     </span>
   );
@@ -622,6 +620,7 @@ function EmptyTile({ wide }) {
   const logo = wide ? FALLBACK.logoWide : FALLBACK.logoNarrow;
   return (
     <div
+      className="gc-radio-tile"
       style={{
         ...base,
         position: 'relative',
@@ -669,7 +668,7 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
 
   const base = wide ? videoTileStyle : photoTileStyle;
   return (
-    <div style={{ ...base, position: 'relative' }}>
+    <div className="gc-radio-tile" style={{ ...base, position: 'relative' }}>
       {photos.map((src, i) => (
         <img
           key={i}
@@ -696,39 +695,6 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
   );
 }
 
-function AdSenseUnit({ publisherId, slot, label }) {
-  useEffect(() => {
-    if (!publisherId || !slot) return;
-    try {
-      // eslint-disable-next-line no-undef
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      // AdSense not ready yet or blocked — silently ignore
-    }
-  }, [publisherId, slot]);
-
-  if (!publisherId || !slot) {
-    return (
-      <div style={adPlaceholderStyle} aria-hidden="true">
-        <div style={adPlaceholderInnerStyle}>
-          {label} — set NEXT_PUBLIC_ADSENSE_PUBLISHER_ID and NEXT_PUBLIC_ADSENSE_SLOT_RADIO_TOP in Vercel to activate
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ins
-      className="adsbygoogle"
-      style={{ display: 'block', minHeight: 90 }}
-      data-ad-client={publisherId}
-      data-ad-slot={slot}
-      data-ad-format="auto"
-      data-full-width-responsive="true"
-    />
-  );
-}
-
 // ── Styles ────────────────────────────────────────────────────────────
 
 const pageOuterStyle = {
@@ -747,8 +713,8 @@ const pageOuterStyle = {
 // from the top for Let's Talk, 56px up from the bottom for the
 // language slider (see LanguagePill call).
 const letsTalkStyle = {
-  position: 'absolute',
-  top: 56, right: 30,
+  position: 'fixed',
+  top: 24, right: 20,
   padding: '11px 26px',
   borderRadius: 999,
   background: '#FFFFFF',
@@ -784,11 +750,11 @@ const contentWrapperStyle = {
   // making the wrapper taller than visible screen; dvh matches what
   // the user actually sees).
   minHeight: '100dvh',
-  padding: '56px 20px 88px',
+  padding: '44px 20px 44px',
   boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
-  gap: 32,
+  gap: 24,
 };
 
 const mastheadStyle = {
@@ -820,12 +786,6 @@ const taglineStyle = {
   marginLeft: 'auto',
   marginRight: 'auto',
   lineHeight: 1.4,
-};
-
-const adWrapperStyle = {
-  display: 'flex',
-  justifyContent: 'center',
-  minHeight: 90,
 };
 
 const featuredRowStyle = {
@@ -963,31 +923,6 @@ const footerLinkStyle = {
   color: '#C9A047',
   textDecoration: 'none',
   borderBottom: '1px solid rgba(201, 160, 71, 0.4)',
-};
-
-const adPlaceholderStyle = {
-  width: '100%',
-  maxWidth: 728,
-  minHeight: 90,
-  border: '1px dashed rgba(242, 236, 220, 0.2)',
-  borderRadius: 6,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '16px 20px',
-  background: 'rgba(0, 0, 0, 0.3)',
-  backdropFilter: 'blur(2px)',
-  WebkitBackdropFilter: 'blur(2px)',
-};
-
-const adPlaceholderInnerStyle = {
-  fontFamily: '"IBM Plex Mono", Menlo, monospace',
-  fontSize: 10,
-  letterSpacing: 1.5,
-  color: 'rgba(242, 236, 220, 0.4)',
-  textTransform: 'uppercase',
-  textAlign: 'center',
-  lineHeight: 1.5,
 };
 
 // ── Pills + modal styles ──────────────────────────────────────────────
