@@ -30,6 +30,7 @@ export default function LanguagePill({
   offsetLeft,
   offsetRight,
   offsetBottom,
+  className,
 }) {
   const { language, toggleLanguage } = useLanguage();
 
@@ -52,6 +53,7 @@ export default function LanguagePill({
     return (
       <button
         type="button"
+        className={className}
         onClick={toggleLanguage}
         aria-label={language === 'en' ? 'Switch to Gàidhlig' : 'Switch to English'}
         title={language === 'en' ? 'Switch to Gàidhlig' : 'Switch to English'}
@@ -106,6 +108,7 @@ export default function LanguagePill({
   return (
     <button
       type="button"
+      className={className}
       onClick={toggleLanguage}
       aria-label={language === 'en' ? 'Switch to Gàidhlig' : 'Switch to English'}
       title={language === 'en' ? 'Switch to Gàidhlig' : 'Switch to English'}

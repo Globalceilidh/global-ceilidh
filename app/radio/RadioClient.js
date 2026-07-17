@@ -214,12 +214,19 @@ export default function RadioClient() {
                   display: none !important;
                 }
                 .gc-letstalk {
-                  /* Smaller, tighter to the corner on phones — thumb-scale
-                     chrome instead of a desktop-size pill over the title. */
+                  /* On phones the radio doesn't need the Let's Talk pill —
+                     drop it and let the EN/GD toggle take the top-right
+                     corner instead (see .gc-langpill below). Still shown on
+                     desktop. */
+                  display: none !important;
+                }
+                .gc-langpill {
+                  /* Move the language toggle up to the top-right corner
+                     (where Let's Talk was), kept at its current small size. */
                   top: 16px !important;
+                  bottom: auto !important;
                   right: 12px !important;
-                  padding: 9px 18px !important;
-                  font-size: 15px !important;
+                  left: auto !important;
                 }
                 .gc-featured-row {
                   flex-direction: column !important;
@@ -276,6 +283,7 @@ export default function RadioClient() {
             viewport edge, 56px up from the bottom (mirrors Let's Talk's
             56px-from-top inset). */}
         <LanguagePill
+          className="gc-langpill"
           position="bottom-right"
           layout="toggle"
           variant="white"
