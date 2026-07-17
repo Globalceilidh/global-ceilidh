@@ -119,6 +119,7 @@ export default function OnboardingClient({ defaults }) {
 
   return (
     <main style={wrap}>
+      <div style={stars} aria-hidden />
       <div style={card}>
         <p style={eyebrow}>Global Ceilidh · {L('Welcome', 'Fàilte')}</p>
         <h1 style={h1}>{L('Make your page', 'Dèan do dhuilleag')}</h1>
@@ -222,7 +223,7 @@ export default function OnboardingClient({ defaults }) {
 
       <LanguagePill
         position="bottom-right"
-        variant="light"
+        variant="dark"
         layout="toggle"
         fixed
         offsetBottom={20}
@@ -258,24 +259,49 @@ function Field({ label, required, hint, children }) {
 // ── styles (mirrors the /contribute form house style) ─────────────────
 
 const wrap = {
+  position: 'relative',
   minHeight: '100dvh',
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
   padding: '48px 20px',
-  background: '#F5F0E8',
+  // Space-black backdrop — a sibling of the globe page (black screen +
+  // grayscale globe + gold heat). The form floats as a white overlay.
+  background: 'radial-gradient(ellipse 120% 90% at 50% 18%, #0b1220 0%, #05070d 55%, #000000 100%)',
   fontFamily: 'Georgia, serif',
 };
+// A quiet scatter of stars so the black reads as space, not just dark.
+const stars = {
+  position: 'fixed',
+  inset: 0,
+  pointerEvents: 'none',
+  zIndex: 0,
+  backgroundImage: [
+    'radial-gradient(1.5px 1.5px at 15% 22%, rgba(255,255,255,0.7), transparent)',
+    'radial-gradient(1px 1px at 42% 14%, rgba(255,255,255,0.5), transparent)',
+    'radial-gradient(1px 1px at 68% 30%, rgba(255,255,255,0.55), transparent)',
+    'radial-gradient(1.5px 1.5px at 85% 17%, rgba(255,255,255,0.6), transparent)',
+    'radial-gradient(1px 1px at 25% 55%, rgba(255,255,255,0.4), transparent)',
+    'radial-gradient(1px 1px at 78% 68%, rgba(255,255,255,0.5), transparent)',
+    'radial-gradient(1.5px 1.5px at 55% 82%, rgba(255,255,255,0.5), transparent)',
+    'radial-gradient(1px 1px at 8% 74%, rgba(255,255,255,0.4), transparent)',
+    'radial-gradient(1px 1px at 92% 86%, rgba(255,255,255,0.45), transparent)',
+    'radial-gradient(1px 1px at 35% 42%, rgba(255,255,255,0.35), transparent)',
+  ].join(', '),
+};
 const card = {
+  position: 'relative',
+  zIndex: 1,
   width: '100%',
   maxWidth: 560,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   background: '#FFFFFF',
-  borderRadius: 10,
+  borderRadius: 14,
   padding: '38px 30px 34px',
-  boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+  // Float the white overlay off the black with a deep soft shadow.
+  boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 2px 10px rgba(0,0,0,0.4)',
   boxSizing: 'border-box',
 };
 const eyebrow = {
