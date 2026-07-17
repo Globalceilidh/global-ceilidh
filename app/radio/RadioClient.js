@@ -26,7 +26,7 @@ const TICKER_TOUR_ITEMS = ARTISTS
   ]);
 
 export default function RadioClient() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Mouse tracking — feeds VortexBackground so the whirlpool follows
   // the cursor (An Tonn parity).
@@ -55,6 +55,13 @@ export default function RadioClient() {
   const [showVote, setShowVote] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
 
+  // Mobile-only: which single tile is visible — the Live365 player or the
+  // decorative photo/logo. Keeps the phone on one screen while still
+  // reaching both. Desktop shows both side by side and ignores this.
+  // isMobile is set from a matchMedia listener after mount.
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileView, setMobileView] = useState('player'); // 'player' | 'image'
+
   useEffect(() => {
     let cancelled = false;
     const poll = async () => {
@@ -82,6 +89,14 @@ export default function RadioClient() {
     const handler = () => setDocHidden(document.hidden);
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
   }, []);
 
   const onPointerMove = (e) => {
@@ -116,11 +131,44 @@ export default function RadioClient() {
               <p className="gc-radio-tagline" style={taglineStyle}>{t('radio.tagline')}</p>
             </header>
 
-            {/* Three panels: photo · Live365 · video (or photo carousel).
-                When featured is null (no Live365 match, or before Phase 3
-                is wired) both flanking tiles render their empty state. */}
+            {/* Mobile: a small toggle to swap the single visible tile
+                between the player and the photo so the page stays on one
+                screen. The player iframe is only display:none'd (never
+                unmounted) when hidden, so audio keeps playing while the
+                photo is shown. Hidden on desktop, where both tiles show. */}
+            {isMobile && (
+              <div style={mobileTabsStyle} role="tablist" aria-label="Radio view">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mobileView === 'player'}
+                  onClick={() => setMobileView('player')}
+                  style={mobileTabStyle(mobileView === 'player')}
+                >
+                  {language === 'gd' ? 'Cluicheadair' : 'Player'}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mobileView === 'image'}
+                  onClick={() => setMobileView('image')}
+                  style={mobileTabStyle(mobileView === 'image')}
+                >
+                  {language === 'gd' ? 'Dealbh' : 'Photo'}
+                </button>
+              </div>
+            )}
+
+            {/* Live365 player + decorative photo. Desktop: side by side.
+                Mobile: one at a time, chosen by the toggle above. */}
             <div className="gc-featured-row" style={featuredRowStyle}>
-              <div className="gc-radio-tile" style={playerFrameStyle}>
+              <div
+                className="gc-radio-tile"
+                style={{
+                  ...playerFrameStyle,
+                  ...(isMobile && mobileView !== 'player' ? { display: 'none' } : null),
+                }}
+              >
                 <iframe
                   title="Global Ceilidh Radio — Live365 player"
                   frameBorder="0"
@@ -129,12 +177,14 @@ export default function RadioClient() {
                   style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
                 />
               </div>
-              {/* Decorative now-playing / logo tile. Hidden on phones
-                  (see .gc-media-tile in the media query) so the radio fits
-                  one screen without scrolling — the player above is the
-                  functional core. display:contents keeps this a transparent
-                  wrapper on desktop so the flex layout is unchanged there. */}
-              <span className="gc-media-tile" style={{ display: 'contents' }}>
+              {/* Decorative now-playing photo / logo tile. On mobile shown
+                  only when the Photo tab is active (JS-controlled); on
+                  desktop display:contents keeps it a transparent wrapper so
+                  the flex layout is unchanged. */}
+              <span
+                className="gc-media-tile"
+                style={{ display: (isMobile && mobileView !== 'image') ? 'none' : 'contents' }}
+              >
                 {featured
                   ? <PhotoTile artist={featured} offset={0} wide={true} />
                   : <EmptyTile wide={true} />
@@ -207,11 +257,6 @@ export default function RadioClient() {
                      the masthead + footer never render under them. */
                   padding: 56px 12px 52px !important;
                   gap: 14px !important;
-                }
-                .gc-media-tile {
-                  /* Drop the decorative photo/logo tile on phones so the
-                     radio fits one screen — the Live365 player is the core. */
-                  display: none !important;
                 }
                 .gc-letstalk {
                   /* On phones the radio doesn't need the Let's Talk pill —
@@ -978,6 +1023,30 @@ const pillRowStyle = {
   justifyContent: 'center',
   flexWrap: 'wrap',
 };
+
+// Mobile-only segmented toggle to swap the visible tile (player / photo).
+const mobileTabsStyle = {
+  display: 'flex',
+  gap: 8,
+  justifyContent: 'center',
+  alignSelf: 'center',
+};
+
+function mobileTabStyle(active) {
+  return {
+    padding: '6px 18px',
+    borderRadius: 999,
+    border: `1px solid ${active ? '#C9A047' : 'rgba(242, 236, 220, 0.22)'}`,
+    background: active ? 'rgba(201, 160, 71, 0.14)' : 'transparent',
+    color: active ? '#C9A047' : 'rgba(242, 236, 220, 0.6)',
+    fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
+    fontSize: 15,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    transition: 'color 180ms ease, background 180ms ease, border-color 180ms ease',
+  };
+}
 
 // Pure white pill in Bebas Neue — matches every other pill on the
 // radio page (Let's Talk, language slider, Vote, Request). One
