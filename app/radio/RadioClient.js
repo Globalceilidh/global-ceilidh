@@ -195,8 +195,19 @@ export default function RadioClient() {
                  (tagline + ticker). Vertical rhythm tightened too. */
               @media (max-width: 768px) {
                 .gc-radio-wrapper {
-                  padding: 20px 12px 28px !important;
+                  /* Extra top/bottom padding clears the FIXED corner pills
+                     (Let's Talk top-right, language slider bottom-right) so
+                     the centered masthead + footer never render under them. */
+                  padding: 64px 12px 76px !important;
                   gap: 18px !important;
+                }
+                .gc-letstalk {
+                  /* Smaller, tighter to the corner on phones — thumb-scale
+                     chrome instead of a desktop-size pill over the title. */
+                  top: 16px !important;
+                  right: 12px !important;
+                  padding: 9px 18px !important;
+                  font-size: 15px !important;
                 }
                 .gc-featured-row {
                   flex-direction: column !important;
@@ -208,7 +219,9 @@ export default function RadioClient() {
                   max-width: 460px !important;
                 }
                 .gc-radio-title {
-                  font-size: 52px !important;
+                  /* 52 wrapped awkwardly on 360-390px phones; 44 gives a
+                     clean two-line lockup. */
+                  font-size: 44px !important;
                 }
                 .gc-radio-tagline {
                   font-size: 18px !important;
@@ -245,7 +258,7 @@ export default function RadioClient() {
 
         {/* Let's Talk pill — same white/Bebas Neue look as every other
             pill on this page. Bilingual: "Let's Talk" / "Thig, bruidhinneas". */}
-        <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
+        <a href="/contact" className="gc-letstalk" style={letsTalkStyle}>{t('common.lets_talk')}</a>
 
         {/* Language toggle — EN⇄GD slider on a white pill. Right
             viewport edge, 56px up from the bottom (mirrors Let's Talk's
@@ -699,7 +712,7 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
 
 const pageOuterStyle = {
   position: 'relative',
-  minHeight: '100vh',
+  minHeight: '100dvh',
   background: '#020409',
   color: '#F2ECDC',
   // overflowX only — allow vertical document scroll. `overflow: hidden`
