@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import LanguagePill from '../../components/LanguagePill';
 
 const INTEREST_OPTIONS = [
   ['Music', 'Ceòl'],
@@ -218,6 +219,15 @@ export default function OnboardingClient({ defaults }) {
           </button>
         </form>
       </div>
+
+      <LanguagePill
+        position="bottom-right"
+        variant="light"
+        layout="toggle"
+        fixed
+        offsetBottom={20}
+        offsetRight={20}
+      />
     </main>
   );
 }
