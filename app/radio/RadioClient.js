@@ -220,13 +220,10 @@ export default function RadioClient() {
                      desktop. */
                   display: none !important;
                 }
-                .gc-langpill {
-                  /* Move the language toggle up to the top-right corner
-                     (where Let's Talk was), kept at its current small size. */
-                  top: 16px !important;
-                  bottom: auto !important;
-                  right: 12px !important;
-                  left: auto !important;
+                .gc-langpill-desk {
+                  /* Desktop white pill is hidden on phones — the bare gold
+                     toggle (gc-langpill-mob) takes over. */
+                  display: none !important;
                 }
                 .gc-featured-row {
                   flex-direction: column !important;
@@ -262,6 +259,10 @@ export default function RadioClient() {
                  shifts down-and-left by ~3.5% in each axis (~15px
                  left, ~11px down at 450x316). Whitey's "smidge". */
               @media (min-width: 769px) {
+                .gc-langpill-mob {
+                  /* Bare gold toggle is mobile-only. */
+                  display: none !important;
+                }
                 .gc-fallback-logo-wide {
                   transform: scale(1.35);
                   /* Origin at 50% 10% shifts the composition centre
@@ -282,14 +283,25 @@ export default function RadioClient() {
         {/* Language toggle — EN⇄GD slider on a white pill. Right
             viewport edge, 56px up from the bottom (mirrors Let's Talk's
             56px-from-top inset). */}
+        {/* Language toggle. Desktop: white pill, bottom-right. Mobile:
+            bare gold EN/GD switch, top-left (see media query show/hide). */}
         <LanguagePill
-          className="gc-langpill"
+          className="gc-langpill-desk"
           position="bottom-right"
           layout="toggle"
           variant="white"
           fixed
           offsetBottom={24}
           offsetRight={20}
+        />
+        <LanguagePill
+          className="gc-langpill-mob"
+          position="top-left"
+          layout="toggle"
+          variant="gold"
+          fixed
+          offsetTop={16}
+          offsetLeft={16}
         />
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}

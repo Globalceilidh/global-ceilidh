@@ -45,6 +45,10 @@ export default function LanguagePill({
 
   const isWhite = variant === 'white';
   const isDark = variant === 'dark';
+  // 'gold' — no pill, just the EN/GD switch in gold lettering. Used on
+  // mobile /radio where a floating white pill was too heavy.
+  const isGold = variant === 'gold';
+  const GOLD = '#C9A047';
 
   // Solid pill — matches the AnTonn "Let's Talk" style. Label is the
   // language you'd switch TO — reads as an invitation, not a state.
@@ -83,22 +87,28 @@ export default function LanguagePill({
 
   // Toggle slider — EN ⇄ GD switch. `white` variant matches the pure
   // white pill styling used across /AnTonn/radio.
-  const trackOff = isWhite ? 'rgba(10, 13, 20, 0.15)'
+  const trackOff = isGold ? 'rgba(201, 160, 71, 0.28)'
+    : isWhite ? 'rgba(10, 13, 20, 0.15)'
     : isDark ? 'rgba(242, 236, 220, 0.18)'
     : 'rgba(10, 13, 20, 0.15)';
-  const trackOn = isWhite ? '#0A0D14'
+  const trackOn = isGold ? GOLD
+    : isWhite ? '#0A0D14'
     : isDark ? '#F2ECDC'
     : '#0A0D14';
-  const knob = isWhite ? '#FFFFFF'
+  const knob = isGold ? '#0A0D14'
+    : isWhite ? '#FFFFFF'
     : isDark ? '#0A0D14'
     : '#F2ECDC';
-  const textActive = isWhite ? '#0A0D14'
+  const textActive = isGold ? GOLD
+    : isWhite ? '#0A0D14'
     : isDark ? '#F2ECDC'
     : '#0A0D14';
-  const textMuted = isWhite ? 'rgba(10, 13, 20, 0.4)'
+  const textMuted = isGold ? 'rgba(201, 160, 71, 0.5)'
+    : isWhite ? 'rgba(10, 13, 20, 0.4)'
     : isDark ? 'rgba(242, 236, 220, 0.55)'
     : 'rgba(10, 13, 20, 0.45)';
-  const bg = isWhite ? '#FFFFFF'
+  const bg = isGold ? 'transparent'
+    : isWhite ? '#FFFFFF'
     : isDark ? 'rgba(10, 13, 20, 0.55)'
     : 'rgba(242, 236, 220, 0.85)';
   const border = isWhite ? 'none'
@@ -116,21 +126,22 @@ export default function LanguagePill({
         ...anchor,
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 10,
-        padding: isWhite ? '11px 22px' : '8px 14px',
+        gap: isGold ? 8 : 10,
+        padding: isGold ? '4px 2px' : isWhite ? '11px 22px' : '8px 14px',
         borderRadius: 999,
         background: bg,
-        border: isWhite ? 'none' : `1px solid ${border}`,
+        border: (isWhite || isGold) ? 'none' : `1px solid ${border}`,
         cursor: 'pointer',
         fontFamily: isWhite
           ? 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif'
           : 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
-        fontSize: isWhite ? 18 : 11,
-        fontWeight: isWhite ? 400 : 600,
-        letterSpacing: isWhite ? '0.08em' : '2px',
+        fontSize: isGold ? 13 : isWhite ? 18 : 11,
+        fontWeight: isGold ? 600 : isWhite ? 400 : 600,
+        letterSpacing: isGold ? '1px' : isWhite ? '0.08em' : '2px',
         textTransform: 'uppercase',
-        backdropFilter: isWhite ? 'none' : 'blur(6px)',
-        boxShadow: isWhite ? '0 8px 24px rgba(0,0,0,0.35)'
+        backdropFilter: (isWhite || isGold) ? 'none' : 'blur(6px)',
+        boxShadow: isGold ? 'none'
+          : isWhite ? '0 8px 24px rgba(0,0,0,0.35)'
           : isDark ? '0 8px 24px rgba(0,0,0,0.35)'
           : '0 4px 16px rgba(0,0,0,0.15)',
         transition: 'transform 220ms ease, box-shadow 220ms ease',
