@@ -364,6 +364,10 @@ export const ARTISTS = [
 // Drop stockVideos + partners entries here when ready — they'll rotate
 // on the right pane during unknown-artist windows.
 export const FALLBACK = {
+  // Shown when the Live365 track doesn't match anyone in ARTISTS. The
+  // rèidio icon (radio tower from the Sniomh swirl, transparent bg) is
+  // centered on the dark tile — contain, not cover.
+  icon:       '/AnTonn/test/reidio-icon.png',    // 1254 x 1254, transparent
   logoNarrow: '/radio/gc-radio-logo-narrow.png', // ~474 x 632, portrait
   logoWide:   '/radio/gc-radio-logo-wide.png',   // ~900 x 632, landscape
   stockVideos: [],

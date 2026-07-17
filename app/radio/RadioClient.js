@@ -707,7 +707,6 @@ function TickerItem({ item }) {
 // so each tile aspect gets its purpose-designed image with no crop.
 function EmptyTile({ wide }) {
   const base = wide ? videoTileStyle : photoTileStyle;
-  const logo = wide ? FALLBACK.logoWide : FALLBACK.logoNarrow;
   return (
     <div
       className="gc-radio-tile"
@@ -719,26 +718,26 @@ function EmptyTile({ wide }) {
         WebkitBackdropFilter: 'none',
       }}
     >
-      {logo && (
-        <img
-          src={logo}
-          alt="Global Ceilidh Radio"
-          draggable={false}
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          // Class scopes the desktop-only zoom (see media query in
-          // the style tag). Only wide fallback needs the zoom — narrow
-          // logo is designed for portrait, no baked-in padding issue.
-          className={wide ? 'gc-fallback-logo-wide' : ''}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            userSelect: 'none',
-          }}
-        />
-      )}
+      {/* Unknown-artist fallback: the rèidio icon centered on the dark
+          tile. The icon is square + transparent, so contain (not cover)
+          with padding keeps it centered with breathing room instead of
+          being cropped to fill the landscape tile. */}
+      <img
+        src={FALLBACK.icon}
+        alt="Global Ceilidh Radio"
+        draggable={false}
+        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          padding: '12%',
+          boxSizing: 'border-box',
+          userSelect: 'none',
+        }}
+      />
     </div>
   );
 }
