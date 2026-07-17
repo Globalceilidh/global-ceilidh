@@ -129,10 +129,17 @@ export default function RadioClient() {
                   style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
                 />
               </div>
-              {featured
-                ? <PhotoTile artist={featured} offset={0} wide={true} />
-                : <EmptyTile wide={true} />
-              }
+              {/* Decorative now-playing / logo tile. Hidden on phones
+                  (see .gc-media-tile in the media query) so the radio fits
+                  one screen without scrolling — the player above is the
+                  functional core. display:contents keeps this a transparent
+                  wrapper on desktop so the flex layout is unchanged there. */}
+              <span className="gc-media-tile" style={{ display: 'contents' }}>
+                {featured
+                  ? <PhotoTile artist={featured} offset={0} wide={true} />
+                  : <EmptyTile wide={true} />
+                }
+              </span>
             </div>
 
             {/* Vote + Request pills — Vote drives An Tonn Top-10s (Best
@@ -195,11 +202,16 @@ export default function RadioClient() {
                  (tagline + ticker). Vertical rhythm tightened too. */
               @media (max-width: 768px) {
                 .gc-radio-wrapper {
-                  /* Extra top/bottom padding clears the FIXED corner pills
+                  /* Top/bottom padding clears the FIXED corner pills
                      (Let's Talk top-right, language slider bottom-right) so
-                     the centered masthead + footer never render under them. */
-                  padding: 64px 12px 76px !important;
-                  gap: 18px !important;
+                     the masthead + footer never render under them. */
+                  padding: 56px 12px 52px !important;
+                  gap: 14px !important;
+                }
+                .gc-media-tile {
+                  /* Drop the decorative photo/logo tile on phones so the
+                     radio fits one screen — the Live365 player is the core. */
+                  display: none !important;
                 }
                 .gc-letstalk {
                   /* Smaller, tighter to the corner on phones — thumb-scale
