@@ -45,7 +45,7 @@ export default function RootLayout({ children }) {
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
       signInFallbackRedirectUrl="/home"
-      signUpFallbackRedirectUrl="/home"
+      signUpFallbackRedirectUrl="/welcome"
     >
       <html lang="en" className={`${inter.variable} ${cinzel.variable} ${ebGaramond.variable} ${ibmPlexSans.variable} ${bebasNeue.variable}`}>
         <body className={`${inter.className} bg-white text-gc-text antialiased`}>

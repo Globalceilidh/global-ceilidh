@@ -95,6 +95,22 @@ export async function POST(req) {
       return new Response('Database error', { status: 500 })
     }
 
+    // Seed a minimal social profile so every user has a gc_profiles row.
+    // handle stays NULL until onboarding; the onboarding flow upserts the
+    // rest, so a failure here is non-fatal — never fail the webhook over
+    // it (23505 = row already exists, which is fine).
+    const { error: profileError } = await supabase
+      .from('gc_profiles')
+      .insert({
+        clerk_user_id: data.id,
+        display_name:  [data.first_name, data.last_name].filter(Boolean).join(' ') || null,
+        avatar_url:    data.image_url || null,
+      })
+
+    if (profileError && profileError.code !== '23505') {
+      console.error('Failed to seed gc_profiles (non-fatal):', profileError)
+    }
+
     console.log('User created:', data.id)
     return new Response('OK', { status: 200 })
   }

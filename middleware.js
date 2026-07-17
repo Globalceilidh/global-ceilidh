@@ -34,6 +34,13 @@ const PUBLIC_PREFIXES = [
   // url=... straight back to "/" if the middleware bounced them.
   "/sign-in",
   "/sign-up",
+  // Social layer: onboarding + public profile pages. These bypass the
+  // pre-launch cookie gate (a freshly signed-up user has no gc_access
+  // cookie), but Clerk still gates the sensitive parts — /welcome runs
+  // auth() and bounces to /sign-in if signed out; /u/<handle> is a
+  // public profile view by design.
+  "/welcome",
+  "/u/",
   // Per-contributor upload links (globalceilidh.com/contribute/<token>).
   // These are personal, tokened, and noindexed — a contributor with no
   // Clerk account and no cookie key must be able to reach their link.
