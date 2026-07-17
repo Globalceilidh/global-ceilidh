@@ -252,11 +252,18 @@ export default function RadioClient() {
                  (tagline + ticker). Vertical rhythm tightened too. */
               @media (max-width: 768px) {
                 .gc-radio-wrapper {
-                  /* Top/bottom padding clears the FIXED corner pills
-                     (Let's Talk top-right, language slider bottom-right) so
-                     the masthead + footer never render under them. */
-                  padding: 56px 12px 52px !important;
-                  gap: 14px !important;
+                  /* Lock the radio to exactly one viewport so it never
+                     scrolls: fixed dvh height + hidden overflow. The
+                     featured area below flexes to absorb any slack, so
+                     shorter phones shrink the player instead of scrolling,
+                     and this phone stays at the size that already fit.
+                     Top padding clears the fixed gold EN/GD toggle in the
+                     top-left corner. */
+                  height: 100dvh !important;
+                  min-height: 0 !important;
+                  overflow: hidden !important;
+                  padding: 52px 12px 24px !important;
+                  gap: 12px !important;
                 }
                 .gc-letstalk {
                   /* On phones the radio doesn't need the Let's Talk pill —
@@ -273,11 +280,23 @@ export default function RadioClient() {
                 .gc-featured-row {
                   flex-direction: column !important;
                   align-items: center !important;
-                  flex: 0 0 auto !important;
+                  /* Absorb the leftover vertical space and center the single
+                     visible tile in it; min-height:0 lets it shrink on short
+                     phones instead of pushing the page taller. */
+                  flex: 1 1 auto !important;
+                  min-height: 0 !important;
+                  overflow: hidden !important;
                 }
                 .gc-radio-tile {
                   width: 100% !important;
                   max-width: 460px !important;
+                  /* Cap at the player's established height (this phone looks
+                     unchanged); flex-shrink + min-height:0 let it scale down
+                     to fit shorter screens rather than forcing a scroll. */
+                  height: 316px !important;
+                  max-height: 316px !important;
+                  min-height: 0 !important;
+                  flex-shrink: 1 !important;
                 }
                 .gc-radio-title {
                   /* 52 wrapped awkwardly on 360-390px phones; 44 gives a
