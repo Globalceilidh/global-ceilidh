@@ -217,17 +217,15 @@ export default function RadioClient() {
               )}
               <div style={tickerViewportStyle}>
                 <div className="gc-ticker-track">
-                  {[...TICKER_STOPS, ...TICKER_STOPS].map((stop, i) => (
-                    <span key={i} style={tickerUnitStyle}>
-                      <img src={REIDIO_ICON} alt="" aria-hidden="true" style={tickerSepStyle} draggable={false} />
-                      <span style={tickerStackStyle}>
-                        <span className="gc-ticker-text" style={tickerDateStyle}>
-                          {stop.date}{stop.city ? ` · ${stop.city}` : ''}
-                        </span>
-                        {stop.venue && <span style={tickerVenueStyle}>{stop.venue}</span>}
+                  {[...TICKER_STOPS, ...TICKER_STOPS].flatMap((stop, i) => [
+                    <span key={`s${i}`} style={tickerStackStyle}>
+                      <span className="gc-ticker-text" style={tickerDateStyle}>
+                        {stop.date}{stop.city ? ` · ${stop.city}` : ''}
                       </span>
-                    </span>
-                  ))}
+                      {stop.venue && <span style={tickerVenueStyle}>{stop.venue}</span>}
+                    </span>,
+                    <img key={`i${i}`} src={REIDIO_ICON} alt="" aria-hidden="true" style={tickerSepStyle} draggable={false} />,
+                  ])}
                 </div>
               </div>
             </div>
@@ -1018,7 +1016,7 @@ const tickerFrameImgStyle = {
 
 // The rèidio icon used as the separator between ticker segments.
 const tickerSepStyle = {
-  height: 20, width: 'auto', display: 'block', opacity: 0.85, flexShrink: 0, userSelect: 'none',
+  height: 26, width: 'auto', display: 'block', opacity: 0.85, flexShrink: 0, userSelect: 'none',
 };
 const tickerUnitStyle = {
   display: 'inline-flex', alignItems: 'center', gap: 12,
