@@ -72,7 +72,7 @@ export const ARTISTS = [
       { date: '9/3',     city: 'St. Louis, MO',    venue: 'Blue Strawberry' },
       { date: '9/4–6',   city: 'Kansas City, MO',  venue: 'Kansas City Irish Fest' },
       { date: '9/11–13', city: 'Pittsburgh, PA',   venue: 'Pittsburgh Irish Festival' },
-      { date: '10/3',    city: '',                 venue: 'Law-Di-Gras' },
+      { date: '10/3',    city: 'San Diego, CA',    venue: 'Law-Di-Gras' },
     ],
     poster: '/radio/ally-the-piper/tour-dates-poster.png', // 748x528, ticker frame
     tickets: 'https://piperally.com',
