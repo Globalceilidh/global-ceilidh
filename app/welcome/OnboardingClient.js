@@ -167,6 +167,10 @@ export default function OnboardingClient({ defaults }) {
     : handleState.status === 'bad' ? { text: handleState.reason, color: '#E88A82' }
     : null;
 
+  // Box 1 (name + an available handle) must be complete before the flow
+  // opens up past it.
+  const box1Complete = displayName.trim().length > 0 && handleState.status === 'ok';
+
   return (
     <main className="gc-onb" style={wrap}>
       <div style={stars} aria-hidden />
@@ -181,7 +185,18 @@ export default function OnboardingClient({ defaults }) {
         <form onSubmit={submit} className="gc-stack">
           {/* ── Box 1 ───────────────────────────────────────────── */}
           <div className="gc-boxwrap" ref={boxRefs[0]}>
-            <AdvanceArrow onClick={() => advanceTo(1)} label={L('Next', 'Air adhart')} />
+            <AdvanceArrow
+              ready={box1Complete}
+              onClick={() => {
+                if (!box1Complete) {
+                  setError(L('Add your name and pick a handle first.', 'Cuir a-steach d’ainm agus tagh ainm-cleachdaidh an toiseach.'));
+                  return;
+                }
+                setError(null);
+                advanceTo(1);
+              }}
+              label={L('Next', 'Air adhart')}
+            />
             <div className="gc-box">
               <div className="gc-box-header">
                 <p style={eyebrow}>○ {L('Welcome', 'Fàilte')}</p>
@@ -313,10 +328,9 @@ export default function OnboardingClient({ defaults }) {
         .gc-onb .gc-scroller {
           position:relative; z-index:3; height:100dvh; max-width:812px; margin:0 auto;
           overflow-y:auto; overflow-x:hidden;
-          scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.4) transparent;
+          scrollbar-width:none;
         }
-        .gc-onb .gc-scroller::-webkit-scrollbar { width:8px; }
-        .gc-onb .gc-scroller::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.3); border-radius:4px; }
+        .gc-onb .gc-scroller::-webkit-scrollbar { display:none; }
         .gc-onb .gc-stack {
           display:flex; flex-direction:column; gap:22px; padding:40px 0 55vh 92px;
         }
@@ -359,9 +373,10 @@ export default function OnboardingClient({ defaults }) {
 
 // ── advance arrow (sits just outside each box, top-left) ──────────────
 
-function AdvanceArrow({ onClick, label }) {
+function AdvanceArrow({ onClick, label, ready = true }) {
   return (
-    <button type="button" onClick={onClick} className="gc-screw gc-arrow" data-screw="90" style={arrowBtn} aria-label={label}>
+    <button type="button" onClick={onClick} className="gc-screw gc-arrow" data-screw="90"
+      style={{ ...arrowBtn, opacity: ready ? 1 : 0.4 }} aria-label={label}>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="4" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
       </svg>
