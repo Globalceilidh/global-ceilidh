@@ -16,14 +16,17 @@ const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so up
 // different artist).
 const PHOTO_CAROUSEL_MS = 8500;
 
-// Base tour-date items — language-agnostic. The sponsor CTA is
-// re-derived per-render inside the component so it flips language.
-const TICKER_TOUR_ITEMS = ARTISTS
-  .filter((a) => a.tourDates)
-  .flatMap((a) => [
-    { text: `${a.emoji || ''} ${a.name} · ${a.tourDates}` },
-    { text: '·' },
-  ]);
+// The ticker features ONE artist's tour dates. Swap FEATURED_ID to change
+// who's on the strip. The dates string is split into segments, and the
+// rèidio icon (not an emoji/bullet) separates them.
+const FEATURED_ID = 'ally-the-piper';
+const FEATURED = ARTISTS.find((a) => a.id === FEATURED_ID);
+const FEATURED_PHOTO = FEATURED?.photos?.[0] || null;
+const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
+const TICKER_SEGMENTS = [
+  FEATURED?.name,
+  ...String(FEATURED?.tourDates || '').split('·').map((s) => s.trim()).filter(Boolean),
+].filter(Boolean);
 
 export default function RadioClient() {
   const { t, language } = useLanguage();
@@ -33,14 +36,6 @@ export default function RadioClient() {
   const [mouseUv, setMouseUv] = useState({ x: 0.5, y: 0.5 });
   const [docHidden, setDocHidden] = useState(false);
 
-  // Ticker cycles through every artist WITH tour dates set, plus the
-  // localised sponsor CTA at the end. Re-derived per render so the
-  // sponsor line flips when the user toggles language.
-  const tickerItems = [
-    ...TICKER_TOUR_ITEMS,
-    { text: t('radio.ticker_sponsor'), href: 'mailto:globalceilidh@gmail.com' },
-    { text: '·' },
-  ];
 
 
   // Live365 sync — poll /api/live365/nowplaying every LIVE365_POLL_MS,
@@ -204,14 +199,21 @@ export default function RadioClient() {
               </button>
             </div>
 
-            {/* Ticker — INDEPENDENT of the featured tiles. Continuous
-                scroll through every artist's tour dates + the sponsor
-                CTA. Never re-mounts. */}
-            <div style={tickerOuterStyle} aria-label="Global Ceilidh Radio — tour dates and sponsor ticker">
+            {/* Ticker — the featured artist's tour dates only, with a photo
+                frame on the left and the rèidio icon as the separator. */}
+            <div style={tickerOuterStyle} aria-label={`Global Ceilidh Radio — ${FEATURED?.name || 'featured artist'} tour dates`}>
+              {FEATURED_PHOTO && (
+                <div style={tickerFrameStyle}>
+                  <img src={FEATURED_PHOTO} alt={FEATURED?.name || ''} style={tickerFrameImgStyle} draggable={false} />
+                </div>
+              )}
               <div style={tickerViewportStyle}>
                 <div className="gc-ticker-track">
-                  {[...tickerItems, ...tickerItems].map((item, i) => (
-                    <TickerItem key={i} item={item} />
+                  {[...TICKER_SEGMENTS, ...TICKER_SEGMENTS].map((seg, i) => (
+                    <span key={i} style={tickerUnitStyle}>
+                      <img src={REIDIO_ICON} alt="" aria-hidden="true" style={tickerSepStyle} draggable={false} />
+                      <span className="gc-ticker-text" style={tickerTextStyle}>{seg}</span>
+                    </span>
                   ))}
                 </div>
               </div>
@@ -234,7 +236,7 @@ export default function RadioClient() {
               .gc-ticker-track {
                 display: flex;
                 align-items: center;
-                gap: 40px;
+                gap: 30px;
                 white-space: nowrap;
                 width: max-content;
                 animation: gc-ticker-scroll 110s linear infinite;
@@ -972,7 +974,8 @@ const videoTileStyle = {
 };
 
 const tickerOuterStyle = {
-  padding: '18px 0',
+  display: 'flex',
+  alignItems: 'stretch',
   background: 'rgba(0, 0, 0, 0.55)',
   border: '1px solid rgba(242, 236, 220, 0.08)',
   borderRadius: 8,
@@ -981,9 +984,33 @@ const tickerOuterStyle = {
   WebkitBackdropFilter: 'blur(6px)',
 };
 
+// Featured-artist photo strip, flush to the left of the ticker, full height.
+const tickerFrameStyle = {
+  flexShrink: 0,
+  width: 96,
+  alignSelf: 'stretch',
+  position: 'relative',
+  overflow: 'hidden',
+  borderRight: '1px solid rgba(242, 236, 220, 0.15)',
+};
+const tickerFrameImgStyle = {
+  position: 'absolute', inset: 0, width: '100%', height: '100%',
+  objectFit: 'cover', objectPosition: 'center top', userSelect: 'none',
+};
+
+// The rèidio icon used as the separator between ticker segments.
+const tickerSepStyle = {
+  height: 20, width: 'auto', display: 'block', opacity: 0.85, flexShrink: 0, userSelect: 'none',
+};
+const tickerUnitStyle = {
+  display: 'inline-flex', alignItems: 'center', gap: 12,
+};
+
 const tickerViewportStyle = {
   overflow: 'hidden',
-  width: '100%',
+  flex: 1,
+  minWidth: 0,
+  padding: '16px 0',
 };
 
 const tickerTextStyle = {
