@@ -12,11 +12,10 @@
 import { useState, useEffect } from 'react';
 
 const DEFAULT_ANCHORS = [
-  { name: 'Inverness', region: 'Scotland',    tz: 'Europe/London',       lat: 57.4778, lng:  -4.2247 },
+  { name: 'Stornoway', region: 'Scotland',    tz: 'Europe/London',       lat: 58.2090, lng:  -6.3890 },
   { name: 'Halifax',   region: 'Nova Scotia', tz: 'America/Halifax',     lat: 44.6488, lng: -63.5752 },
   { name: 'Perth',     region: 'NY',          tz: 'America/New_York',    lat: 43.0009, lng: -74.1746 },
   { name: 'Seattle',   region: 'Washington',  tz: 'America/Los_Angeles', lat: 47.6062, lng:-122.3321 },
-  { name: 'Auckland',  region: 'New Zealand', tz: 'Pacific/Auckland',    lat:-36.8485, lng: 174.7633 },
 ];
 
 const DEFAULT_USER = {
