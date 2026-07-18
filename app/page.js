@@ -26,7 +26,7 @@ import LanguagePill from '../components/LanguagePill';
 import { useLanguage } from '../context/LanguageContext';
 
 const VORTEX_SRC = '/gc-vortex-center.png';   // square, fades to black
-const SIGN_SRC   = '/gc-vortex-sign.png';     // cartoon arrow, transparent PNG
+const SIGN_SRC   = '/gc-vortex-sign-2.png';   // cartoon arrow, transparent PNG
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 
 const SRUTH = {
@@ -42,11 +42,12 @@ const GLOW = { top: '52%', left: '47%', size: '26%' };
 
 // SIGN — the cartoon signpost block, upper-right. The new art points down-left,
 // so no flip needed; it aims into the swirl from the upper-right corner.
-const SIGN = { top: '13%', left: '82%', width: '33%', rotate: '0deg', flip: false };
+// Placed so the base of the post sits on the 2-o'clock rim of the vortex.
+const SIGN = { top: '15%', left: '70%', width: '33%', rotate: '0deg', flip: false };
 
 // CAP — the toggling caption, over the blank plank *within* the sign block
 // (tilts + tracks with the sign). Plank rises to the right → negative rotate.
-const CAP = { top: '50%', left: '56%', width: '48%', rotate: '-20deg' };
+const CAP = { top: '45%', left: '53%', width: '50%', rotate: '-18deg' };
 
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
