@@ -22,6 +22,8 @@ const PHOTO_CAROUSEL_MS = 8500;
 const FEATURED_ID = 'ally-the-piper';
 const FEATURED = ARTISTS.find((a) => a.id === FEATURED_ID);
 const FEATURED_PHOTO = FEATURED?.photos?.[0] || null;
+const FEATURED_POSTER = FEATURED?.poster || FEATURED_PHOTO;   // ticker frame art
+const FEATURED_TICKETS = FEATURED?.tickets || null;           // click-through
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 const TICKER_SEGMENTS = [
   FEATURED?.name,
@@ -202,10 +204,17 @@ export default function RadioClient() {
             {/* Ticker — the featured artist's tour dates only, with a photo
                 frame on the left and the rèidio icon as the separator. */}
             <div style={tickerOuterStyle} aria-label={`Global Ceilidh Radio — ${FEATURED?.name || 'featured artist'} tour dates`}>
-              {FEATURED_PHOTO && (
-                <div style={tickerFrameStyle}>
-                  <img src={FEATURED_PHOTO} alt={FEATURED?.name || ''} style={tickerFrameImgStyle} draggable={false} />
-                </div>
+              {FEATURED_POSTER && (
+                FEATURED_TICKETS ? (
+                  <a href={FEATURED_TICKETS} target="_blank" rel="noopener noreferrer"
+                    style={tickerFrameStyle} aria-label={`${FEATURED?.name || 'Artist'} — tickets`} title={`${FEATURED?.name || ''} — tickets`}>
+                    <img src={FEATURED_POSTER} alt={`${FEATURED?.name || ''} — Tour Dates`} style={tickerFrameImgStyle} draggable={false} />
+                  </a>
+                ) : (
+                  <div style={tickerFrameStyle}>
+                    <img src={FEATURED_POSTER} alt={FEATURED?.name || ''} style={tickerFrameImgStyle} draggable={false} />
+                  </div>
+                )
               )}
               <div style={tickerViewportStyle}>
                 <div className="gc-ticker-track">
@@ -987,15 +996,19 @@ const tickerOuterStyle = {
 // Featured-artist photo strip, flush to the left of the ticker, full height.
 const tickerFrameStyle = {
   flexShrink: 0,
-  width: 150,
-  alignSelf: 'stretch',
+  display: 'block',
+  width: 170,
+  aspectRatio: '748 / 528',        // the poster's exact ratio — no crop
+  alignSelf: 'center',
   position: 'relative',
   overflow: 'hidden',
   borderRight: '1px solid rgba(242, 236, 220, 0.15)',
+  cursor: 'pointer',
+  textDecoration: 'none',
 };
 const tickerFrameImgStyle = {
   position: 'absolute', inset: 0, width: '100%', height: '100%',
-  objectFit: 'cover', objectPosition: 'center top', userSelect: 'none',
+  objectFit: 'cover', userSelect: 'none',
 };
 
 // The rèidio icon used as the separator between ticker segments.

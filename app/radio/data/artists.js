@@ -58,6 +58,8 @@ export const ARTISTS = [
     //   { videoId: 'DoMowA_9sxY', start: 274, end: 299 },  // 4:34 – 4:59
     videos: [],
     tourDates: '7/10 Turtle Lake, WI · 7/17–19 Cleveland, OH · 7/29 Albany, NY · 7/30 Syracuse, NY · 7/31 Erie, PA · 8/1–2 Dublin, OH · 8/6 Ann Arbor, MI · 8/7–9 Fergus, ON Canada · 8/12 Grand Rapids, MI · 8/13 Blue Island, IL · 8/14–16 Milwaukee, WI · 8/28–29 Olean, NY · 9/3 St. Louis, MO · 9/4–6 Kansas City, MO · 9/11–13 Pittsburgh, PA · 10/4 Law-Di-Gras',
+    poster: '/radio/ally-the-piper/tour-dates-poster.png', // 748x528, ticker frame
+    tickets: 'https://piperally.com',
     isPartner: false,
   },
   {
