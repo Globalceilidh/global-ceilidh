@@ -47,7 +47,7 @@ const SIGN = { top: '15%', left: '70%', width: '33%', rotate: '0deg', flip: fals
 
 // CAP — the toggling caption, over the blank plank *within* the sign block
 // (tilts + tracks with the sign). Plank rises to the right → negative rotate.
-const CAP = { top: '45%', left: '53%', width: '50%', rotate: '-18deg' };
+const CAP = { top: '43%', left: '57%', width: '52%', rotate: '-14deg' };
 
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
