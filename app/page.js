@@ -44,7 +44,7 @@ const SIGN = { top: '15%', left: '68%', width: '33%', rotate: '0deg', flip: fals
 
 // CAP — the toggling caption, over the blank plank *within* the sign block
 // (tilts + tracks with the sign). Plank rises to the right → negative rotate.
-const CAP = { top: '50%', left: '60%', width: '44%', rotate: '-20deg' };
+const CAP = { top: '46%', left: '58%', width: 'auto', rotate: '-20deg' };
 
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
@@ -54,8 +54,8 @@ export default function Home() {
   const caption = language === 'gd' ? ['TÒISICHIBH', 'AN SEO'] : ['START', 'HERE'];
   // GD is much longer than EN — size it down so it stays on the plank.
   const capFont = language === 'gd'
-    ? 'clamp(8px, 2.0vmin, 24px)'
-    : 'clamp(11px, 2.8vmin, 34px)';
+    ? 'clamp(12px, 3.3vmin, 40px)'
+    : 'clamp(16px, 5vmin, 60px)';
 
   return (
     <main style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}>
@@ -217,8 +217,8 @@ const STYLES = `
   /* Caption on the blank plank — dark, carved/emboss look. */
   .gc-plank { display: flex; flex-direction: column; align-items: center; text-align: center;
     font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
-    text-transform: uppercase; line-height: 0.86; letter-spacing: 0.04em; }
-  .gc-plank-line { font-size: clamp(11px, 2.8vmin, 34px); color: #2a2622;
+    text-transform: uppercase; line-height: 0.82; letter-spacing: 0.04em; }
+  .gc-plank-line { white-space: nowrap; font-size: clamp(16px, 5vmin, 60px); color: #2a2622;
     text-shadow: 0 1px 0 rgba(255,255,255,0.30), 0 -1px 1px rgba(0,0,0,0.55); }
   /* Corner icon hovers. */
   .gc-reidio img, .gc-sruth-plate { transition: transform 220ms ease, filter 220ms ease; }
