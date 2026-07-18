@@ -1,13 +1,15 @@
 'use client';
 
 // Onboarding — writes the user's gc_profiles row (the social keystone)
-// then sends them to their new page at /u/<handle>. A guided three-box
-// flow, phantom.land-style: all-white type, frosted numbered lines
-// grouped into boxes, floating on a cursor image-trail of Global Ceilidh
-// photos. A circular arrow sits just outside each box (top-left, by the
-// header) and advances box→box, turning a snappy quarter-turn to point
-// straight down as the cursor nears it; the X close screws the same way.
-// Bilingual; only handle + name are required.
+// then sends them to their new page at /u/<handle>. One tall form read as
+// three tight boxes (2 and 3 hidden until reached) inside a centred
+// scroll column — the scrollbar runs down the right of the boxes, not the
+// page. Phantom.land-style: all-white type, frosted numbered lines,
+// floating on a cursor image-trail of Global Ceilidh photos. A circular
+// arrow sits just outside each box (top-left) and advances box→box,
+// turning a snappy quarter to point straight down as the cursor nears; the
+// X close rests as a "+" and screws into "×". Bilingual; only handle +
+// name are required.
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
@@ -52,10 +54,11 @@ export default function OnboardingClient({ defaults }) {
   const [error, setError] = useState(null);
 
   // Stepper: 3 boxes. maxStep gates which are revealed; step is the one in
-  // focus. Advancing reveals a box and scrolls it into view.
+  // focus. Advancing reveals a box and scrolls it up (previous box's bottom
+  // stays in view above it — see scroll-margin-top on .gc-boxwrap).
   const [step, setStep] = useState(0);
   const [maxStep, setMaxStep] = useState(0);
-  const slideRefs = [useRef(null), useRef(null), useRef(null)];
+  const boxRefs = [useRef(null), useRef(null), useRef(null)];
 
   function advanceTo(target) {
     setMaxStep((m) => Math.max(m, target));
@@ -64,7 +67,7 @@ export default function OnboardingClient({ defaults }) {
 
   useEffect(() => {
     if (step === 0) return;
-    const el = slideRefs[step].current;
+    const el = boxRefs[step].current;
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -174,10 +177,10 @@ export default function OnboardingClient({ defaults }) {
           cursor nears — the exit stays quietly hidden until sought. */}
       <a href="/home" className="gc-x gc-screw" data-screw="45" style={closeX} aria-label={L('Close', 'Dùin')}>+</a>
 
-      <form onSubmit={submit} style={content}>
-        {/* ── Box 1 ─────────────────────────────────────────────── */}
-        <div className="gc-slide" ref={slideRefs[0]}>
-          <div className="gc-boxwrap">
+      <div className="gc-scroller">
+        <form onSubmit={submit} className="gc-stack">
+          {/* ── Box 1 ───────────────────────────────────────────── */}
+          <div className="gc-boxwrap" ref={boxRefs[0]}>
             <AdvanceArrow onClick={() => advanceTo(1)} label={L('Next', 'Air adhart')} />
             <div className="gc-box">
               <div className="gc-box-header">
@@ -226,12 +229,10 @@ export default function OnboardingClient({ defaults }) {
               </Line>
             </div>
           </div>
-        </div>
 
-        {/* ── Box 2 ─────────────────────────────────────────────── */}
-        {maxStep >= 1 && (
-          <div className="gc-slide" ref={slideRefs[1]}>
-            <div className="gc-boxwrap">
+          {/* ── Box 2 ───────────────────────────────────────────── */}
+          {maxStep >= 1 && (
+            <div className="gc-boxwrap" ref={boxRefs[1]}>
               <AdvanceArrow onClick={() => advanceTo(2)} label={L('Next', 'Air adhart')} />
               <div className="gc-box">
                 <Line n="06" label={L('A wee introduction', 'Beagan mu do dheidhinn')}>
@@ -263,13 +264,11 @@ export default function OnboardingClient({ defaults }) {
                 </Line>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ── Box 3 ─────────────────────────────────────────────── */}
-        {maxStep >= 2 && (
-          <div className="gc-slide" ref={slideRefs[2]}>
-            <div className="gc-boxwrap">
+          {/* ── Box 3 ───────────────────────────────────────────── */}
+          {maxStep >= 2 && (
+            <div className="gc-boxwrap" ref={boxRefs[2]}>
               <div className="gc-box">
                 <Line n="09" label={L('Ancestral places', 'Àiteachan nan sinnsear')}>
                   <input className="gc-input" value={ancestralPlaces} maxLength={200}
@@ -293,9 +292,9 @@ export default function OnboardingClient({ defaults }) {
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </form>
+          )}
+        </form>
+      </div>
 
       {/* Errors before the last box surface centred at the bottom. */}
       {error && maxStep < 2 && (
@@ -311,11 +310,17 @@ export default function OnboardingClient({ defaults }) {
         }
         .gc-onb .gc-textarea { resize:vertical; min-height:60px; }
         .gc-onb .gc-input::placeholder, .gc-onb .gc-textarea::placeholder { color:rgba(255,255,255,0.3); }
-        .gc-onb .gc-slide {
-          min-height:100dvh; display:flex; flex-direction:column;
-          align-items:center; justify-content:center; padding:56px 24px;
+        .gc-onb .gc-scroller {
+          position:relative; z-index:3; height:100dvh; max-width:812px; margin:0 auto;
+          overflow-y:auto; overflow-x:hidden;
+          scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.4) transparent;
         }
-        .gc-onb .gc-boxwrap { position:relative; width:100%; max-width:720px; }
+        .gc-onb .gc-scroller::-webkit-scrollbar { width:8px; }
+        .gc-onb .gc-scroller::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.3); border-radius:4px; }
+        .gc-onb .gc-stack {
+          display:flex; flex-direction:column; gap:22px; padding:40px 0 55vh 92px;
+        }
+        .gc-onb .gc-boxwrap { position:relative; width:100%; scroll-margin-top:140px; }
         .gc-onb .gc-box {
           width:100%;
           background:rgba(255,255,255,0.055); border:1px solid rgba(255,255,255,0.1);
@@ -341,6 +346,8 @@ export default function OnboardingClient({ defaults }) {
         .gc-onb .gc-control { flex:1; min-width:0; }
         .gc-onb .gc-x:hover, .gc-onb .gc-arrow:hover { background:rgba(255,255,255,0.12); }
         @media (max-width:720px){
+          .gc-onb .gc-scroller { max-width:none; }
+          .gc-onb .gc-stack { padding:80px 16px 55vh; }
           .gc-onb .gc-linebody { flex-direction:column; gap:8px; }
           .gc-onb .gc-label { width:auto; }
           .gc-onb .gc-arrow { left:4px !important; top:-58px !important; }
@@ -383,7 +390,7 @@ function Line({ n, label, required, hint, note, children }) {
 // ── styles ────────────────────────────────────────────────────────────
 
 const wrap = {
-  position: 'relative', minHeight: '100dvh',
+  position: 'relative', height: '100dvh', overflow: 'hidden',
   background: 'radial-gradient(ellipse 120% 90% at 50% 18%, #0b1220 0%, #05070d 55%, #000000 100%)',
   fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif',
 };
@@ -418,7 +425,6 @@ const arrowBtn = {
   color: '#F4F1EA', background: 'rgba(255,255,255,0.04)', cursor: 'pointer',
   transition: 'transform 80ms linear, background 180ms ease',
 };
-const content = { position: 'relative', zIndex: 3, width: '100%' };
 const eyebrow = {
   fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, letterSpacing: 3,
   textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', margin: '0 0 12px',
