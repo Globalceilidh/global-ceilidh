@@ -987,7 +987,7 @@ const tickerOuterStyle = {
 // Featured-artist photo strip, flush to the left of the ticker, full height.
 const tickerFrameStyle = {
   flexShrink: 0,
-  width: 96,
+  width: 150,
   alignSelf: 'stretch',
   position: 'relative',
   overflow: 'hidden',
@@ -1010,7 +1010,7 @@ const tickerViewportStyle = {
   overflow: 'hidden',
   flex: 1,
   minWidth: 0,
-  padding: '16px 0',
+  padding: '26px 0',
 };
 
 const tickerTextStyle = {
