@@ -93,7 +93,7 @@ export const translations = {
   radio: {
     tagline: {
       en: 'The soundtrack of an t-sruth streaming around the world.',
-      gd: 'Tràca-fuaime an t-srutha ga shruthadh sìor feadh an t-saoghail.',
+      gd: 'Traca-fuaime an t-srutha ga shruthadh sìor feadh an t-saoghail.',
     },
     ad_label: { en: 'Ad · above the wave', gd: 'Sanas · os cionn na tuinne' },
     vote_pill: { en: 'Vote', gd: 'Bhòtaig' },
