@@ -29,10 +29,7 @@ const VORTEX_SRC = '/gc-vortex-center.png';   // square, fades to black
 const SIGN_SRC   = '/gc-vortex-sign-2.png';   // cartoon arrow, transparent PNG
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 
-const SRUTH = {
-  ready: false,                    // ← flip true once the still exists
-  src: '/sruth/sruth-wordplate.png',
-};
+const SRUTH = { ready: true, src: '/gc-sruth-logo.png' };
 
 // All positions are % of the centred square "stage" (which tracks the vortex
 // art exactly), so overlays stay glued at any viewport size.
@@ -153,9 +150,9 @@ export default function Home() {
         style={{ position: 'fixed', bottom: 'clamp(20px, 4vh, 44px)', right: 'clamp(20px, 4vw, 44px)', zIndex: 10, display: 'block' }}
       >
         {SRUTH.ready ? (
-          <span className="gc-sruth-plate gc-sruth-img">
-            <img src={SRUTH.src} alt="sruth."
-              style={{ width: 'clamp(120px, 18vw, 220px)', height: 'auto', display: 'block' }} />
+          <span className="gc-sruth-logo" role="img" aria-label="sruth."
+            style={{ '--sruth': `url(${SRUTH.src})` }}>
+            <span className="gc-sruth-gleam" aria-hidden="true" />
           </span>
         ) : (
           <span className="gc-sruth-plate gc-sruth-ph" aria-hidden="true">sruth.</span>
@@ -232,6 +229,29 @@ const STYLES = `
     transform: skewX(-18deg); pointer-events: none; }
   .gc-sruth:hover .gc-sruth-plate::after { animation: gc-gleam 850ms ease-out; }
   @keyframes gc-gleam { from { left: -120%; } to { left: 160%; } }
+  /* Real logo: glossy-black "sruth." on transparent — glow to lift it off the
+     black page; gleam sweep masked to the letter shapes so it shines on the
+     letters only, not the empty bounding box. */
+  .gc-sruth-logo {
+    display: block; position: relative;
+    width: clamp(180px, 22vw, 340px); aspect-ratio: 1672 / 941;
+    background: var(--sruth) center / contain no-repeat;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)) drop-shadow(0 0 16px rgba(255,255,255,0.22));
+    transition: filter 240ms ease, transform 240ms ease;
+  }
+  .gc-sruth:hover .gc-sruth-logo {
+    filter: drop-shadow(0 0 9px rgba(255,255,255,0.85)) drop-shadow(0 0 24px rgba(255,255,255,0.42));
+    transform: scale(1.04);
+  }
+  .gc-sruth-gleam {
+    position: absolute; inset: 0;
+    -webkit-mask: var(--sruth) center / contain no-repeat;
+    mask: var(--sruth) center / contain no-repeat;
+    background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.95) 50%, transparent 58%);
+    background-size: 250% 100%; background-position: 160% 0; opacity: 0;
+  }
+  .gc-sruth:hover .gc-sruth-gleam { opacity: 1; animation: gc-gleam2 900ms ease-out; }
+  @keyframes gc-gleam2 { from { background-position: 160% 0; } to { background-position: -60% 0; } }
   .gc-sruth-ph { padding: 14px 30px; border-radius: 6px;
     background: linear-gradient(160deg, #2b2b2b 0%, #050505 45%, #1c1c1c 100%); border: 1px solid #333; color: #eaeaea;
     font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-weight: 700; font-size: clamp(24px, 4vw, 44px); line-height: 1;
