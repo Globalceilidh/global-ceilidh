@@ -171,6 +171,26 @@ export default function OnboardingClient({ defaults }) {
   // opens up past it.
   const box1Complete = displayName.trim().length > 0 && handleState.status === 'ok';
 
+  // One static signpost arrow. Points RIGHT while box 1 is being filled,
+  // DOWN once it's ready to advance, UP at the last box (back to the top).
+  const canAdvance = step < 2 && (step === 0 ? box1Complete : true);
+  const arrowDir = step === 2 ? 'up' : canAdvance ? 'down' : 'right';
+  const arrowDeg = arrowDir === 'up' ? -90 : arrowDir === 'down' ? 90 : 0;
+
+  function handleArrow() {
+    if (step === 2) {
+      document.querySelector('.gc-scroller')?.scrollTo({ top: 0, behavior: 'smooth' });
+      setStep(0);
+      return;
+    }
+    if (step === 0 && !box1Complete) {
+      setError(L('Add your name and pick a handle first.', 'Cuir a-steach d’ainm agus tagh ainm-cleachdaidh an toiseach.'));
+      return;
+    }
+    setError(null);
+    advanceTo(step + 1);
+  }
+
   return (
     <main className="gc-onb" style={wrap}>
       <div style={stars} aria-hidden />
@@ -181,22 +201,20 @@ export default function OnboardingClient({ defaults }) {
           cursor nears — the exit stays quietly hidden until sought. */}
       <a href="/home" className="gc-x gc-screw" data-screw="45" style={closeX} aria-label={L('Close', 'Dùin')}>+</a>
 
+      {/* One static signpost arrow — right → down → up depending on where
+          you are in the flow. */}
+      <button type="button" onClick={handleArrow} className="gc-arrow"
+        aria-label={arrowDir === 'up' ? L('Back to top', 'Suas') : arrowDir === 'down' ? L('Next', 'Air adhart') : L('Start here', 'Tòisich an seo')}
+        style={{ ...arrowBtn, transform: `rotate(${arrowDeg}deg)` }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="4" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+        </svg>
+      </button>
+
       <div className="gc-scroller">
         <form onSubmit={submit} className="gc-stack">
           {/* ── Box 1 ───────────────────────────────────────────── */}
           <div className="gc-boxwrap" ref={boxRefs[0]}>
-            <AdvanceArrow
-              ready={box1Complete}
-              onClick={() => {
-                if (!box1Complete) {
-                  setError(L('Add your name and pick a handle first.', 'Cuir a-steach d’ainm agus tagh ainm-cleachdaidh an toiseach.'));
-                  return;
-                }
-                setError(null);
-                advanceTo(1);
-              }}
-              label={L('Next', 'Air adhart')}
-            />
             <div className="gc-box">
               <div className="gc-box-header">
                 <p style={eyebrow}>○ {L('Welcome', 'Fàilte')}</p>
@@ -248,7 +266,6 @@ export default function OnboardingClient({ defaults }) {
           {/* ── Box 2 ───────────────────────────────────────────── */}
           {maxStep >= 1 && (
             <div className="gc-boxwrap" ref={boxRefs[1]}>
-              <AdvanceArrow onClick={() => advanceTo(2)} label={L('Next', 'Air adhart')} />
               <div className="gc-box">
                 <Line n="06" label={L('A wee introduction', 'Beagan mu do dheidhinn')}>
                   <textarea className="gc-textarea" value={bio} maxLength={600}
@@ -332,9 +349,9 @@ export default function OnboardingClient({ defaults }) {
         }
         .gc-onb .gc-scroller::-webkit-scrollbar { display:none; }
         .gc-onb .gc-stack {
-          display:flex; flex-direction:column; gap:22px; padding:40px 0 55vh 92px;
+          display:flex; flex-direction:column; gap:22px; padding:12vh 0 10vh 0;
         }
-        .gc-onb .gc-boxwrap { position:relative; width:100%; scroll-margin-top:140px; }
+        .gc-onb .gc-boxwrap { position:relative; width:100%; scroll-margin-top:100px; }
         .gc-onb .gc-box {
           width:100%;
           background:rgba(255,255,255,0.055); border:1px solid rgba(255,255,255,0.1);
@@ -361,26 +378,13 @@ export default function OnboardingClient({ defaults }) {
         .gc-onb .gc-x:hover, .gc-onb .gc-arrow:hover { background:rgba(255,255,255,0.12); }
         @media (max-width:720px){
           .gc-onb .gc-scroller { max-width:none; }
-          .gc-onb .gc-stack { padding:80px 16px 55vh; }
+          .gc-onb .gc-stack { padding:8vh 16px 10vh; }
           .gc-onb .gc-linebody { flex-direction:column; gap:8px; }
           .gc-onb .gc-label { width:auto; }
-          .gc-onb .gc-arrow { left:4px !important; top:-58px !important; }
+          .gc-onb .gc-arrow { left:calc(50% - 28px) !important; top:auto !important; bottom:18px !important; margin-top:0 !important; }
         }
       `}</style>
     </main>
-  );
-}
-
-// ── advance arrow (sits just outside each box, top-left) ──────────────
-
-function AdvanceArrow({ onClick, label, ready = true }) {
-  return (
-    <button type="button" onClick={onClick} className="gc-screw gc-arrow" data-screw="90"
-      style={{ ...arrowBtn, opacity: ready ? 1 : 0.4 }} aria-label={label}>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="4" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-      </svg>
-    </button>
   );
 }
 
@@ -434,11 +438,12 @@ const closeX = {
   background: 'rgba(255,255,255,0.04)', transition: 'transform 80ms linear, background 180ms ease',
 };
 const arrowBtn = {
-  position: 'absolute', top: 26, left: -72, zIndex: 4,
+  // Static signpost, fixed just left of the centred box column.
+  position: 'fixed', top: '50%', left: 'max(20px, calc(50% - 430px))', marginTop: -28, zIndex: 5,
   width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.4)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   color: '#F4F1EA', background: 'rgba(255,255,255,0.04)', cursor: 'pointer',
-  transition: 'transform 80ms linear, background 180ms ease',
+  transition: 'transform 260ms cubic-bezier(0.22,1,0.36,1), background 180ms ease',
 };
 const eyebrow = {
   fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, letterSpacing: 3,
