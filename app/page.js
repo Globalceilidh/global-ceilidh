@@ -42,11 +42,11 @@ const GLOW = { top: '52%', left: '47%', size: '26%' };
 
 // SIGN — the cartoon signpost block, upper-right. The new art points down-left,
 // so no flip needed; it aims into the swirl from the upper-right corner.
-const SIGN = { top: '-3%', left: '55%', width: '44%', rotate: '0deg', flip: false };
+const SIGN = { top: '-3%', left: '55%', width: '33%', rotate: '0deg', flip: false };
 
 // CAP — the toggling caption, over the blank plank *within* the sign block
 // (tilts + tracks with the sign). Plank rises to the right → negative rotate.
-const CAP = { top: '41%', left: '56%', width: '48%', rotate: '-20deg' };
+const CAP = { top: '50%', left: '56%', width: '48%', rotate: '-20deg' };
 
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
@@ -62,7 +62,7 @@ export default function Home() {
       {/* ── Centred square stage: vortex + core hotspot + signpost ──── */}
       <div
         style={{
-          position: 'absolute', top: '50%', left: '50%',
+          position: 'absolute', top: '56%', left: '50%',
           transform: 'translate(-50%, -50%)',
           width: 'min(100vw, 100vh)', height: 'min(100vw, 100vh)',
         }}
