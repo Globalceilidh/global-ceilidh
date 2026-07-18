@@ -252,6 +252,7 @@ export default function RadioClient() {
                 gap: 30px;
                 white-space: nowrap;
                 width: max-content;
+                flex-shrink: 0;
                 animation: gc-ticker-scroll 240s linear infinite;
                 will-change: transform;
               }
@@ -1024,7 +1025,7 @@ const tickerUnitStyle = {
 };
 // Each stop is two stacked lines: date + city over the venue.
 const tickerStackStyle = {
-  display: 'inline-flex', flexDirection: 'column', justifyContent: 'center', gap: 3, whiteSpace: 'nowrap',
+  display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, whiteSpace: 'nowrap',
 };
 const tickerDateStyle = {
   fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 15, letterSpacing: 1.2,
@@ -1039,7 +1040,9 @@ const tickerViewportStyle = {
   overflow: 'hidden',
   flex: 1,
   minWidth: 0,
-  padding: '26px 0',
+  display: 'flex',
+  alignItems: 'center',       // vertically centre the scrolling track
+  padding: '0 0 0 8px',
 };
 
 const tickerTextStyle = {
