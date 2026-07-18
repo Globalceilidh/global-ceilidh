@@ -239,7 +239,7 @@ export default function RadioClient() {
                 gap: 30px;
                 white-space: nowrap;
                 width: max-content;
-                animation: gc-ticker-scroll 110s linear infinite;
+                animation: gc-ticker-scroll 240s linear infinite;
                 will-change: transform;
               }
               .gc-ticker-track > * { flex: 0 0 auto; }
