@@ -422,10 +422,13 @@ function AgeGate({ L, onVerified }) {
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 403 && data.error === 'under_age') { setBlocked(true); setBusy(false); return; }
-      if (!res.ok || !data.ok) throw new Error();
+      if (!res.ok || !data.ok) throw new Error(data.error || `http_${res.status}`);
       onVerified();
-    } catch {
-      setError(L('Something went wrong. Please try again.', 'Chaidh rudeigin ceàrr. Feuch a-rithist.'));
+    } catch (err) {
+      const code = err?.message;
+      setError(code === 'db_error'
+        ? L('Couldn’t save — the age columns aren’t migrated yet (run migration 031).', 'Cha b’ urrainn a shàbhaladh — ruith imrich 031.')
+        : L('Something went wrong. Please try again.', 'Chaidh rudeigin ceàrr. Feuch a-rithist.') + (code ? ` (${code})` : ''));
       setBusy(false);
     }
   }
