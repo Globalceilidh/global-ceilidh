@@ -42,7 +42,7 @@ const GLOW = { top: '52%', left: '47%', size: '26%' };
 
 // SIGN — the cartoon signpost block, upper-right. The new art points down-left,
 // so no flip needed; it aims into the swirl from the upper-right corner.
-const SIGN = { top: '13%', left: '66%', width: '33%', rotate: '0deg', flip: false };
+const SIGN = { top: '13%', left: '74%', width: '33%', rotate: '0deg', flip: false };
 
 // CAP — the toggling caption, over the blank plank *within* the sign block
 // (tilts + tracks with the sign). Plank rises to the right → negative rotate.
