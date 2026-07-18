@@ -344,8 +344,24 @@ export default function SaoghalPage() {
         border: `1px solid ${COLORS.border}`,
         backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
       }}>
+        {/* The point: local counts look small, but the worldwide Gàidhlig
+            community — speakers + learners — is 700,000 strong. */}
         <p style={{
-          margin: '0 0 8px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
+          margin: '0 0 4px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
+          color: COLORS.textMuted, textTransform: 'uppercase',
+        }}>Gàidhlig worldwide</p>
+        <div style={{ fontFamily: serif, fontSize: 34, lineHeight: 1, color: COLORS.goldLight }}>
+          700,000
+        </div>
+        <p style={{
+          margin: '4px 0 12px', fontFamily: mono, fontSize: 9, letterSpacing: '1px',
+          color: COLORS.textMuted, textTransform: 'uppercase',
+        }}>speakers &amp; learners worldwide</p>
+
+        <div style={{ height: 1, background: COLORS.border, margin: '0 0 12px' }} />
+
+        <p style={{
+          margin: '0 0 10px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
           color: COLORS.textMuted, textTransform: 'uppercase',
         }}>Your bearings</p>
         <DiasporaClock onSelect={flyToAnchor} />
