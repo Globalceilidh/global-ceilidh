@@ -40,14 +40,13 @@ const SRUTH = {
 // GLOW — the white-hot core of the whirlpool (this art: just left/below centre).
 const GLOW = { top: '52%', left: '47%', size: '26%' };
 
-// SIGN — the cartoon signpost block, upper-left. flip:true mirrors the art so
-// its (left-pointing) arrow aims inward toward the vortex; rotate tilts it so
-// it reads as pointing down into the swirl.
-const SIGN = { top: '1%', left: '-1%', width: '44%', rotate: '15deg', flip: true };
+// SIGN — the cartoon signpost block, upper-right. The new art points down-left,
+// so no flip needed; it aims into the swirl from the upper-right corner.
+const SIGN = { top: '-3%', left: '55%', width: '44%', rotate: '0deg', flip: false };
 
-// CAP — the toggling caption, positioned over the blank plank *within* the
-// sign block (so it tilts + tracks with the sign).
-const CAP = { top: '42%', left: '47%', width: '58%', rotate: '-3deg' };
+// CAP — the toggling caption, over the blank plank *within* the sign block
+// (tilts + tracks with the sign). Plank rises to the right → negative rotate.
+const CAP = { top: '41%', left: '56%', width: '48%', rotate: '-20deg' };
 
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
