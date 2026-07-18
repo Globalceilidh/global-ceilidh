@@ -25,10 +25,7 @@ const FEATURED_PHOTO = FEATURED?.photos?.[0] || null;
 const FEATURED_POSTER = FEATURED?.poster || FEATURED_PHOTO;   // ticker frame art
 const FEATURED_TICKETS = FEATURED?.tickets || null;           // click-through
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
-const TICKER_SEGMENTS = [
-  FEATURED?.name,
-  ...String(FEATURED?.tourDates || '').split('·').map((s) => s.trim()).filter(Boolean),
-].filter(Boolean);
+const TICKER_STOPS = FEATURED?.tour || [];
 
 export default function RadioClient() {
   const { t, language } = useLanguage();
@@ -218,10 +215,15 @@ export default function RadioClient() {
               )}
               <div style={tickerViewportStyle}>
                 <div className="gc-ticker-track">
-                  {[...TICKER_SEGMENTS, ...TICKER_SEGMENTS].map((seg, i) => (
+                  {[...TICKER_STOPS, ...TICKER_STOPS].map((stop, i) => (
                     <span key={i} style={tickerUnitStyle}>
                       <img src={REIDIO_ICON} alt="" aria-hidden="true" style={tickerSepStyle} draggable={false} />
-                      <span className="gc-ticker-text" style={tickerTextStyle}>{seg}</span>
+                      <span style={tickerStackStyle}>
+                        <span className="gc-ticker-text" style={tickerDateStyle}>
+                          {stop.date}{stop.city ? ` · ${stop.city}` : ''}
+                        </span>
+                        {stop.venue && <span style={tickerVenueStyle}>{stop.venue}</span>}
+                      </span>
                     </span>
                   ))}
                 </div>
@@ -1017,6 +1019,18 @@ const tickerSepStyle = {
 };
 const tickerUnitStyle = {
   display: 'inline-flex', alignItems: 'center', gap: 12,
+};
+// Each stop is two stacked lines: date + city over the venue.
+const tickerStackStyle = {
+  display: 'inline-flex', flexDirection: 'column', justifyContent: 'center', gap: 3, whiteSpace: 'nowrap',
+};
+const tickerDateStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 15, letterSpacing: 1.2,
+  color: '#F2ECDC', textTransform: 'uppercase', lineHeight: 1.15,
+};
+const tickerVenueStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 11, letterSpacing: 1,
+  color: 'rgba(201, 160, 71, 0.9)', textTransform: 'uppercase', lineHeight: 1.15,
 };
 
 const tickerViewportStyle = {
