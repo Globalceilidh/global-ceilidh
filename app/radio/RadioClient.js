@@ -121,7 +121,9 @@ export default function RadioClient() {
         <main style={contentLayerStyle}>
           <div className="gc-radio-wrapper" style={contentWrapperStyle}>
             <header style={mastheadStyle}>
-              <h1 className="gc-radio-title" style={titleStyle}>Global Cèilidh Rèidio</h1>
+              <h1 className="gc-radio-title" style={titleStyle}>
+                {language === 'gd' ? 'Rèidio Cèilidh na Cruinne' : 'Global Ceilidh Radio'}
+              </h1>
               <p className="gc-radio-tagline" style={taglineStyle}>{t('radio.tagline')}</p>
             </header>
 

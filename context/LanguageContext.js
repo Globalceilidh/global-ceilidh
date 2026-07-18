@@ -93,10 +93,10 @@ export const translations = {
   radio: {
     tagline: {
       en: 'The soundtrack of an t-sruth streaming around the world.',
-      gd: 'Fuaim-cheòl an t-sruth a\' sruthadh air feadh an t-saoghail.',
+      gd: 'Tràca-fuaime an t-srutha ga shruthadh sìor feadh an t-saoghail.',
     },
     ad_label: { en: 'Ad · above the wave', gd: 'Sanas · os cionn na tuinne' },
-    vote_pill: { en: 'Vote', gd: 'Bhòt' },
+    vote_pill: { en: 'Vote', gd: 'Bhòtaig' },
     request_pill: { en: 'Request a Song', gd: 'Iarr Òran' },
     ticker_sponsor: {
       en: 'Welcome to Global Ceilidh Radio — sponsor a spot on our ticker at globalceilidh@gmail.com',
