@@ -137,17 +137,17 @@ export default function Home() {
       <a
         href="/radio" aria-label="Global Ceilidh Radio" title="Global Ceilidh Radio"
         className="gc-reidio"
-        style={{ position: 'fixed', bottom: 'clamp(20px, 4vh, 44px)', left: 'clamp(20px, 4vw, 44px)', zIndex: 10, display: 'block', lineHeight: 0 }}
+        style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', left: 'clamp(28px, 5vw, 80px)', transform: 'translateY(50%)', zIndex: 10, display: 'block', lineHeight: 0 }}
       >
         <img src={REIDIO_ICON} alt="Global Ceilidh Radio"
-          style={{ width: 'clamp(52px, 8vw, 84px)', height: 'auto', display: 'block' }} />
+          style={{ width: 'clamp(64px, 9.5vw, 112px)', height: 'auto', display: 'block' }} />
       </a>
 
       {/* ── Bottom-right: sruth wordplate → /sruth ──────────────────── */}
       <a
         href="/sruth" aria-label="sruth. — sign up and read the archive" title="sruth."
         className="gc-sruth"
-        style={{ position: 'fixed', bottom: 'clamp(20px, 4vh, 44px)', right: 'clamp(20px, 4vw, 44px)', zIndex: 10, display: 'block' }}
+        style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', right: 'clamp(20px, 4vw, 44px)', transform: 'translateY(50%)', zIndex: 10, display: 'block' }}
       >
         {SRUTH.ready ? (
           <span className="gc-sruth-logo" role="img" aria-label="sruth."
