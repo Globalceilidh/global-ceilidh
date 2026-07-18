@@ -170,7 +170,9 @@ export default function OnboardingClient({ defaults }) {
       <ImageTrail />
       <div style={scrim} aria-hidden />
 
-      <a href="/home" className="gc-x gc-screw" data-screw="45" style={closeX} aria-label={L('Close', 'Dùin')}>×</a>
+      {/* Rests as a "+"; the 45° screw turns it into an "×" only as the
+          cursor nears — the exit stays quietly hidden until sought. */}
+      <a href="/home" className="gc-x gc-screw" data-screw="45" style={closeX} aria-label={L('Close', 'Dùin')}>+</a>
 
       <form onSubmit={submit} style={content}>
         {/* ── Box 1 ─────────────────────────────────────────────── */}
