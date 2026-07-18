@@ -28,6 +28,9 @@ const PUBLIC_PREFIXES = [
   "/radio",
   "/AnTonn/radio",
   "/AnTonn/bhidio",
+  // An Saoghal — the map of the Gaelic world. Public + crawlable: it's a
+  // door on the new / homepage and the destination of the vortex centre.
+  "/saoghal",
   // Clerk embedded sign-in / sign-up. These MUST be reachable without
   // the pre-launch cookie key — a first-time invitee following a room
   // link has no cookie yet, and would loop through /sign-in?redirect_
