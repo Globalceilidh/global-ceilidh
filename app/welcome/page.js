@@ -31,7 +31,7 @@ export default async function WelcomePage() {
 
   const { data: profile } = await supabaseAdmin
     .from('gc_profiles')
-    .select('handle, display_name, avatar_url, onboarded_at')
+    .select('handle, display_name, email, avatar_url, onboarded_at')
     .eq('clerk_user_id', userId)
     .maybeSingle();
 
@@ -41,11 +41,16 @@ export default async function WelcomePage() {
   }
 
   const user = await currentUser();
+  const primaryEmail =
+    user?.emailAddresses?.find((e) => e.id === user?.primaryEmailAddressId)?.emailAddress ||
+    user?.emailAddresses?.[0]?.emailAddress ||
+    '';
   const defaults = {
     display_name:
       profile?.display_name ||
       [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
       '',
+    email: profile?.email || primaryEmail,
     avatar_url: profile?.avatar_url || user?.imageUrl || '',
     handle: suggestHandle(user),
   };

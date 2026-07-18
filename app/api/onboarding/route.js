@@ -34,7 +34,7 @@ const RESERVED = new Set([
   'public', 'null', 'undefined', 'moderator', 'mod', 'official',
 ]);
 
-const LEVELS = new Set(['none', 'learner', 'intermediate', 'fluent', 'native']);
+const LEVELS = new Set(['beginner', 'intermediate', 'fluent', 'advanced']);
 
 // Normalise a handle candidate: trim, strip a leading @, lowercase.
 function normalizeHandle(raw) {
@@ -125,9 +125,11 @@ export async function POST(req) {
   }
 
   const displayName = String(body.display_name || '').trim().slice(0, 80) || null;
+  const email = String(body.email || '').trim().slice(0, 200) || null;
   const region = String(body.region || '').trim().slice(0, 120) || null;
   const bio = String(body.bio || '').trim().slice(0, 600) || null;
   const avatarUrl = String(body.avatar_url || '').trim().slice(0, 500) || null;
+  const gaidhligNote = String(body.gaidhlig_note || '').trim().slice(0, 400) || null;
 
   let level = body.gaidhlig_level ? String(body.gaidhlig_level).trim().toLowerCase() : null;
   if (level && !LEVELS.has(level)) level = null;
@@ -147,11 +149,13 @@ export async function POST(req) {
       clerk_user_id: userId,
       handle,
       display_name: displayName,
+      email,
       avatar_url: avatarUrl,
       region,
       location_public: locationPublic,
       ancestral_places: ancestralPlaces,
       gaidhlig_level: level,
+      gaidhlig_note: gaidhligNote,
       bio,
       interests: interests,
       clan_family_names: clanFamilyNames,

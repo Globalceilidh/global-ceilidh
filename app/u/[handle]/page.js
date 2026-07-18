@@ -12,11 +12,10 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const LEVEL_LABEL = {
-  none: 'Chan eil fhathast · Not yet',
-  learner: 'Neach-ionnsachaidh · Learner',
+  beginner: 'Neach-tòiseachaidh · Beginner',
   intermediate: 'Meadhanach · Intermediate',
   fluent: 'Fileanta · Fluent',
-  native: 'Dùthchasach · Native',
+  advanced: 'Adhartach · Advanced',
 };
 
 async function getProfile(handleParam) {
@@ -77,6 +76,12 @@ export default async function ProfilePage({ params }) {
         </div>
 
         {p.bio && <p style={bioStyle}>{p.bio}</p>}
+
+        {p.gaidhlig_note && (
+          <p style={{ ...bioStyle, fontStyle: 'italic', color: '#6B4E1F', marginTop: 12 }}>
+            “{p.gaidhlig_note}”
+          </p>
+        )}
 
         {p.interests?.length > 0 && (
           <Block label="Ùidhean · Interests">
