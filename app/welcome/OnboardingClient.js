@@ -49,6 +49,9 @@ export default function OnboardingClient({ defaults }) {
   const [clanNames, setClanNames] = useState('');
   const [locationPublic, setLocationPublic] = useState(false);
 
+  // Age gate — shown before the profile form until the 13+ check passes.
+  const [verified, setVerified] = useState(defaults.age_verified || false);
+
   const [handleState, setHandleState] = useState({ status: 'idle', reason: null });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -201,6 +204,10 @@ export default function OnboardingClient({ defaults }) {
           cursor nears — the exit stays quietly hidden until sought. */}
       <a href="/home" className="gc-x gc-screw" data-screw="45" style={closeX} aria-label={L('Close', 'Dùin')}>+</a>
 
+      {!verified && <AgeGate L={L} onVerified={() => setVerified(true)} />}
+
+      {verified && (
+        <>
       {/* One static signpost arrow — right → down → up depending on where
           you are in the flow. */}
       <button type="button" onClick={handleArrow} className="gc-arrow"
@@ -332,6 +339,8 @@ export default function OnboardingClient({ defaults }) {
       {error && maxStep < 2 && (
         <p style={{ ...errText, position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 6 }}>{error}</p>
       )}
+        </>
+      )}
 
       <LanguagePill position="bottom-right" variant="white" layout="toggle" fixed offsetBottom={56} offsetRight={30} />
 
@@ -343,7 +352,7 @@ export default function OnboardingClient({ defaults }) {
         .gc-onb .gc-textarea { resize:vertical; min-height:60px; }
         .gc-onb .gc-input::placeholder, .gc-onb .gc-textarea::placeholder { color:rgba(255,255,255,0.3); }
         .gc-onb .gc-scroller {
-          position:relative; z-index:3; height:100dvh; max-width:812px; margin:0 auto;
+          position:relative; z-index:3; height:100dvh; max-width:680px; margin:0 auto;
           overflow-y:auto; overflow-x:hidden;
           scrollbar-width:none;
         }
@@ -385,6 +394,74 @@ export default function OnboardingClient({ defaults }) {
         }
       `}</style>
     </main>
+  );
+}
+
+// ── age gate (13+) — shown before the profile form ───────────────────
+
+function AgeGate({ L, onVerified }) {
+  const [year, setYear] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [blocked, setBlocked] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError(null);
+    const y = parseInt(year, 10);
+    const now = new Date().getFullYear();
+    if (!y || y < 1900 || y > now) {
+      setError(L('Enter the year you were born.', 'Cuir a-steach a’ bhliadhna a rugadh tu.'));
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch('/api/onboarding/age', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ birth_year: y }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 403 && data.error === 'under_age') { setBlocked(true); setBusy(false); return; }
+      if (!res.ok || !data.ok) throw new Error();
+      onVerified();
+    } catch {
+      setError(L('Something went wrong. Please try again.', 'Chaidh rudeigin ceàrr. Feuch a-rithist.'));
+      setBusy(false);
+    }
+  }
+
+  if (blocked) {
+    return (
+      <div style={gateWrap}>
+        <div className="gc-box" style={gateBox}>
+          <p style={eyebrow}>○ {L('Sorry', 'Duilich')}</p>
+          <h1 className="gc-box-title">{L('You need to be 13 to join.', 'Feumaidh tu a bhith 13.')}</h1>
+          <p style={sub}>
+            {L('Global Ceilidh is for ages 13 and up. Come back when you’re a wee bit older — we’ll be here.',
+               'Tha Cèilidh na Cruinne do dhaoine 13 bliadhna is nas sine. Till nuair a bhios tu beagan nas sine — bidh sinn an seo.')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={gateWrap}>
+      <form onSubmit={submit} className="gc-box" style={gateBox}>
+        <p style={eyebrow}>○ {L('Welcome', 'Fàilte')}</p>
+        <h1 className="gc-box-title">{L('First, a wee question.', 'An toiseach, ceist bheag.')}</h1>
+        <p style={{ ...sub, marginBottom: 20 }}>
+          {L('What year were you born? You need to be 13 to join Global Ceilidh.',
+             'Dè a’ bhliadhna a rugadh tu? Feumaidh tu a bhith 13 gus ballrachd fhaighinn.')}
+        </p>
+        <input className="gc-input" inputMode="numeric" value={year} maxLength={4}
+          onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))} placeholder="1990" style={gateInput} />
+        {error && <p style={errText}>{error}</p>}
+        <button type="submit" style={{ ...primaryBtn, marginTop: 18, opacity: busy ? 0.6 : 1 }} disabled={busy}>
+          {busy ? L('One moment…', 'Mionaid…') : L('Continue', 'Lean air adhart')}
+        </button>
+      </form>
+    </div>
   );
 }
 
@@ -438,12 +515,22 @@ const closeX = {
   background: 'rgba(255,255,255,0.04)', transition: 'transform 80ms linear, background 180ms ease',
 };
 const arrowBtn = {
-  // Static signpost, fixed just left of the centred box column.
-  position: 'fixed', top: '50%', left: 'max(20px, calc(50% - 430px))', marginTop: -28, zIndex: 5,
+  // Static signpost, fixed at the top-left, just outside the box column
+  // (aligned with the first box's header).
+  position: 'fixed', top: '12vh', left: 'max(16px, calc(50% - 412px))', zIndex: 5,
   width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.4)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   color: '#F4F1EA', background: 'rgba(255,255,255,0.04)', cursor: 'pointer',
   transition: 'transform 260ms cubic-bezier(0.22,1,0.36,1), background 180ms ease',
+};
+const gateWrap = {
+  position: 'relative', zIndex: 3, minHeight: '100dvh',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+};
+const gateBox = { maxWidth: 480, padding: '32px 30px 34px', display: 'flex', flexDirection: 'column' };
+const gateInput = {
+  border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, background: 'rgba(255,255,255,0.06)',
+  padding: '12px 14px', fontSize: 22, letterSpacing: '0.15em', textAlign: 'center', maxWidth: 170,
 };
 const eyebrow = {
   fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, letterSpacing: 3,

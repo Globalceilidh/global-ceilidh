@@ -31,7 +31,7 @@ export default async function WelcomePage() {
 
   const { data: profile } = await supabaseAdmin
     .from('gc_profiles')
-    .select('handle, display_name, email, avatar_url, onboarded_at')
+    .select('handle, display_name, email, avatar_url, onboarded_at, age_verified_at')
     .eq('clerk_user_id', userId)
     .maybeSingle();
 
@@ -53,6 +53,7 @@ export default async function WelcomePage() {
     email: profile?.email || primaryEmail,
     avatar_url: profile?.avatar_url || user?.imageUrl || '',
     handle: suggestHandle(user),
+    age_verified: !!profile?.age_verified_at,
   };
 
   return <OnboardingClient defaults={defaults} />;
