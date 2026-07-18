@@ -43,11 +43,11 @@ const GLOW = { top: '52%', left: '47%', size: '26%' };
 // SIGN — the cartoon signpost block, upper-right. The new art points down-left,
 // so no flip needed; it aims into the swirl from the upper-right corner.
 // Placed so the base of the post sits on the 2-o'clock rim of the vortex.
-const SIGN = { top: '15%', left: '70%', width: '33%', rotate: '0deg', flip: false };
+const SIGN = { top: '15%', left: '68%', width: '33%', rotate: '0deg', flip: false };
 
 // CAP — the toggling caption, over the blank plank *within* the sign block
 // (tilts + tracks with the sign). Plank rises to the right → negative rotate.
-const CAP = { top: '43%', left: '57%', width: '52%', rotate: '-14deg' };
+const CAP = { top: '50%', left: '60%', width: '44%', rotate: '-20deg' };
 
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
@@ -217,7 +217,7 @@ const STYLES = `
   .gc-plank { display: flex; flex-direction: column; align-items: center; text-align: center;
     font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
     text-transform: uppercase; line-height: 0.86; letter-spacing: 0.04em; }
-  .gc-plank-line { font-size: clamp(13px, 3.4vmin, 40px); color: #2a2622;
+  .gc-plank-line { font-size: clamp(11px, 2.8vmin, 34px); color: #2a2622;
     text-shadow: 0 1px 0 rgba(255,255,255,0.30), 0 -1px 1px rgba(0,0,0,0.55); }
   /* Corner icon hovers. */
   .gc-reidio img, .gc-sruth-plate { transition: transform 220ms ease, filter 220ms ease; }
