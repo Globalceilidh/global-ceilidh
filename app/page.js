@@ -55,6 +55,10 @@ export default function Home() {
   const { language } = useLanguage();
 
   const caption = language === 'gd' ? ['TÒISICHIBH', 'AN SEO'] : ['START', 'HERE'];
+  // GD is much longer than EN — size it down so it stays on the plank.
+  const capFont = language === 'gd'
+    ? 'clamp(8px, 2.0vmin, 24px)'
+    : 'clamp(11px, 2.8vmin, 34px)';
 
   return (
     <main style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}>
@@ -126,7 +130,7 @@ export default function Home() {
             }}
           >
             {caption.map((line, i) => (
-              <span key={i} className="gc-plank-line">{line}</span>
+              <span key={i} className="gc-plank-line" style={{ fontSize: capFont }}>{line}</span>
             ))}
           </div>
         </div>
