@@ -4,9 +4,10 @@
 // then sends them to their new page at /u/<handle>. A guided three-box
 // flow, phantom.land-style: all-white type, frosted numbered lines
 // grouped into boxes, floating on a cursor image-trail of Global Ceilidh
-// photos. A circular arrow (left) advances box→box and turns like a screw
-// as the cursor nears it; the X close does the same. Bilingual; only
-// handle + name are required.
+// photos. A circular arrow sits just outside each box (top-left, by the
+// header) and advances box→box, turning a snappy quarter-turn to point
+// straight down as the cursor nears it; the X close screws the same way.
+// Bilingual; only handle + name are required.
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
@@ -51,16 +52,14 @@ export default function OnboardingClient({ defaults }) {
   const [error, setError] = useState(null);
 
   // Stepper: 3 boxes. maxStep gates which are revealed; step is the one in
-  // focus. Advancing reveals the next and scrolls it into view.
+  // focus. Advancing reveals a box and scrolls it into view.
   const [step, setStep] = useState(0);
   const [maxStep, setMaxStep] = useState(0);
   const slideRefs = [useRef(null), useRef(null), useRef(null)];
 
-  function advance() {
-    const next = Math.min(step + 1, 2);
-    if (next === step) return;
-    setMaxStep((m) => Math.max(m, next));
-    setStep(next);
+  function advanceTo(target) {
+    setMaxStep((m) => Math.max(m, target));
+    setStep(target);
   }
 
   useEffect(() => {
@@ -90,29 +89,30 @@ export default function OnboardingClient({ defaults }) {
     return () => clearTimeout(id);
   }, [handle, language]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The X close and the advance arrow turn like screws as the cursor nears.
-  const xRef = useRef(null);
-  const arrowRef = useRef(null);
+  // Screw turn: every .gc-screw (the X + each advance arrow) rotates toward
+  // its data-screw angle as the cursor nears — snappy, reaching full turn
+  // before the cursor is on it. Desktop only.
   useEffect(() => {
     if (window.matchMedia('(pointer: coarse)').matches) return;
-    const RADIUS = 240;
+    const RADIUS = 210;
     let raf = 0;
     const onMove = (e) => {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
-        for (const ref of [xRef, arrowRef]) {
-          const el = ref.current;
-          if (!el) continue;
+        document.querySelectorAll('.gc-onb .gc-screw').forEach((el) => {
           const r = el.getBoundingClientRect();
-          if (r.width === 0) continue; // unmounted/hidden (fixed els have null offsetParent)
+          if (r.width === 0) return;
           const dist = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
-          const prox = Math.max(0, Math.min(1, 1 - dist / RADIUS));
-          el.style.transform = `rotate(${(45 * prox).toFixed(1)}deg)`;
-        }
+          const prox = Math.max(0, Math.min(1, (1 - dist / RADIUS) * 1.8));
+          const maxDeg = Number(el.dataset.screw) || 45;
+          el.style.transform = `rotate(${(maxDeg * prox).toFixed(1)}deg)`;
+        });
       });
     };
-    const reset = () => { [xRef, arrowRef].forEach((r) => { if (r.current) r.current.style.transform = 'rotate(0deg)'; }); };
+    const reset = () => {
+      document.querySelectorAll('.gc-onb .gc-screw').forEach((el) => { el.style.transform = 'rotate(0deg)'; });
+    };
     window.addEventListener('mousemove', onMove);
     document.addEventListener('mouseleave', reset);
     return () => {
@@ -170,100 +170,96 @@ export default function OnboardingClient({ defaults }) {
       <ImageTrail />
       <div style={scrim} aria-hidden />
 
-      <a ref={xRef} href="/home" className="gc-x" style={closeX} aria-label={L('Close', 'Dùin')}>×</a>
-
-      {/* Advance arrow — hidden on the last box. */}
-      {step < 2 && (
-        <button ref={arrowRef} type="button" onClick={advance} className="gc-arrow" style={arrowBtn}
-          aria-label={L('Next', 'Air adhart')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
-      )}
+      <a href="/home" className="gc-x gc-screw" data-screw="45" style={closeX} aria-label={L('Close', 'Dùin')}>×</a>
 
       <form onSubmit={submit} style={content}>
         {/* ── Box 1 ─────────────────────────────────────────────── */}
         <div className="gc-slide" ref={slideRefs[0]}>
-          <div className="gc-box">
-            <div className="gc-box-header">
-              <p style={eyebrow}>○ {L('Welcome', 'Fàilte')}</p>
-              <h1 className="gc-box-title">{L('Fàilte! Let’s make your page.', 'Fàilte! Dèan do dhuilleag.')}</h1>
-              <p style={sub}>
-                {L('Your corner of the Global Ceilidh — your Cèilidh. A minute now; change any of it later.',
-                   'An oisean agad den Chèilidh Chruinneil — do Chèilidh fhèin. Mionaid an-dràsta; atharraich uair sam bith.')}
-              </p>
-            </div>
-
-            <Line n="01" label={L('Your name', 'D’ainm')} required>
-              <input className="gc-input" value={displayName} maxLength={80}
-                onChange={(e) => setDisplayName(e.target.value)} placeholder={L('Enter your name', 'Cuir a-steach d’ainm')} />
-            </Line>
-
-            <Line n="02" label={L('Handle', 'Ainm-cleachdaidh')} required hint={handleHint}
-              note={`globalceilidh.com/u/${handle || L('your_handle', 'd’ainm')}`}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ color: 'rgba(255,255,255,0.55)', marginRight: 4 }}>@</span>
-                <input className="gc-input" value={handle} maxLength={30}
-                  autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                  onChange={(e) => setHandle(e.target.value.replace(/^@+/, '').toLowerCase())} placeholder="mairi_nicleoid" />
+          <div className="gc-boxwrap">
+            <AdvanceArrow onClick={() => advanceTo(1)} label={L('Next', 'Air adhart')} />
+            <div className="gc-box">
+              <div className="gc-box-header">
+                <p style={eyebrow}>○ {L('Welcome', 'Fàilte')}</p>
+                <h1 className="gc-box-title">{L('Fàilte! Let’s make your page.', 'Fàilte! Dèan do dhuilleag.')}</h1>
+                <p style={sub}>
+                  {L('Your corner of the Global Ceilidh — your Cèilidh. A minute now; change any of it later.',
+                     'An oisean agad den Chèilidh Chruinneil — do Chèilidh fhèin. Mionaid an-dràsta; atharraich uair sam bith.')}
+                </p>
               </div>
-            </Line>
 
-            <Line n="03" label={L('Email address', 'Post-d')}>
-              <input className="gc-input" type="email" value={email} maxLength={200}
-                onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-            </Line>
+              <Line n="01" label={L('Your name', 'D’ainm')} required>
+                <input className="gc-input" value={displayName} maxLength={80}
+                  onChange={(e) => setDisplayName(e.target.value)} placeholder={L('Enter your name', 'Cuir a-steach d’ainm')} />
+              </Line>
 
-            <Line n="04" label={L('Where you are', 'Càite a bheil thu')}
-              note={L('Kept coarse — never your exact address.', 'Cumar seo farsaing.')}>
-              <input className="gc-input" value={region} maxLength={120}
-                onChange={(e) => setRegion(e.target.value)} placeholder={L('e.g. Cape Breton, NS', 'm.e. Ceap Breatainn')} />
-            </Line>
+              <Line n="02" label={L('Handle', 'Ainm-cleachdaidh')} required hint={handleHint}
+                note={`globalceilidh.com/u/${handle || L('your_handle', 'd’ainm')}`}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.55)', marginRight: 4 }}>@</span>
+                  <input className="gc-input" value={handle} maxLength={30}
+                    autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                    onChange={(e) => setHandle(e.target.value.replace(/^@+/, '').toLowerCase())} placeholder="mairi_nicleoid" />
+                </div>
+              </Line>
 
-            <Line n="05" label={L('Show on the map', 'Seall air a’ mhapa')}>
-              <label style={checkRow}>
-                <input type="checkbox" checked={locationPublic} onChange={(e) => setLocationPublic(e.target.checked)} />
-                <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: 14, lineHeight: 1.45 }}>
-                  {L('Appear on the Global Ceilidh map (you can turn this off any time).',
-                     'Nochd air mapa na Cèilidh Cruinneil (’s urrainn dhut a chur dheth uair sam bith).')}
-                </span>
-              </label>
-            </Line>
+              <Line n="03" label={L('Email address', 'Post-d')}>
+                <input className="gc-input" type="email" value={email} maxLength={200}
+                  onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+              </Line>
+
+              <Line n="04" label={L('Where you are', 'Càite a bheil thu')}
+                note={L('Kept coarse — never your exact address.', 'Cumar seo farsaing.')}>
+                <input className="gc-input" value={region} maxLength={120}
+                  onChange={(e) => setRegion(e.target.value)} placeholder={L('e.g. Cape Breton, NS', 'm.e. Ceap Breatainn')} />
+              </Line>
+
+              <Line n="05" label={L('Show on the map', 'Seall air a’ mhapa')}>
+                <label style={checkRow}>
+                  <input type="checkbox" checked={locationPublic} onChange={(e) => setLocationPublic(e.target.checked)} />
+                  <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: 14, lineHeight: 1.45 }}>
+                    {L('Appear on the Global Ceilidh map (you can turn this off any time).',
+                       'Nochd air mapa na Cèilidh Cruinneil (’s urrainn dhut a chur dheth uair sam bith).')}
+                  </span>
+                </label>
+              </Line>
+            </div>
           </div>
         </div>
 
         {/* ── Box 2 ─────────────────────────────────────────────── */}
         {maxStep >= 1 && (
           <div className="gc-slide" ref={slideRefs[1]}>
-            <div className="gc-box">
-              <Line n="06" label={L('A wee introduction', 'Beagan mu do dheidhinn')}>
-                <textarea className="gc-textarea" value={bio} maxLength={600}
-                  onChange={(e) => setBio(e.target.value)} placeholder={L('What brings you to the ceilidh?', 'Dè thug don chèilidh thu?')} />
-              </Line>
+            <div className="gc-boxwrap">
+              <AdvanceArrow onClick={() => advanceTo(2)} label={L('Next', 'Air adhart')} />
+              <div className="gc-box">
+                <Line n="06" label={L('A wee introduction', 'Beagan mu do dheidhinn')}>
+                  <textarea className="gc-textarea" value={bio} maxLength={600}
+                    onChange={(e) => setBio(e.target.value)} placeholder={L('What brings you to the ceilidh?', 'Dè thug don chèilidh thu?')} />
+                </Line>
 
-              <Line n="07" label={L('Your Gàidhlig', 'A’ Ghàidhlig agad')}
-                note={L('We’re all learners — wherever you are is welcome.', 'Tha sinn uile ag ionnsachadh — ge bith càite a bheil thu, tha fàilte ort.')}>
-                <div style={chipRow}>
-                  {LEVELS.map(([val, en, gd]) => (
-                    <button type="button" key={val} onClick={() => setLevel(level === val ? '' : val)}
-                      style={chip(level === val)}>{L(en, gd)}</button>
-                  ))}
-                </div>
-                <textarea className="gc-textarea" value={gaidhligNote} maxLength={400}
-                  onChange={(e) => setGaidhligNote(e.target.value)} style={{ marginTop: 12 }}
-                  placeholder={L('Tell us about your Gàidhlig — how you learned, where you’re headed…',
-                                 'Innis dhuinn mun Ghàidhlig agad — mar a dh’ionnsaich thu, càit a bheil thu a’ dol…')} />
-              </Line>
+                <Line n="07" label={L('Your Gàidhlig', 'A’ Ghàidhlig agad')}
+                  note={L('We’re all learners — wherever you are is welcome.', 'Tha sinn uile ag ionnsachadh — ge bith càite a bheil thu, tha fàilte ort.')}>
+                  <div style={chipRow}>
+                    {LEVELS.map(([val, en, gd]) => (
+                      <button type="button" key={val} onClick={() => setLevel(level === val ? '' : val)}
+                        style={chip(level === val)}>{L(en, gd)}</button>
+                    ))}
+                  </div>
+                  <textarea className="gc-textarea" value={gaidhligNote} maxLength={400}
+                    onChange={(e) => setGaidhligNote(e.target.value)} style={{ marginTop: 12 }}
+                    placeholder={L('Tell us about your Gàidhlig — how you learned, where you’re headed…',
+                                   'Innis dhuinn mun Ghàidhlig agad — mar a dh’ionnsaich thu, càit a bheil thu a’ dol…')} />
+                </Line>
 
-              <Line n="08" label={L('Interests', 'Ùidhean')}>
-                <div style={chipRow}>
-                  {INTEREST_OPTIONS.map(([en, gd]) => (
-                    <button type="button" key={en} onClick={() => toggleInterest(en)}
-                      style={chip(interests.includes(en))}>{L(en, gd)}</button>
-                  ))}
-                </div>
-              </Line>
+                <Line n="08" label={L('Interests', 'Ùidhean')}>
+                  <div style={chipRow}>
+                    {INTEREST_OPTIONS.map(([en, gd]) => (
+                      <button type="button" key={en} onClick={() => toggleInterest(en)}
+                        style={chip(interests.includes(en))}>{L(en, gd)}</button>
+                    ))}
+                  </div>
+                </Line>
+              </div>
             </div>
           </div>
         )}
@@ -271,38 +267,40 @@ export default function OnboardingClient({ defaults }) {
         {/* ── Box 3 ─────────────────────────────────────────────── */}
         {maxStep >= 2 && (
           <div className="gc-slide" ref={slideRefs[2]}>
-            <div className="gc-box">
-              <Line n="09" label={L('Ancestral places', 'Àiteachan nan sinnsear')}>
-                <input className="gc-input" value={ancestralPlaces} maxLength={200}
-                  onChange={(e) => setAncestralPlaces(e.target.value)} placeholder={L('Isle of Lewis, Tiree… (comma separated)', 'Eilean Leòdhais, Tiriodh…')} />
-              </Line>
+            <div className="gc-boxwrap">
+              <div className="gc-box">
+                <Line n="09" label={L('Ancestral places', 'Àiteachan nan sinnsear')}>
+                  <input className="gc-input" value={ancestralPlaces} maxLength={200}
+                    onChange={(e) => setAncestralPlaces(e.target.value)} placeholder={L('Isle of Lewis, Tiree… (comma separated)', 'Eilean Leòdhais, Tiriodh…')} />
+                </Line>
 
-              <Line n="10" label={L('Clan / family names', 'Ainmean cinnidh')}>
-                <input className="gc-input" value={clanNames} maxLength={200}
-                  onChange={(e) => setClanNames(e.target.value)} placeholder={L('MacLeod, Morrison… (comma separated)', 'MacLeòid, Moireasdan…')} />
-              </Line>
+                <Line n="10" label={L('Clan / family names', 'Ainmean cinnidh')}>
+                  <input className="gc-input" value={clanNames} maxLength={200}
+                    onChange={(e) => setClanNames(e.target.value)} placeholder={L('MacLeod, Morrison… (comma separated)', 'MacLeòid, Moireasdan…')} />
+                </Line>
 
-              <div style={{ padding: '18px 4px 6px' }}>
-                <p style={{ ...sub, marginBottom: 16 }}>
-                  {L('That’s everything — scroll up to check anything, then create your page.',
-                     'Sin e uile — sgrolaich suas gus rud sam bith a dhearbhadh, an uair sin cruthaich do dhuilleag.')}
-                </p>
-                {error && <p style={errText}>{error}</p>}
-                <button type="submit" style={{ ...primaryBtn, opacity: busy ? 0.6 : 1 }} disabled={busy}>
-                  {busy ? L('Creating…', 'A’ cruthachadh…') : L('Create my page', 'Cruthaich mo dhuilleag')}
-                </button>
+                <div style={{ padding: '18px 4px 6px' }}>
+                  <p style={{ ...sub, marginBottom: 16 }}>
+                    {L('That’s everything — scroll up to check anything, then create your page.',
+                       'Sin e uile — sgrolaich suas gus rud sam bith a dhearbhadh, an uair sin cruthaich do dhuilleag.')}
+                  </p>
+                  {error && <p style={errText}>{error}</p>}
+                  <button type="submit" style={{ ...primaryBtn, opacity: busy ? 0.6 : 1 }} disabled={busy}>
+                    {busy ? L('Creating…', 'A’ cruthachadh…') : L('Create my page', 'Cruthaich mo dhuilleag')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </form>
 
-      {/* Errors before the last box surface at the arrow, not the button. */}
+      {/* Errors before the last box surface centred at the bottom. */}
       {error && maxStep < 2 && (
         <p style={{ ...errText, position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 6 }}>{error}</p>
       )}
 
-      <LanguagePill position="bottom-right" variant="dark" layout="toggle" fixed offsetBottom={20} offsetRight={20} />
+      <LanguagePill position="bottom-right" variant="white" layout="toggle" fixed offsetBottom={56} offsetRight={30} />
 
       <style>{`
         .gc-onb .gc-input, .gc-onb .gc-textarea {
@@ -315,8 +313,9 @@ export default function OnboardingClient({ defaults }) {
           min-height:100dvh; display:flex; flex-direction:column;
           align-items:center; justify-content:center; padding:56px 24px;
         }
+        .gc-onb .gc-boxwrap { position:relative; width:100%; max-width:720px; }
         .gc-onb .gc-box {
-          width:100%; max-width:720px;
+          width:100%;
           background:rgba(255,255,255,0.055); border:1px solid rgba(255,255,255,0.1);
           border-radius:16px; padding:6px 28px 20px;
           backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
@@ -342,10 +341,22 @@ export default function OnboardingClient({ defaults }) {
         @media (max-width:720px){
           .gc-onb .gc-linebody { flex-direction:column; gap:8px; }
           .gc-onb .gc-label { width:auto; }
-          .gc-onb .gc-arrow { left:50% !important; right:auto !important; top:auto !important; bottom:20px !important; transform:translateX(-50%); }
+          .gc-onb .gc-arrow { left:4px !important; top:-58px !important; }
         }
       `}</style>
     </main>
+  );
+}
+
+// ── advance arrow (sits just outside each box, top-left) ──────────────
+
+function AdvanceArrow({ onClick, label }) {
+  return (
+    <button type="button" onClick={onClick} className="gc-screw gc-arrow" data-screw="90" style={arrowBtn} aria-label={label}>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="4" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+      </svg>
+    </button>
   );
 }
 
@@ -396,14 +407,14 @@ const closeX = {
   width: 46, height: 46, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.4)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   color: '#F4F1EA', fontSize: 28, lineHeight: 1, textDecoration: 'none',
-  background: 'rgba(255,255,255,0.04)', transition: 'transform 220ms ease-out, background 180ms ease',
+  background: 'rgba(255,255,255,0.04)', transition: 'transform 80ms linear, background 180ms ease',
 };
 const arrowBtn = {
-  position: 'fixed', top: '50%', left: 28, zIndex: 5, marginTop: -28,
+  position: 'absolute', top: 26, left: -72, zIndex: 4,
   width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.4)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   color: '#F4F1EA', background: 'rgba(255,255,255,0.04)', cursor: 'pointer',
-  transition: 'transform 220ms ease-out, background 180ms ease',
+  transition: 'transform 80ms linear, background 180ms ease',
 };
 const content = { position: 'relative', zIndex: 3, width: '100%' };
 const eyebrow = {
