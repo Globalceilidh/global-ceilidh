@@ -1,6 +1,6 @@
 // app/u/[handle]/page.js
-// Personal page ("Cèilidh") — the public identity shell every later
-// social feature (posts, follows, the globe pin) hangs off. Server
+// Personal page ("Duilleag-cèilidh") — the public identity shell every
+// later social feature (posts, follows, the globe pin) hangs off. Server
 // component: fetch by handle, 404 if missing/not onboarded. Shell only
 // for now — the wall/feed comes with gc_posts.
 

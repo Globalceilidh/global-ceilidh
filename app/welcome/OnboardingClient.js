@@ -218,10 +218,10 @@ export default function OnboardingClient({ defaults }) {
             <div className="gc-box">
               <div className="gc-box-header">
                 <p style={eyebrow}>○ {L('Welcome', 'Fàilte')}</p>
-                <h1 className="gc-box-title">{L('Fàilte! Let’s make your page.', 'Fàilte! Dèan do dhuilleag.')}</h1>
+                <h1 className="gc-box-title">{L('Fàilte! Let’s make your Duilleag-cèilidh.', 'Fàilte! Dèan do dhuilleag-cèilidh.')}</h1>
                 <p style={sub}>
-                  {L('Your corner of the Global Ceilidh — your Cèilidh. A minute now; change any of it later.',
-                     'An oisean agad den Chèilidh Chruinneil — do Chèilidh fhèin. Mionaid an-dràsta; atharraich uair sam bith.')}
+                  {L('Your Duilleag-cèilidh — your ceilidh page, your corner of the Global Ceilidh. A minute now; change any of it later.',
+                     'Do dhuilleag-cèilidh fhèin — an oisean agad den Chèilidh Chruinneil. Mionaid an-dràsta; atharraich uair sam bith.')}
                 </p>
               </div>
 
@@ -314,12 +314,12 @@ export default function OnboardingClient({ defaults }) {
 
                 <div style={{ padding: '18px 4px 6px' }}>
                   <p style={{ ...sub, marginBottom: 16 }}>
-                    {L('That’s everything — scroll up to check anything, then create your page.',
-                       'Sin e uile — sgrolaich suas gus rud sam bith a dhearbhadh, an uair sin cruthaich do dhuilleag.')}
+                    {L('That’s everything — scroll up to check anything, then create your Duilleag-cèilidh.',
+                       'Sin e uile — sgrolaich suas gus rud sam bith a dhearbhadh, an uair sin cruthaich do dhuilleag-cèilidh.')}
                   </p>
                   {error && <p style={errText}>{error}</p>}
                   <button type="submit" style={{ ...primaryBtn, opacity: busy ? 0.6 : 1 }} disabled={busy}>
-                    {busy ? L('Creating…', 'A’ cruthachadh…') : L('Create my page', 'Cruthaich mo dhuilleag')}
+                    {busy ? L('Creating…', 'A’ cruthachadh…') : L('Create my Duilleag-cèilidh', 'Cruthaich mo dhuilleag-cèilidh')}
                   </button>
                 </div>
               </div>
