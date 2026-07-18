@@ -21,6 +21,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { HEAT_POINTS } from './heat';
 import { PLACES } from './places';
 import { useLanguage } from '../../context/LanguageContext';
+import DiasporaClock from '../../components/DiasporaClock';
 
 const BASEMAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
@@ -60,6 +61,19 @@ export default function SaoghalPage() {
       center: HOME_CENTER, zoom: HOME_ZOOM,
       bearing: 0, pitch: 0,
       duration: 1200, essential: true,
+    });
+  }, []);
+
+  // Fly the globe to a diaspora anchor (or the user) when its clock row is
+  // clicked — makes the orientation panel an actual nav map.
+  const flyToAnchor = useCallback((a) => {
+    const map = mapRef.current;
+    if (!map || a == null || a.lng == null || a.lat == null) return;
+    setSelected(null);
+    map.flyTo({
+      center: [a.lng, a.lat],
+      zoom: Math.max(map.getZoom(), 4.5),
+      duration: 1400, essential: true,
     });
   }, []);
 
@@ -320,6 +334,22 @@ export default function SaoghalPage() {
           )}
         </aside>
       )}
+
+      {/* Diaspora nav panel — your bearings to the cultural anchors.
+          Click a row to fly the globe there. */}
+      <div style={{
+        position: 'absolute', bottom: 52, left: 20, zIndex: 5,
+        padding: '12px 14px',
+        background: 'rgba(10, 8, 7, 0.72)',
+        border: `1px solid ${COLORS.border}`,
+        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+      }}>
+        <p style={{
+          margin: '0 0 8px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
+          color: COLORS.textMuted, textTransform: 'uppercase',
+        }}>Your bearings</p>
+        <DiasporaClock onSelect={flyToAnchor} />
+      </div>
 
       <footer style={{
         position: 'absolute', bottom: 16, left: 20, zIndex: 4,
