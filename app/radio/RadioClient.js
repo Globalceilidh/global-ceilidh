@@ -121,8 +121,8 @@ export default function RadioClient() {
         <main style={contentLayerStyle}>
           <div className="gc-radio-wrapper" style={contentWrapperStyle}>
             <header style={mastheadStyle}>
-              <h1 className="gc-radio-title" style={titleStyle}>
-                {language === 'gd' ? 'Rèidio Cèilidh na Cruinne' : 'Global Ceilidh Radio'}
+              <h1 className="gc-radio-title" style={{ ...titleStyle, textTransform: 'none' }}>
+                {language === 'gd' ? 'RÈIDIO CÈILIDH na CRUINNE' : 'GLOBAL CEILIDH RADIO'}
               </h1>
               <p className="gc-radio-tagline" style={taglineStyle}>{t('radio.tagline')}</p>
             </header>
@@ -989,7 +989,7 @@ const tickerOuterStyle = {
   display: 'flex',
   alignItems: 'stretch',
   background: 'rgba(0, 0, 0, 0.55)',
-  border: '1px solid rgba(242, 236, 220, 0.08)',
+  border: '2px solid rgba(201, 160, 71, 0.9)',  // gold band — matches the venue font
   borderRadius: 8,
   overflow: 'hidden',
   backdropFilter: 'blur(6px)',
@@ -1005,7 +1005,7 @@ const tickerFrameStyle = {
   alignSelf: 'center',
   position: 'relative',
   overflow: 'hidden',
-  borderRight: '1px solid rgba(242, 236, 220, 0.15)',
+  borderRight: '2px solid rgba(201, 160, 71, 0.9)',  // gold divider between poster + dates
   cursor: 'pointer',
   textDecoration: 'none',
 };
