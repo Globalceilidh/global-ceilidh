@@ -141,7 +141,7 @@ export default function RadioClient() {
                   onClick={() => setMobileView('player')}
                   style={mobileTabStyle(mobileView === 'player')}
                 >
-                  {language === 'gd' ? 'Cluicheadair' : 'Player'}
+                  {language === 'gd' ? 'Inneal-chlàr' : 'Player'}
                 </button>
                 <button
                   type="button"
