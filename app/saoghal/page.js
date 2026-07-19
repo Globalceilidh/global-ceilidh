@@ -75,18 +75,18 @@ const STORY = [
     body:    { en: 'By one archaeological model, they consolidated their distinct culture in the forests of Central Europe, around 1200 BC.' },
   },
   {
+    id: 'galatians',
+    camera: { center: [22, 44], zoom: 3.3, pitch: 0, bearing: 0 },
+    eyebrow: { en: '279 BC · The eastern reach' },
+    title:   { en: 'The Galatians' },
+    body:    { en: 'A thousand years later, a Gaulish war-band — the Tectosages, Tolistobogii and Trocmi — swept east across the Balkans and seized the highlands of Anatolia, becoming the Galatians of Turkey.' },
+  },
+  {
     id: 'atlantic',
     camera: { center: [-4, 46], zoom: 3.9, pitch: 0, bearing: 0 },
     eyebrow: { en: 'c. 2500 BC · The Atlantic model' },
     title:   { en: 'The Atlantic coasts' },
     body:    { en: 'By another model, the culture never marched in from the east — it grew in place along the whole Atlantic seaboard, from Brittany to Iberia, as early as 2500 BC. Here belong the Gallaeci of Galicia, whose Q-Celtic tongue is the closest continental cousin to early Gaelic.' },
-  },
-  {
-    id: 'galatians',
-    camera: { center: [24, 42], zoom: 3.6, pitch: 0, bearing: 0 },
-    eyebrow: { en: '279 BC · The eastern reach' },
-    title:   { en: 'The Galatians' },
-    body:    { en: 'A thousand years later, a Gaulish war-band — the Tectosages, Tolistobogii and Trocmi — swept east across the Balkans and seized the highlands of Anatolia, becoming the Galatians of Turkey.' },
   },
   {
     id: 'keltoi',
@@ -226,19 +226,32 @@ export default function SaoghalPage() {
         if (t < 1) spreadRaf.current = requestAnimationFrame(frame);
       };
       spreadRaf.current = requestAnimationFrame(frame);
+    } else if (storyActive && storyStep === 3) {
+      // Galatians beat — the red bloom stays up; the purple arrow leaves it.
+      src.setData(heatFC([...steppe, ...CENTRAL_PTS.map((c) => heatFeat(c, 1))]));
+      map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
     } else {
       map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0);
     }
     return () => { if (spreadRaf.current) { cancelAnimationFrame(spreadRaf.current); spreadRaf.current = null; } };
   }, [mapReady, storyActive, storyStep]);
 
-  // Teal Atlantic-model bloom — fades in on the Atlantic beat (step 3).
+  // Teal Atlantic-model bloom — fades in on the Atlantic beat (step 4).
   useEffect(() => {
     if (!mapReady) return;
     const map = mapRef.current;
     if (!map || !map.getLayer('atlantic-heat-layer')) return;
-    const show = storyActive && storyStep === 3;
+    const show = storyActive && storyStep === 4;
     map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity', show ? 0.9 : 0);
+  }, [mapReady, storyActive, storyStep]);
+
+  // Purple Galatian settlement blooms — off unless we're on the Galatians beat;
+  // the arrow animation (below) fades them in as the arrow reaches Anatolia.
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    if (!map || !map.getLayer('galatia-heat-layer')) return;
+    if (!(storyActive && storyStep === 3)) map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0);
   }, [mapReady, storyActive, storyStep]);
 
   // Migration arrows — per beat (Galatians on the Galatians beat, via step tag).
@@ -267,6 +280,10 @@ export default function SaoghalPage() {
         }
         lsrc.setData(heatFC(lines));
         hsrc.setData(heatFC(heads));
+        // As the arrow nears Anatolia, bloom purple where the tribes settled.
+        if (t >= 0.82 && map.getLayer('galatia-heat-layer')) {
+          map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0.9);
+        }
         if (t < 1) arrowRaf.current = requestAnimationFrame(frame);
       };
       arrowRaf.current = requestAnimationFrame(frame);
@@ -374,6 +391,7 @@ export default function SaoghalPage() {
       addRegionHighlights(map);
       addProtoHeat(map);
       addAtlanticHeat(map);
+      addGalatiaHeat(map);
       addMigrationArrows(map);
       uniformLabelTiming(map);
       setMapReady(true);
@@ -819,6 +837,30 @@ function addAtlanticHeat(map) {
   map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
 }
 
+// Purple Galatian settlement blooms (Tectosages/Tolistobogii/Trocmi). Static
+// points; the story fades them in as the arrow reaches Anatolia.
+function addGalatiaHeat(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+  map.addSource('galatia-heat', { type: 'geojson', data: heatFC(GALATIA_PTS.map((c) => heatFeat(c, 1))) });
+  map.addLayer({
+    id: 'galatia-heat-layer', type: 'heatmap', source: 'galatia-heat', maxzoom: 9,
+    paint: {
+      'heatmap-weight': ['get', 'weight'],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 14, 3, 34, 5, 70, 7, 120],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+        0, 'rgba(0,0,0,0)',
+        0.15, 'rgba(90,40,130,0.42)',
+        0.4, 'rgba(140,60,190,0.62)',
+        0.7, 'rgba(179,104,232,0.80)',
+        1.0, 'rgba(220,180,250,0.92)'],
+      'heatmap-opacity': 0,
+    },
+  }, firstLabel);
+  map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity-transition', { duration: 900 });
+}
+
 // Migration arrows — military-map style, per-arrow colour (SDF arrowhead so it
 // recolours). Two Celtic waves a millennium apart: the Gallaeci west into
 // Galicia (c.1000 BC) and the Galatians east into Anatolia (279 BC). Native
@@ -826,8 +868,13 @@ function addAtlanticHeat(map) {
 const ARROW_DEFS = [
   // No Gallaeci arrow: the Atlantic model is in-situ development along the
   // seaboard, not a migration — shown as a teal bloom instead (addAtlanticHeat).
-  { step: 4, from: [19, 45], to: [33, 39.9], color: '#B368E8', bow: -0.22 }, // Galatians → Galatia (a real migration)
+  // Galatians: a real migration, launching from inside the red bloom (Central
+  // Europe/Balkans) east into Anatolia.
+  { step: 3, from: [20, 47], to: [33, 39.9], color: '#B368E8', bow: -0.22 },
 ];
+// Where the three Galatian tribes settled — purple blooms form here as the
+// arrow arrives. Tectosages (Ankara, centre), Tolistobogii (west), Trocmi (east).
+const GALATIA_PTS = [[32.85, 39.93], [31.3, 39.5], [35.0, 40.0]];
 function arcCurve(a, b, bow = 0.18, n = 48) {
   const [ax, ay] = a, [bx, by] = b;
   const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1;
