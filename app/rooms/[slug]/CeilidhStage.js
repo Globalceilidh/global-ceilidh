@@ -81,7 +81,9 @@ function startChromaKey(video, canvas) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.uniform1i(gl.getUniformLocation(prog, 'tex'), 0);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  // No blending: the quad covers the whole canvas and we write the alpha
+  // straight into the drawing buffer (0 where green). The browser composites
+  // the alpha:true canvas over the stage, so the room shows through.
   let raf, stopped = false;
   const draw = () => {
     if (stopped) return;
@@ -184,17 +186,18 @@ export default function CeilidhStage({ slug }) {
     return m;
   }, [cameraTracks]);
 
+  const localGs = localParticipant?.attributes?.greenscreen === 'on';
+
   const occupants = participants.map((p) => ({
     key: p.identity,
     name: p.name || p.identity || 'Guest',
     isLocal: !!p.isLocal,
     camOn: !!p.isCameraEnabled,
-    gs: p.attributes?.greenscreen === 'on',
+    // For yourself, trust the toggle directly (no attribute round-trip lag).
+    gs: p.isLocal ? localGs : (p.attributes?.greenscreen === 'on'),
     trackRef: trackByIdentity[p.identity] || null,
     speaking: speakingIds.has(p.identity),
   }));
-
-  const localGs = localParticipant?.attributes?.greenscreen === 'on';
   const toggleGs = async () => {
     if (!localParticipant) return;
     const turningOn = !localGs;
