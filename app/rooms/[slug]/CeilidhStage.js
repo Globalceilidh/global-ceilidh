@@ -17,7 +17,17 @@ import {
   useRoomContext, VideoTrack, ControlBar,
 } from '@livekit/components-react';
 import { Track, RoomEvent } from 'livekit-client';
+import { VirtualBackground } from '@livekit/track-processors';
 import { getRoomStage } from './roomStages';
+
+// A pixel-flat green the chroma key removes cleanly. Applied as a virtual
+// background so nobody needs a physical green screen — one tap and the app's
+// segmentation paints them onto green, then every screen keys it out.
+function greenDataUrl() {
+  const c = document.createElement('canvas'); c.width = c.height = 16;
+  const x = c.getContext('2d'); x.fillStyle = '#00FF00'; x.fillRect(0, 0, 16, 16);
+  return c.toDataURL('image/png');
+}
 
 function useIsMobile(bp = 760) {
   const [m, setM] = useState(false);
@@ -135,8 +145,8 @@ function StageControls({ gsOn, onToggleGs }) {
   return (
     <div className="cr-controls">
       <button className={`cr-gsbtn${gsOn ? ' cr-gsbtn-on' : ''}`} onClick={onToggleGs}
-        title="Turn this on only if you have a green/blue screen behind you">
-        {gsOn ? 'Green screen · ON' : 'Green screen · off'}
+        title="One tap: replaces your background with green and drops you into the room">
+        {gsOn ? '✓ In the room' : 'Sit in the room'}
       </button>
       <ControlBar variation="minimal" controls={{ microphone: true, camera: true, screenShare: true, leave: true, chat: false, settings: false }} />
     </div>
@@ -185,11 +195,21 @@ export default function CeilidhStage({ slug }) {
   }));
 
   const localGs = localParticipant?.attributes?.greenscreen === 'on';
-  const toggleGs = () => {
+  const toggleGs = async () => {
     if (!localParticipant) return;
-    const attrs = { ...(localParticipant.attributes || {}) };
-    attrs.greenscreen = localGs ? 'off' : 'on';
-    localParticipant.setAttributes(attrs);
+    const turningOn = !localGs;
+    const track = localParticipant.getTrackPublication(Track.Source.Camera)?.track;
+    try {
+      if (track) {
+        if (turningOn) await track.setProcessor(VirtualBackground(greenDataUrl()));
+        else await track.stopProcessor();
+      }
+    } catch (e) { console.error('green-screen processor failed', e); }
+    try {
+      const attrs = { ...(localParticipant.attributes || {}) };
+      attrs.greenscreen = turningOn ? 'on' : 'off';
+      await localParticipant.setAttributes(attrs);
+    } catch (e) { console.error('setAttributes failed', e); }
     bump((n) => n + 1);
   };
 
@@ -219,6 +239,22 @@ export default function CeilidhStage({ slug }) {
             </div>
           );
         })}
+
+        {config.whiteboard && config.agenda && (
+          <div
+            className="cr-whiteboard"
+            style={{
+              left: `${config.whiteboard.x}%`, top: `${config.whiteboard.y}%`,
+              width: `${config.whiteboard.width}%`,
+              transform: `translate(-50%, -50%) perspective(800px) rotateY(${config.whiteboard.rotation || 0}deg)`,
+            }}
+          >
+            <div className="cr-wb-title">{config.agenda.title}</div>
+            <ol className="cr-wb-list">
+              {config.agenda.items.map((it, i) => <li key={i}>{it}</li>)}
+            </ol>
+          </div>
+        )}
       </div>
       <StageControls gsOn={localGs} onToggleGs={toggleGs} />
       <style>{CSS}</style>
@@ -264,6 +300,17 @@ const CSS = `
   border: 2px dashed rgba(201,160,71,0.55); border-radius: 4px; color: rgba(242,236,220,0.72);
   background: rgba(11,8,5,0.28); font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: 0.85vw; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* the agenda, written on the room's whiteboard */
+.cr-whiteboard { position: absolute; background: rgba(240,238,230,0.9);
+  border-radius: 2px; padding: 0.8% 1%; box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+  transform-origin: center; }
+.cr-wb-title { font-family: "IBM Plex Sans", system-ui, sans-serif; font-weight: 700;
+  color: #1A3A2A; font-size: 0.7vw; letter-spacing: 0.02em; margin-bottom: 0.4vw;
+  padding-bottom: 0.2vw; border-bottom: 1px solid rgba(26,58,42,0.35); }
+.cr-wb-list { margin: 0; padding-left: 1.1vw; color: #283a22; list-style: decimal;
+  font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 0.6vw; line-height: 1.55; }
+.cr-wb-list li { margin-bottom: 0.12vw; }
 
 /* control bar — always reachable, floating over the set */
 .cr-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
