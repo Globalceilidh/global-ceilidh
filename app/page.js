@@ -207,6 +207,8 @@ const ORG_JSONLD = {
   // instead of us). Add Facebook / Instagram / YouTube URLs here as they come.
   sameAs: [
     'https://live365.com/station/Global-Ceilidh-Radio-a11866',
+    'https://www.facebook.com/GlobalCeilidh',
+    // Instagram + X to be appended when created (~Aug 2026).
   ],
 };
 
