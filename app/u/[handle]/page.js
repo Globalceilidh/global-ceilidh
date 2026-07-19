@@ -7,6 +7,7 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
+import Wall from './Wall';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,22 @@ async function getProfile(handleParam) {
   return data;
 }
 
+// The wall: this user's visible public posts, newest first. Fetched
+// server-side so the page renders with content (and is crawlable-ready);
+// the <Wall> client component takes over for compose/delete/refresh.
+async function getPosts(authorId) {
+  const { data } = await supabaseAdmin
+    .from('gc_posts')
+    .select('id, body, visibility, created_at')
+    .eq('author_id', authorId)
+    .eq('visibility', 'public')
+    .eq('status', 'visible')
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(30);
+  return data || [];
+}
+
 export async function generateMetadata({ params }) {
   const { handle } = await params;
   const p = await getProfile(handle);
@@ -47,6 +64,8 @@ export default async function ProfilePage({ params }) {
 
   const { userId } = await auth();
   const isOwner = userId && userId === p.clerk_user_id;
+
+  const posts = await getPosts(p.id);
 
   const name = p.display_name || `@${p.handle}`;
   const initials = (p.display_name || p.handle || '?')
@@ -108,12 +127,7 @@ export default async function ProfilePage({ params }) {
           </Block>
         )}
 
-        {/* The wall/feed lands here next (gc_posts). */}
-        <div style={wallPlaceholder}>
-          {isOwner
-            ? 'Tha do bhalla a’ tighinn a dh’aithghearr · Your wall is coming soon.'
-            : 'Chan eil postaichean fhathast · No posts yet.'}
-        </div>
+        <Wall initialPosts={posts} isOwner={isOwner} ownerName={name} />
       </div>
     </main>
   );
@@ -203,9 +217,4 @@ const rootLine = {
 const rootLabel = {
   fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase',
   color: '#8B6914', minWidth: 118,
-};
-const wallPlaceholder = {
-  width: '100%', marginTop: 26, padding: '28px 20px', textAlign: 'center',
-  borderTop: '1px solid #F0E8D8',
-  fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 14, color: '#9A8B6E',
 };
