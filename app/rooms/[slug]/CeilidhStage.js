@@ -38,6 +38,14 @@ function initials(name) {
   return name.split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 }
 
+// Position a seat by its % coordinates + perspective tilt.
+function seatStyle(seat) {
+  return {
+    left: `${seat.x}%`, top: `${seat.y}%`, width: `${seat.width}%`,
+    transform: `translate(-50%, -50%) perspective(700px) rotateY(${seat.rotation || 0}deg)`,
+  };
+}
+
 // One seated portrait: live video if we have a track, else initials.
 function Portrait({ trackRef, name, isLocal, speaking }) {
   return (
@@ -93,18 +101,14 @@ export default function CeilidhStage({ slug }) {
   return (
     <div className="cr-wrap">
       <div className="cr-stage" style={{ backgroundImage: `url("${config.background}")` }}>
-        {occupants.map((o) => o.seat && (
-          <div
-            key={o.key}
-            className="cr-seat"
-            style={{
-              left: `${o.seat.x}%`, top: `${o.seat.y}%`, width: `${o.seat.width}%`,
-              transform: `translate(-50%, -50%) perspective(700px) rotateY(${o.seat.rotation || 0}deg)`,
-            }}
-          >
-            <Portrait {...o} />
-          </div>
-        ))}
+        {config.seats.map((seat, i) => {
+          const o = occupants[i];
+          return (
+            <div key={i} className="cr-seat" style={seatStyle(seat)}>
+              {o ? <Portrait {...o} /> : <div className="cr-ghost">Seat {i + 1}</div>}
+            </div>
+          );
+        })}
       </div>
       <StageControls />
       <style>{CSS}</style>
@@ -135,6 +139,11 @@ const CSS = `
   background: rgba(16,11,6,0.82); color: #F2ECDC; white-space: nowrap;
   font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 0.8vw; letter-spacing: 0.02em;
   border: 1px solid rgba(201,160,71,0.35); }
+
+.cr-ghost { width: 100%; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center;
+  border: 2px dashed rgba(201,160,71,0.55); border-radius: 4px; color: rgba(242,236,220,0.72);
+  background: rgba(11,8,5,0.28); font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 0.85vw; letter-spacing: 0.04em; text-transform: uppercase; }
 
 /* control bar — always reachable, floating over the set */
 .cr-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);

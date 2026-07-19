@@ -11,14 +11,17 @@
 
 const BOARDROOM = {
   background: '/rooms/boardroom-north.png',
-  // Two benches receding toward the door — nearer seats lower + wider.
+  // Three seats per side, mirrored across the room's centre line. Order
+  // interleaves sides so people fill in facing each other: you front-left,
+  // then the seat across from you, then working back down each bench.
+  // Nearer seats sit lower + wider; they recede toward the door.
   seats: [
-    { x: 17, y: 62, width: 15, rotation: 4 },
-    { x: 29, y: 53, width: 12, rotation: 3 },
-    { x: 38, y: 47, width: 10, rotation: 2 },
-    { x: 83, y: 62, width: 15, rotation: -4 },
-    { x: 71, y: 53, width: 12, rotation: -3 },
-    { x: 62, y: 47, width: 10, rotation: -2 },
+    { x: 11, y: 71, width: 17, rotation: 6 },   // 1 — you (front-left)
+    { x: 89, y: 71, width: 17, rotation: -6 },  // 2 — across from you (mirror)
+    { x: 26, y: 58, width: 13, rotation: 4 },   // 3 — mid-left
+    { x: 74, y: 58, width: 13, rotation: -4 },  // 4 — mid-right
+    { x: 37, y: 49, width: 10, rotation: 2 },   // 5 — back-left
+    { x: 63, y: 49, width: 10, rotation: -2 },  // 6 — back-right
   ],
 };
 
