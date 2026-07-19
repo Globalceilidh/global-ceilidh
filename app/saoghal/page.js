@@ -75,18 +75,18 @@ const STORY = [
     body:    { en: 'By one archaeological model, they consolidated their distinct culture in the forests of Central Europe, around 1200 BC.' },
   },
   {
-    id: 'expansions',
-    camera: { center: [12, 44], zoom: 3.2, pitch: 0, bearing: 0 },
-    eyebrow: { en: 'The Celtic expansion' },
-    title:   { en: 'West to Iberia, east to Anatolia' },
-    body:    { en: 'Two waves, a thousand years apart. Around 1000 BC the Gallaeci settled Galicia in northwest Spain — their Q-Celtic tongue the closest continental cousin to early Gaelic. Then, in 279 BC, a Gaulish war-band swept east and became the Galatians of Anatolia.' },
+    id: 'atlantic',
+    camera: { center: [1, 44], zoom: 3.6, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'c. 2500 BC · The Atlantic model' },
+    title:   { en: 'The Atlantic coasts' },
+    body:    { en: 'By another model, the culture formed far earlier still — along the Atlantic coasts of France and Spain, as early as 2500 BC. Along that same seaboard the Gallaeci settled Galicia, their Q-Celtic tongue the closest continental cousin to early Gaelic.' },
   },
   {
-    id: 'atlantic',
-    camera: { center: [-4, 44], zoom: 4.2, pitch: 0, bearing: 0 },
-    eyebrow: { en: 'c. 2500 BC · The Atlantic' },
-    title:   { en: 'The Atlantic coasts' },
-    body:    { en: 'By another, their culture formed far earlier still — along the Atlantic coasts of France and Spain, as early as 2500 BC.' },
+    id: 'galatians',
+    camera: { center: [24, 42], zoom: 3.6, pitch: 0, bearing: 0 },
+    eyebrow: { en: '279 BC · The eastern reach' },
+    title:   { en: 'The Galatians' },
+    body:    { en: 'A thousand years later, a Gaulish war-band — the Tectosages, Tolistobogii and Trocmi — swept east across the Balkans and seized the highlands of Anatolia, becoming the Galatians of Turkey.' },
   },
   {
     id: 'keltoi',
@@ -242,12 +242,13 @@ export default function SaoghalPage() {
     if (!lsrc || !hsrc) return;
     if (arrowRaf.current) { cancelAnimationFrame(arrowRaf.current); arrowRaf.current = null; }
 
-    if (storyActive && storyStep === 3) {
+    const active = storyActive ? ARROW_PATHS.filter((a) => a.step === storyStep) : [];
+    if (active.length) {
       const dur = 2600, t0 = performance.now();
       const frame = (now) => {
         const t = Math.min((now - t0) / dur, 1);
         const lines = [], heads = [];
-        for (const arrow of ARROW_PATHS) {
+        for (const arrow of active) {
           const path = arrow.pts;
           const idx = Math.max(1, Math.floor(t * (path.length - 1)));
           const seg = path.slice(0, idx + 1);
@@ -786,8 +787,8 @@ function addProtoHeat(map) {
 // Galicia (c.1000 BC) and the Galatians east into Anatolia (279 BC). Native
 // line+symbol layers so they track the camera; the story draws them on.
 const ARROW_DEFS = [
-  { from: [10, 46], to: [-8, 43],   color: '#34C4D8', bow:  0.22 }, // Gallaeci → Galicia (Iberia)
-  { from: [19, 45], to: [33, 39.9], color: '#B368E8', bow: -0.22 }, // Galatians → Galatia (Anatolia)
+  { step: 3, from: [10, 46], to: [-8, 43],   color: '#34C4D8', bow:  0.22 }, // Gallaeci → Galicia (Atlantic beat)
+  { step: 4, from: [19, 45], to: [33, 39.9], color: '#B368E8', bow: -0.22 }, // Galatians → Galatia
 ];
 function arcCurve(a, b, bow = 0.18, n = 48) {
   const [ax, ay] = a, [bx, by] = b;
@@ -802,7 +803,7 @@ function arcCurve(a, b, bow = 0.18, n = 48) {
   }
   return pts;
 }
-const ARROW_PATHS = ARROW_DEFS.map((d) => ({ pts: arcCurve(d.from, d.to, d.bow), color: d.color }));
+const ARROW_PATHS = ARROW_DEFS.map((d) => ({ step: d.step, pts: arcCurve(d.from, d.to, d.bow), color: d.color }));
 function bearingDeg(a, b) {
   const R = Math.PI / 180, D = 180 / Math.PI;
   const φ1 = a[1] * R, φ2 = b[1] * R, Δλ = (b[0] - a[0]) * R;
