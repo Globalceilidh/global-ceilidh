@@ -202,8 +202,12 @@ const ORG_JSONLD = {
   alternateName: 'GlobalCeilidh.com',
   url: 'https://globalceilidh.com',
   description: 'The global home of Scottish Gaelic language, culture and community.',
-  // TODO(scott): add sameAs → your Live365 station URL + socials.
-  // sameAs: ['https://live365.com/station/...'],
+  // sameAs ties this Organization to its other verified identities so Google
+  // treats them as one entity (and stops surfacing the raw Live365 listing
+  // instead of us). Add Facebook / Instagram / YouTube URLs here as they come.
+  sameAs: [
+    'https://live365.com/station/Global-Ceilidh-Radio-a11866',
+  ],
 };
 
 const STYLES = `
