@@ -52,10 +52,14 @@ function seatStyle(seat) {
 }
 
 // ── WebGL chroma key: green → transparent, with spill suppression ──────
-function startChromaKey(video, canvas) {
+function startChromaKey(video, canvas, onDebug) {
   const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true, antialias: true });
-  if (!gl) return () => {};
-  const compile = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  if (!gl) { onDebug?.({ webgl: 'NO-CONTEXT' }); return () => {}; }
+  const compile = (type, src) => {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) onDebug?.({ webgl: 'SHADER-FAIL', log: gl.getShaderInfoLog(s) });
+    return s;
+  };
   const vs = 'attribute vec2 p; varying vec2 uv; void main(){ uv=(p+1.0)/2.0; gl_Position=vec4(p,0.0,1.0); }';
   const fs = `precision mediump float; varying vec2 uv; uniform sampler2D tex;
     void main(){
@@ -70,6 +74,7 @@ function startChromaKey(video, canvas) {
   gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
   gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
   gl.linkProgram(prog); gl.useProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) onDebug?.({ webgl: 'LINK-FAIL', log: gl.getProgramInfoLog(prog) });
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(prog, 'p');
@@ -84,7 +89,8 @@ function startChromaKey(video, canvas) {
   // No blending: the quad covers the whole canvas and we write the alpha
   // straight into the drawing buffer (0 where green). The browser composites
   // the alpha:true canvas over the stage, so the room shows through.
-  let raf, stopped = false;
+  let raf, stopped = false, frame = 0;
+  const px = new Uint8Array(4);
   const draw = () => {
     if (stopped) return;
     if (video.readyState >= 2 && video.videoWidth) {
@@ -94,6 +100,13 @@ function startChromaKey(video, canvas) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      if (onDebug && (frame++ % 30 === 0)) {
+        // sample a bottom-left corner pixel (usually background) of the OUTPUT
+        gl.readPixels(3, 3, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        onDebug({ webgl: 'OK', size: `${w}x${h}`, corner: [px[0], px[1], px[2], px[3]] });
+      }
+    } else if (onDebug && (frame++ % 60 === 0)) {
+      onDebug({ webgl: 'OK', size: 'video-not-ready', ready: video.readyState });
     }
     raf = requestAnimationFrame(draw);
   };
@@ -101,7 +114,7 @@ function startChromaKey(video, canvas) {
   return () => { stopped = true; cancelAnimationFrame(raf); };
 }
 
-function ChromaKeyVideo({ trackRef }) {
+function ChromaKeyVideo({ trackRef, onDebug }) {
   const canvasRef = useRef(null);
   useEffect(() => {
     const track = trackRef?.publication?.track;
@@ -110,7 +123,7 @@ function ChromaKeyVideo({ trackRef }) {
     video.muted = true; video.playsInline = true; video.autoplay = true;
     track.attach(video);
     const p = video.play?.(); if (p?.catch) p.catch(() => {});
-    const stop = startChromaKey(video, canvasRef.current);
+    const stop = startChromaKey(video, canvasRef.current, onDebug);
     return () => { stop(); try { track.detach(video); } catch { /* gone */ } };
   }, [trackRef?.publication?.track]);
   return <canvas ref={canvasRef} className="cr-keyed" />;
@@ -128,14 +141,14 @@ function Portrait({ trackRef, name, isLocal, speaking }) {
 }
 
 // One seat's content: green-key, framed, or name-only (camera off).
-function SeatContent({ o, allowKey }) {
+function SeatContent({ o, allowKey, onDebug }) {
   if (!o.camOn) {
     return <div className="cr-nameonly"><div className="cr-name">{o.name}{o.isLocal ? ' (you)' : ''}</div></div>;
   }
   if (allowKey && o.gs && o.trackRef) {
     return (
       <div className={`cr-keyedwrap${o.speaking ? ' cr-glow' : ''}`}>
-        <ChromaKeyVideo trackRef={o.trackRef} />
+        <ChromaKeyVideo trackRef={o.trackRef} onDebug={onDebug} />
         <div className="cr-name">{o.name}{o.isLocal ? ' (you)' : ''}</div>
       </div>
     );
@@ -179,6 +192,7 @@ export default function CeilidhStage({ slug }) {
     };
   }, [room]);
 
+  const [dbg, setDbg] = useState(null);
   const speakingIds = useMemo(() => new Set(speakers.map((p) => p.identity)), [speakers]);
   const trackByIdentity = useMemo(() => {
     const m = {};
@@ -238,7 +252,7 @@ export default function CeilidhStage({ slug }) {
           const o = occupants[i];
           return (
             <div key={i} className="cr-seat" style={seatStyle(seat)}>
-              {o ? <SeatContent o={o} allowKey /> : <div className="cr-ghost">Seat {i + 1}</div>}
+              {o ? <SeatContent o={o} allowKey onDebug={o.isLocal ? setDbg : undefined} /> : <div className="cr-ghost">Seat {i + 1}</div>}
             </div>
           );
         })}
@@ -259,6 +273,15 @@ export default function CeilidhStage({ slug }) {
           </div>
         )}
       </div>
+      {dbg && (
+        <div className="cr-dbg">
+          keyer: {dbg.webgl}
+          {dbg.size ? ` · ${dbg.size}` : ''}
+          {dbg.corner ? ` · corner rgba(${dbg.corner.join(',')})` : ''}
+          {dbg.ready != null ? ` · readyState ${dbg.ready}` : ''}
+          {dbg.log ? ` · ${dbg.log}` : ''}
+        </div>
+      )}
       <StageControls gsOn={localGs} onToggleGs={toggleGs} />
       <style>{CSS}</style>
     </div>
@@ -303,6 +326,12 @@ const CSS = `
   border: 2px dashed rgba(201,160,71,0.55); border-radius: 4px; color: rgba(242,236,220,0.72);
   background: rgba(11,8,5,0.28); font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: 0.85vw; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* temporary keyer diagnostic */
+.cr-dbg { position: absolute; top: 12px; left: 12px; z-index: 20;
+  font-family: ui-monospace, monospace; font-size: 12px; color: #9EE39E;
+  background: rgba(0,0,0,0.8); padding: 6px 10px; border-radius: 6px;
+  border: 1px solid rgba(158,227,158,0.4); max-width: 90vw; }
 
 /* the agenda, written on the room's whiteboard */
 .cr-whiteboard { position: absolute; background: rgba(240,238,230,0.9);
