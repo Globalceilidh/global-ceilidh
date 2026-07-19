@@ -225,6 +225,40 @@ export default function SaoghalPage() {
     return () => { if (spreadRaf.current) { cancelAnimationFrame(spreadRaf.current); spreadRaf.current = null; } };
   }, [mapReady, storyActive, storyStep]);
 
+  // Migration arrows draw on during beat 3 (Central Europe).
+  const arrowRaf = useRef(null);
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    const lsrc = map?.getSource('arrows-lines');
+    const hsrc = map?.getSource('arrows-heads');
+    if (!lsrc || !hsrc) return;
+    if (arrowRaf.current) { cancelAnimationFrame(arrowRaf.current); arrowRaf.current = null; }
+
+    if (storyActive && storyStep === 2) {
+      const dur = 2600, t0 = performance.now();
+      const frame = (now) => {
+        const t = Math.min((now - t0) / dur, 1);
+        const lines = [], heads = [];
+        for (const path of ARROW_PATHS) {
+          const idx = Math.max(1, Math.floor(t * (path.length - 1)));
+          const seg = path.slice(0, idx + 1);
+          lines.push({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: seg } });
+          const tip = seg[seg.length - 1], prev = seg[seg.length - 2] || seg[0];
+          heads.push({ type: 'Feature', properties: { bearing: bearingDeg(prev, tip) }, geometry: { type: 'Point', coordinates: tip } });
+        }
+        lsrc.setData(heatFC(lines));
+        hsrc.setData(heatFC(heads));
+        if (t < 1) arrowRaf.current = requestAnimationFrame(frame);
+      };
+      arrowRaf.current = requestAnimationFrame(frame);
+    } else {
+      lsrc.setData(heatFC([]));
+      hsrc.setData(heatFC([]));
+    }
+    return () => { if (arrowRaf.current) { cancelAnimationFrame(arrowRaf.current); arrowRaf.current = null; } };
+  }, [mapReady, storyActive, storyStep]);
+
   // Keyboard: R or Home resets, Escape closes the side panel.
   useEffect(() => {
     function onKey(e) {
@@ -321,6 +355,7 @@ export default function SaoghalPage() {
       // reintroduced — see the memory note for where/why.
       addRegionHighlights(map);
       addProtoHeat(map);
+      addMigrationArrows(map);
       uniformLabelTiming(map);
       setMapReady(true);
     });
@@ -736,6 +771,72 @@ function addProtoHeat(map) {
     },
   }, firstLabel);
   map.setPaintProperty('proto-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
+}
+
+// Migration arrows — military-map style. Bowed paths from the steppe into
+// Europe that "draw on" with a gold arrowhead at the leading tip. Native line +
+// symbol layers so they track the camera; the story animates them per beat.
+const ARROW_DEFS = [
+  { from: [51, 50], to: [16, 48] },   // steppe → Danube / Central Europe
+  { from: [49, 53], to: [11, 50] },   // steppe → central-north
+  { from: [52, 47], to: [21, 46] },   // steppe → Carpathians
+];
+function arcCurve(a, b, bow = 0.18, n = 48) {
+  const [ax, ay] = a, [bx, by] = b;
+  const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len, ny = dx / len;                 // perpendicular
+  const cx = (ax + bx) / 2 + nx * len * bow;
+  const cy = (ay + by) / 2 + ny * len * bow;
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, u = 1 - t;
+    pts.push([u * u * ax + 2 * u * t * cx + t * t * bx, u * u * ay + 2 * u * t * cy + t * t * by]);
+  }
+  return pts;
+}
+const ARROW_PATHS = ARROW_DEFS.map((d) => arcCurve(d.from, d.to));
+function bearingDeg(a, b) {
+  const R = Math.PI / 180, D = 180 / Math.PI;
+  const φ1 = a[1] * R, φ2 = b[1] * R, Δλ = (b[0] - a[0]) * R;
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (Math.atan2(y, x) * D + 360) % 360;
+}
+
+function addMigrationArrows(map) {
+  // Gold arrowhead icon (triangle pointing north; icon-rotate aims it).
+  const s = 30;
+  const cv = document.createElement('canvas');
+  cv.width = s; cv.height = s;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#F2D78A';
+  ctx.beginPath();
+  ctx.moveTo(s / 2, 2); ctx.lineTo(s - 5, s - 5); ctx.lineTo(s / 2, s - 11); ctx.lineTo(5, s - 5);
+  ctx.closePath(); ctx.fill();
+  const img = ctx.getImageData(0, 0, s, s);
+  if (!map.hasImage('mig-arrow')) map.addImage('mig-arrow', { width: s, height: s, data: img.data });
+
+  map.addSource('arrows-lines', { type: 'geojson', data: heatFC([]) });
+  map.addLayer({
+    id: 'arrows-lines-layer', type: 'line', source: 'arrows-lines',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-color': '#F2D78A',
+      'line-width': ['interpolate', ['linear'], ['zoom'], 2, 2.5, 5, 5.5],
+      'line-opacity': 0.92,
+    },
+  });
+  map.addSource('arrows-heads', { type: 'geojson', data: heatFC([]) });
+  map.addLayer({
+    id: 'arrows-heads-layer', type: 'symbol', source: 'arrows-heads',
+    layout: {
+      'icon-image': 'mig-arrow',
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 0.55, 5, 1.05],
+      'icon-rotate': ['get', 'bearing'],
+      'icon-rotation-alignment': 'map',
+      'icon-allow-overlap': true, 'icon-ignore-placement': true,
+    },
+  });
 }
 
 // Heat layer setup. Source = HEAT_POINTS as a GeoJSON FeatureCollection.
