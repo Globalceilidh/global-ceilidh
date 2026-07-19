@@ -9,9 +9,19 @@
 // layout. On phones it falls back to a clean carousel.
 
 import { useEffect, useState, useMemo } from 'react';
-import { useTracks, useParticipants, useSpeakingParticipants, VideoTrack } from '@livekit/components-react';
+import { useTracks, useParticipants, useSpeakingParticipants, VideoTrack, ControlBar } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { getRoomStage } from './roomStages';
+
+// Mic / camera / screen-share / leave — always on the stage, so nobody has
+// to leave the room view to reach their controls.
+function StageControls() {
+  return (
+    <div className="cr-controls">
+      <ControlBar variation="minimal" controls={{ microphone: true, camera: true, screenShare: true, leave: true, chat: false, settings: false }} />
+    </div>
+  );
+}
 
 function useIsMobile(bp = 760) {
   const [m, setM] = useState(false);
@@ -74,6 +84,7 @@ export default function CeilidhStage({ slug }) {
             <div key={o.key} className="cr-cardholder"><Portrait {...o} /></div>
           ))}
         </div>
+        <StageControls />
         <style>{CSS}</style>
       </div>
     );
@@ -95,6 +106,7 @@ export default function CeilidhStage({ slug }) {
           </div>
         ))}
       </div>
+      <StageControls />
       <style>{CSS}</style>
     </div>
   );
@@ -123,6 +135,13 @@ const CSS = `
   background: rgba(16,11,6,0.82); color: #F2ECDC; white-space: nowrap;
   font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 0.8vw; letter-spacing: 0.02em;
   border: 1px solid rgba(201,160,71,0.35); }
+
+/* control bar — always reachable, floating over the set */
+.cr-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 8; background: rgba(16,11,6,0.78); border: 1px solid rgba(201,160,71,0.4);
+  border-radius: 999px; padding: 4px 8px; backdrop-filter: blur(8px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+.cr-controls .lk-control-bar { border: none; background: transparent; padding: 0; }
 
 /* mobile carousel */
 .cr-mobile { flex-direction: column; }
