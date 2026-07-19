@@ -20,7 +20,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HEAT_POINTS } from './heat';
 import { PLACES } from './places';
-import { SCOTLAND_GEO, IRELAND_GEO } from './regions';
+import { SCOTLAND_GEO, IRELAND_GEO, WALES_GEO, MAN_GEO } from './regions';
 import { useLanguage } from '../../context/LanguageContext';
 import DiasporaClock from '../../components/DiasporaClock';
 
@@ -133,6 +133,29 @@ const STORY = [
     eyebrow: { en: 'c. 500 AD · Dàl Riata' },
     title:   { en: 'Ireland to Alba' },
     body:    { en: 'By 500 AD the Irish Gaels crossed the North Channel into Argyll — the kingdom of Dàl Riata. Old Irish became Gàidhlig, rooted in the western Highlands and Isles exactly where it lives today.' },
+  },
+  {
+    id: 'the-name',
+    camera: { center: [-4, 53], zoom: 5.0, pitch: 0, bearing: 0 },
+    regions: ['wales', 'man'],
+    eyebrow: { en: 'The cousins · the name' },
+    title:   { en: 'Who named the Gaels' },
+    body:    { en: 'Our Brythonic cousins — the Welsh, with the Cornish and Bretons — called the Irish Gwyddel. That word became Goídel, then Gàidheal: “Gael”. Our own Goidelic family runs Irish, Scottish Gaelic, and the Manx of the Isle of Man.' },
+  },
+  {
+    id: 'picts',
+    camera: { center: [-4.2, 57], zoom: 5.1, pitch: 0, bearing: 0 },
+    regions: ['scotland'],
+    eyebrow: { en: 'c. 843 AD · Alba' },
+    title:   { en: 'The Gael and the Pict' },
+    body:    { en: 'The west was Gaelic Dàl Riata; the north and east belonged to the Picts. Under Cináed mac Ailpín the two crowns became one kingdom — Alba — and the Pictish tongue dissolved into Gàidhlig.' },
+  },
+  {
+    id: 'norse',
+    camera: { center: [0, 57], zoom: 4.2, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'c. 793–1266 · The Norse' },
+    title:   { en: 'Vikings and Danes' },
+    body:    { en: 'Then came the Norse. Norwegians seized the Hebrides and Man and married into the Gaels — the Gall-Ghàidheil, the Norse-Gaels. Danes founded Dublin and held the Danelaw. Longships, blood and words all folded into the Gael.' },
   },
 
   // ── Chapter 3 · The Scattering ────────────────────────────────────────
@@ -272,12 +295,16 @@ export default function SaoghalPage() {
     const map = mapRef.current;
     if (!map) return;
     const regions = (storyActive && STORY[storyStep]?.regions) || [];
-    const sc = regions.includes('scotland'), ir = regions.includes('ireland');
+    const has = (n) => regions.includes(n);
     const set = (id, prop, v) => { if (map.getLayer(id)) map.setPaintProperty(id, prop, v); };
-    set('scotland-fill', 'fill-opacity', sc ? 0.34 : 0);
-    set('scotland-line', 'line-opacity', sc ? 0.85 : 0);
-    set('ireland-fill', 'fill-opacity', ir ? 0.34 : 0);
-    set('ireland-line', 'line-opacity', ir ? 0.85 : 0);
+    set('scotland-fill', 'fill-opacity', has('scotland') ? 0.34 : 0);
+    set('scotland-line', 'line-opacity', has('scotland') ? 0.85 : 0);
+    set('ireland-fill', 'fill-opacity', has('ireland') ? 0.34 : 0);
+    set('ireland-line', 'line-opacity', has('ireland') ? 0.85 : 0);
+    set('wales-fill', 'fill-opacity', has('wales') ? 0.34 : 0);
+    set('wales-line', 'line-opacity', has('wales') ? 0.85 : 0);
+    set('man-fill', 'fill-opacity', has('man') ? 0.55 : 0);   // Man is tiny — punchier
+    set('man-line', 'line-opacity', has('man') ? 0.95 : 0);
   }, [mapReady, storyActive, storyStep]);
 
   // Red origin bloom: fade in on the steppe (beat 2 = Proto-Gaels), then
@@ -900,10 +927,17 @@ function addRegionHighlights(map) {
     map.setPaintProperty(id, 'line-opacity-transition', { duration: 900 });
   };
 
+  map.addSource('wales', { type: 'geojson', data: WALES_GEO });
+  map.addSource('man', { type: 'geojson', data: MAN_GEO });
+
   fill('scotland-fill', 'scotland', '#2F6FD0');   // saltire blue
   line('scotland-line', 'scotland', '#8FB8F2');
-  fill('ireland-fill', 'ireland', '#1A9E5F');      // Irish green
+  fill('ireland-fill', 'ireland', '#1A9E5F');      // Irish green (Goidelic)
   line('ireland-line', 'ireland', '#6FD8A6');
+  fill('wales-fill', 'wales', '#E0873C');          // Brythonic — warm amber
+  line('wales-line', 'wales', '#F2B577');
+  fill('man-fill', 'man', '#1A9E5F');              // Manx = Goidelic, green like Ireland
+  line('man-line', 'man', '#6FD8A6');
 }
 
 // Red "origin" heat bloom for the story. Fades in on the Pontic-Caspian steppe
@@ -978,12 +1012,13 @@ function addRomeHeat(map) {
       'heatmap-weight': ['get', 'weight'],
       'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
       'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 28, 3, 70, 5, 130, 7, 220],
+      // Dark oxblood — much darker than the bright orange-red steppe bloom.
       'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
         0, 'rgba(0,0,0,0)',
-        0.15, 'rgba(80,8,10,0.42)',
-        0.4, 'rgba(140,15,18,0.62)',
-        0.7, 'rgba(190,35,35,0.80)',
-        1.0, 'rgba(220,70,60,0.90)'],
+        0.15, 'rgba(35,3,5,0.50)',
+        0.4, 'rgba(70,6,8,0.72)',
+        0.7, 'rgba(105,10,12,0.86)',
+        1.0, 'rgba(135,18,20,0.92)'],
       'heatmap-opacity': 0,
     },
   }, firstLabel);
@@ -1063,8 +1098,16 @@ const ARROW_DEFS = [
   // Dàl Riata — Ireland to Argyll (green).
   { beat: 'dal-riata', from: [-6, 55], to: [-5.4, 56.1], color: '#6FD8A6', bow: -0.20 },
 
-  // Darién — Scotland reaches for Panama (gold).
-  { beat: 'darien-dream', from: [-4.5, 56.8], to: [-77.7, 8.7], color: GOLD, bow: 0.16 },
+  // The Norse — Vikings (Norway, ice-blue) into the Hebrides & Man; Danes
+  // (Denmark, steel-blue) into Dublin & the Danelaw.
+  { beat: 'norse', from: [7, 60],   to: [-6.5, 57.6],  color: '#86C7EA', bow: 0.10 },  // Norway → Hebrides
+  { beat: 'norse', from: [6, 61],   to: [-4.5, 54.2],  color: '#86C7EA', bow: 0.16 },  // Norway → Man
+  { beat: 'norse', from: [10, 56],  to: [-6.2, 53.35], color: '#3E6FA8', bow: 0.12 },  // Denmark → Dublin
+  { beat: 'norse', from: [9, 55.5], to: [-1.1, 53.96], color: '#3E6FA8', bow: 0.10 },  // Denmark → York (Danelaw)
+
+  // Darién — Scotland's doomed reach for Panama (pewter, not gold — gold is
+  // reserved for the diaspora that actually took root).
+  { beat: 'darien-dream', from: [-4.5, 56.8], to: [-77.7, 8.7], color: '#C0CAD6', bow: 0.16 },
 
   // The scattering — gold migrations out of Scotland.
   { beat: 'scattering', from: [-4.5, 57], to: [-6.5, 54.6],   color: GOLD, bow:  0.22 }, // back to Ireland
