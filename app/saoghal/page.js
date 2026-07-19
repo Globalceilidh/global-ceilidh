@@ -339,32 +339,40 @@ export default function SaoghalPage() {
           Click a row to fly the globe there. */}
       <div style={{
         position: 'absolute', bottom: 52, left: 20, zIndex: 5,
+        width: 'min(300px, 82vw)',
         padding: '12px 14px',
         background: 'rgba(10, 8, 7, 0.72)',
         border: `1px solid ${COLORS.border}`,
         backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
       }}>
-        {/* The point: local counts look small, but the worldwide Gàidhlig
-            community — speakers + learners — is 700,000 strong. */}
-        <p style={{
-          margin: '0 0 4px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
-          color: COLORS.textMuted, textTransform: 'uppercase',
-        }}>Gàidhlig worldwide</p>
-        <div style={{ fontFamily: serif, fontSize: 34, lineHeight: 1, color: COLORS.goldLight }}>
-          700,000
-        </div>
-        <p style={{
-          margin: '4px 0 12px', fontFamily: mono, fontSize: 9, letterSpacing: '1px',
-          color: COLORS.textMuted, textTransform: 'uppercase',
-        }}>speakers &amp; learners worldwide</p>
-
-        <div style={{ height: 1, background: COLORS.border, margin: '0 0 12px' }} />
-
         <p style={{
           margin: '0 0 10px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
           color: COLORS.textMuted, textTransform: 'uppercase',
-        }}>Your bearings</p>
+        }}>The heartlands · and how far you stand</p>
+
         <DiasporaClock onSelect={flyToAnchor} />
+
+        {/* The reframe: the largest Gàidhlig community isn't a place — it's the
+            global online one. Join from anywhere and you're 700,001. */}
+        <div style={{ height: 1, background: COLORS.border, margin: '12px 0' }} />
+        <p style={{
+          margin: '0 0 8px', fontFamily: serif, fontStyle: 'italic',
+          fontSize: 13, lineHeight: 1.5, color: COLORS.text,
+        }}>
+          The largest Gàidhlig community in the world isn’t a place — it’s online, everywhere.
+        </p>
+        <p style={{
+          margin: '0 0 12px', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.5px',
+          lineHeight: 1.6, color: COLORS.textMuted,
+        }}>
+          <span style={{ color: COLORS.goldLight }}>700,000</span> speakers &amp; learners.
+          Join from where you stand — and you’re <span style={{ color: COLORS.goldLight }}>700,001</span>.
+        </p>
+        <a href="/welcome" style={{
+          display: 'inline-block', fontFamily: mono, fontSize: 10, letterSpacing: '2px',
+          textTransform: 'uppercase', color: COLORS.goldLight, textDecoration: 'none',
+          borderBottom: `1px solid ${COLORS.goldDeep}`, paddingBottom: 2,
+        }}>Join the Cèilidh →</a>
       </div>
 
       <footer style={{
