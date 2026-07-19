@@ -164,7 +164,9 @@ export async function POST(request, { params }) {
       if (!hasGrant) {
         const code = (providedInviteCode || '').trim();
         const roomCode = (room.invite_code || '').trim();
-        if (roomCode && code && code === roomCode) {
+        // Case-insensitive: the code box uppercases visually but keeps the
+        // typed case, and share links may carry either — match forgivingly.
+        if (roomCode && code && code.toLowerCase() === roomCode.toLowerCase()) {
           const { error: grantErr } = await supabase
             .from('gc_room_access_grants')
             .upsert(
