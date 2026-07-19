@@ -263,6 +263,30 @@ export default function SaoghalPage() {
     }
   }, [mapReady, storyActive, storyStep]);
 
+  // Keltoi merge — on the final beat, teal is already up and red + violet
+  // return (their own effects set them); after a beat, crossfade all three into
+  // one deep-amethyst bloom: they were all the Keltoi.
+  const keltoiTimer = useRef(null);
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    if (!map) return;
+    if (keltoiTimer.current) { clearTimeout(keltoiTimer.current); keltoiTimer.current = null; }
+    const set = (id, v) => { if (map.getLayer(id)) map.setPaintProperty(id, 'heatmap-opacity', v); };
+    if (storyActive && storyStep === 5) {
+      set('keltoi-heat-layer', 0);
+      keltoiTimer.current = setTimeout(() => {
+        set('proto-heat-layer', 0);
+        set('atlantic-heat-layer', 0);
+        set('galatia-heat-layer', 0);
+        set('keltoi-heat-layer', 0.92);
+      }, 1800);
+    } else {
+      set('keltoi-heat-layer', 0);
+    }
+    return () => { if (keltoiTimer.current) { clearTimeout(keltoiTimer.current); keltoiTimer.current = null; } };
+  }, [mapReady, storyActive, storyStep]);
+
   // Migration arrows — per beat (Galatians on the Galatians beat, via step tag).
   const arrowRaf = useRef(null);
   useEffect(() => {
@@ -401,6 +425,7 @@ export default function SaoghalPage() {
       addProtoHeat(map);
       addAtlanticHeat(map);
       addGalatiaHeat(map);
+      addKeltoiHeat(map);
       addMigrationArrows(map);
       uniformLabelTiming(map);
       setMapReady(true);
@@ -868,6 +893,32 @@ function addGalatiaHeat(map) {
     },
   }, firstLabel);
   map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity-transition', { duration: 900 });
+}
+
+// Unified "Keltoi" bloom — one deep amethyst covering all three regions
+// (Central Europe + Atlantic + Galatia). On the final beat the three coloured
+// blooms crossfade into this single colour: they were all the Keltoi.
+function addKeltoiHeat(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+  const pts = [...CENTRAL_PTS, ...ATLANTIC_PTS, ...GALATIA_PTS].map((c) => heatFeat(c, 1));
+  map.addSource('keltoi-heat', { type: 'geojson', data: heatFC(pts) });
+  map.addLayer({
+    id: 'keltoi-heat-layer', type: 'heatmap', source: 'keltoi-heat', maxzoom: 9,
+    paint: {
+      'heatmap-weight': ['get', 'weight'],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 28, 3, 70, 5, 130, 7, 220],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+        0, 'rgba(0,0,0,0)',
+        0.15, 'rgba(45,18,80,0.45)',
+        0.4, 'rgba(80,35,130,0.64)',
+        0.7, 'rgba(120,60,175,0.82)',
+        1.0, 'rgba(170,125,222,0.92)'],
+      'heatmap-opacity': 0,
+    },
+  }, firstLabel);
+  map.setPaintProperty('keltoi-heat-layer', 'heatmap-opacity-transition', { duration: 1300 });
 }
 
 // Migration arrows — military-map style, per-arrow colour (SDF arrowhead so it
