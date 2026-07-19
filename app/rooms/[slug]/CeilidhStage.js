@@ -2,26 +2,22 @@
 
 // app/rooms/[slug]/CeilidhStage.js
 // The 2.5D theatrical Ceilidh Room. A photoreal background image is the set;
-// each participant's live LiveKit feed sits in a framed "portrait" at a fixed
-// seat, tilted into the room's perspective, with a nameplate and an
-// active-speaker gold glow. Runs INSIDE <LiveKitRoom>, so the hooks have
-// context. No Three.js — just LiveKit's <VideoTrack> placed in a custom
-// layout. On phones it falls back to a clean carousel.
+// each participant's live LiveKit feed sits at a fixed seat. Three render
+// modes per seat:
+//   • green screen ON  → WebGL chroma-key removes the green; the room shows
+//     straight through behind them (no frame) — they're cut INTO the set.
+//   • normal camera    → framed "portrait" tile.
+//   • camera OFF       → just their nameplate; the empty chair/room shows.
+// A per-person toggle broadcasts "I'm on a green screen" via LiveKit
+// participant attributes, so every screen keys them the same way.
 
-import { useEffect, useState, useMemo } from 'react';
-import { useTracks, useParticipants, useSpeakingParticipants, VideoTrack, ControlBar } from '@livekit/components-react';
-import { Track } from 'livekit-client';
+import { useEffect, useState, useMemo, useRef } from 'react';
+import {
+  useTracks, useParticipants, useSpeakingParticipants, useLocalParticipant,
+  useRoomContext, VideoTrack, ControlBar,
+} from '@livekit/components-react';
+import { Track, RoomEvent } from 'livekit-client';
 import { getRoomStage } from './roomStages';
-
-// Mic / camera / screen-share / leave — always on the stage, so nobody has
-// to leave the room view to reach their controls.
-function StageControls() {
-  return (
-    <div className="cr-controls">
-      <ControlBar variation="minimal" controls={{ microphone: true, camera: true, screenShare: true, leave: true, chat: false, settings: false }} />
-    </div>
-  );
-}
 
 function useIsMobile(bp = 760) {
   const [m, setM] = useState(false);
@@ -38,7 +34,6 @@ function initials(name) {
   return name.split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 }
 
-// Position a seat by its % coordinates + perspective tilt.
 function seatStyle(seat) {
   return {
     left: `${seat.x}%`, top: `${seat.y}%`, width: `${seat.width}%`,
@@ -46,16 +41,104 @@ function seatStyle(seat) {
   };
 }
 
-// One seated portrait: live video if we have a track, else initials.
+// ── WebGL chroma key: green → transparent, with spill suppression ──────
+function startChromaKey(video, canvas) {
+  const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true, antialias: true });
+  if (!gl) return () => {};
+  const compile = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const vs = 'attribute vec2 p; varying vec2 uv; void main(){ uv=(p+1.0)/2.0; gl_Position=vec4(p,0.0,1.0); }';
+  const fs = `precision mediump float; varying vec2 uv; uniform sampler2D tex;
+    void main(){
+      vec4 c = texture2D(tex, uv);
+      float d = c.g - max(c.r, c.b);            // how green-dominant
+      float a = 1.0 - smoothstep(0.04, 0.18, d); // key it out
+      float spill = clamp(d, 0.0, 1.0);
+      c.g = mix(c.g, max(c.r, c.b), spill);       // suppress green fringe
+      gl_FragColor = vec4(c.rgb, a);
+    }`;
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.uniform1i(gl.getUniformLocation(prog, 'tex'), 0);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  let raf, stopped = false;
+  const draw = () => {
+    if (stopped) return;
+    if (video.readyState >= 2 && video.videoWidth) {
+      const w = video.videoWidth, h = video.videoHeight;
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    raf = requestAnimationFrame(draw);
+  };
+  draw();
+  return () => { stopped = true; cancelAnimationFrame(raf); };
+}
+
+function ChromaKeyVideo({ trackRef }) {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const track = trackRef?.publication?.track;
+    if (!track || !canvasRef.current) return;
+    const video = document.createElement('video');
+    video.muted = true; video.playsInline = true; video.autoplay = true;
+    track.attach(video);
+    const p = video.play?.(); if (p?.catch) p.catch(() => {});
+    const stop = startChromaKey(video, canvasRef.current);
+    return () => { stop(); try { track.detach(video); } catch { /* gone */ } };
+  }, [trackRef?.publication?.track]);
+  return <canvas ref={canvasRef} className="cr-keyed" />;
+}
+
 function Portrait({ trackRef, name, isLocal, speaking }) {
   return (
     <div className={`cr-frame${speaking ? ' cr-speaking' : ''}`}>
       <div className="cr-video">
-        {trackRef
-          ? <VideoTrack trackRef={trackRef} />
-          : <div className="cr-avatar">{initials(name)}</div>}
+        {trackRef ? <VideoTrack trackRef={trackRef} /> : <div className="cr-avatar">{initials(name)}</div>}
       </div>
       <div className="cr-name">{name}{isLocal ? ' (you)' : ''}</div>
+    </div>
+  );
+}
+
+// One seat's content: green-key, framed, or name-only (camera off).
+function SeatContent({ o, allowKey }) {
+  if (!o.camOn) {
+    return <div className="cr-nameonly"><div className="cr-name">{o.name}{o.isLocal ? ' (you)' : ''}</div></div>;
+  }
+  if (allowKey && o.gs && o.trackRef) {
+    return (
+      <div className={`cr-keyedwrap${o.speaking ? ' cr-glow' : ''}`}>
+        <ChromaKeyVideo trackRef={o.trackRef} />
+        <div className="cr-name">{o.name}{o.isLocal ? ' (you)' : ''}</div>
+      </div>
+    );
+  }
+  return <Portrait {...o} />;
+}
+
+function StageControls({ gsOn, onToggleGs }) {
+  return (
+    <div className="cr-controls">
+      <button className={`cr-gsbtn${gsOn ? ' cr-gsbtn-on' : ''}`} onClick={onToggleGs}
+        title="Turn this on only if you have a green/blue screen behind you">
+        {gsOn ? 'Green screen · ON' : 'Green screen · off'}
+      </button>
+      <ControlBar variation="minimal" controls={{ microphone: true, camera: true, screenShare: true, leave: true, chat: false, settings: false }} />
     </div>
   );
 }
@@ -65,7 +148,24 @@ export default function CeilidhStage({ slug }) {
   const participants = useParticipants();
   const cameraTracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
   const speakers = useSpeakingParticipants();
+  const { localParticipant } = useLocalParticipant();
+  const room = useRoomContext();
   const isMobile = useIsMobile();
+
+  // Re-render when someone flips their green-screen attribute or (un)mutes.
+  const [, bump] = useState(0);
+  useEffect(() => {
+    if (!room) return;
+    const h = () => bump((n) => n + 1);
+    room.on(RoomEvent.ParticipantAttributesChanged, h);
+    room.on(RoomEvent.TrackMuted, h);
+    room.on(RoomEvent.TrackUnmuted, h);
+    return () => {
+      room.off(RoomEvent.ParticipantAttributesChanged, h);
+      room.off(RoomEvent.TrackMuted, h);
+      room.off(RoomEvent.TrackUnmuted, h);
+    };
+  }, [room]);
 
   const speakingIds = useMemo(() => new Set(speakers.map((p) => p.identity)), [speakers]);
   const trackByIdentity = useMemo(() => {
@@ -74,14 +174,24 @@ export default function CeilidhStage({ slug }) {
     return m;
   }, [cameraTracks]);
 
-  const occupants = participants.map((p, i) => ({
+  const occupants = participants.map((p) => ({
     key: p.identity,
-    seat: config.seats[i] || null,
     name: p.name || p.identity || 'Guest',
     isLocal: !!p.isLocal,
+    camOn: !!p.isCameraEnabled,
+    gs: p.attributes?.greenscreen === 'on',
     trackRef: trackByIdentity[p.identity] || null,
     speaking: speakingIds.has(p.identity),
   }));
+
+  const localGs = localParticipant?.attributes?.greenscreen === 'on';
+  const toggleGs = () => {
+    if (!localParticipant) return;
+    const attrs = { ...(localParticipant.attributes || {}) };
+    attrs.greenscreen = localGs ? 'off' : 'on';
+    localParticipant.setAttributes(attrs);
+    bump((n) => n + 1);
+  };
 
   if (isMobile) {
     return (
@@ -89,10 +199,10 @@ export default function CeilidhStage({ slug }) {
         <div className="cr-scrim" />
         <div className="cr-carousel">
           {occupants.map((o) => (
-            <div key={o.key} className="cr-cardholder"><Portrait {...o} /></div>
+            <div key={o.key} className="cr-cardholder"><SeatContent o={o} allowKey={false} /></div>
           ))}
         </div>
-        <StageControls />
+        <StageControls gsOn={localGs} onToggleGs={toggleGs} />
         <style>{CSS}</style>
       </div>
     );
@@ -105,12 +215,12 @@ export default function CeilidhStage({ slug }) {
           const o = occupants[i];
           return (
             <div key={i} className="cr-seat" style={seatStyle(seat)}>
-              {o ? <Portrait {...o} /> : <div className="cr-ghost">Seat {i + 1}</div>}
+              {o ? <SeatContent o={o} allowKey /> : <div className="cr-ghost">Seat {i + 1}</div>}
             </div>
           );
         })}
       </div>
-      <StageControls />
+      <StageControls gsOn={localGs} onToggleGs={toggleGs} />
       <style>{CSS}</style>
     </div>
   );
@@ -135,6 +245,16 @@ const CSS = `
   font-size: 2.4vw; letter-spacing: 0.05em; }
 .cr-speaking .cr-video { border-color: #C9A047;
   box-shadow: 0 0 26px rgba(201,160,71,0.85), 0 10px 22px rgba(0,0,0,0.7); }
+
+/* keyed (green-screen) portrait — no frame, room shows through */
+.cr-keyedwrap { display: flex; flex-direction: column; align-items: center; }
+.cr-keyed { width: 100%; height: auto; display: block;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,0.55)); }
+.cr-glow .cr-keyed { filter: drop-shadow(0 0 14px rgba(201,160,71,0.9)); }
+
+/* camera-off — name over the empty chair */
+.cr-nameonly { display: flex; justify-content: center; align-items: center; min-height: 40px; }
+
 .cr-name { margin-top: 6px; padding: 3px 12px; border-radius: 999px;
   background: rgba(16,11,6,0.82); color: #F2ECDC; white-space: nowrap;
   font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 0.8vw; letter-spacing: 0.02em;
@@ -147,15 +267,19 @@ const CSS = `
 
 /* control bar — always reachable, floating over the set */
 .cr-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  z-index: 8; background: rgba(16,11,6,0.78); border: 1px solid rgba(201,160,71,0.4);
+  z-index: 8; display: flex; align-items: center; gap: 10px;
+  background: rgba(16,11,6,0.78); border: 1px solid rgba(201,160,71,0.4);
   border-radius: 999px; padding: 4px 8px; backdrop-filter: blur(8px);
   box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
 .cr-controls .lk-control-bar { border: none; background: transparent; padding: 0; }
+.cr-gsbtn { cursor: pointer; border-radius: 999px; padding: 8px 14px; white-space: nowrap;
+  font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 12px; letter-spacing: 0.3px;
+  border: 1px solid rgba(201,160,71,0.5); background: transparent; color: #E6DCC6; }
+.cr-gsbtn-on { background: #3BA55D; border-color: #3BA55D; color: #0B140D; font-weight: 700; }
 
 /* mobile carousel */
 .cr-mobile { flex-direction: column; }
-.cr-mobile .cr-scrim { position: absolute; inset: 0; background: rgba(11,8,5,0.72);
-  background-size: cover; }
+.cr-mobile .cr-scrim { position: absolute; inset: 0; background: rgba(11,8,5,0.72); background-size: cover; }
 .cr-carousel { position: relative; z-index: 1; display: flex; gap: 14px; overflow-x: auto;
   width: 100%; padding: 20px 16px; align-items: center; }
 .cr-cardholder { flex: 0 0 46%; max-width: 240px; }
