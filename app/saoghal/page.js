@@ -95,6 +95,82 @@ const STORY = [
     title:   { en: 'The Keltoi' },
     body:    { en: 'From Iberia to Anatolia, the ancient world knew them all by a single name — not yet “Gaels”, but the Keltoi.' },
   },
+
+  // ── Chapter 2 · The Sea Road ──────────────────────────────────────────
+  {
+    id: 'castros',
+    camera: { center: [-7.6, 42.8], zoom: 5.2, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'c. 600 BC · The Atlantic Iron Age' },
+    title:   { en: 'The Castros' },
+    body:    { en: 'While their cousins raided Rome, the Gallaeci locked down — over 2,000 stone hillforts, boxed in by mountain and ocean. That isolation preserved an archaic Q-Celtic tongue: the seed of Primitive Irish.' },
+  },
+  {
+    id: 'sea-road',
+    camera: { center: [-8, 50], zoom: 4.0, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'The archaeology' },
+    title:   { en: 'The sea road' },
+    body:    { en: 'No single invasion — a centuries-long Atlantic trade network. Skin boats swapped Gallaecian gold and tin for Irish copper, and carried songs, stories and bloodlines north. Slowly, the sea Celticised the isles.' },
+  },
+  {
+    id: 'book-of-invasions',
+    camera: { center: [-10, 49], zoom: 4.3, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'The myth · Lebor Gabála Érenn' },
+    title:   { en: 'The Book of Invasions' },
+    body:    { en: 'The Gaels told it differently: King Breogán raised a tower at Brigantia — A Coruña — and his kin glimpsed a green isle across the sea. The sons of Míl Espáine, the Milesians, sailed north and took Ireland, becoming the first true Gaels.' },
+  },
+  {
+    id: 'rome',
+    camera: { center: [-2, 48], zoom: 3.4, pitch: 0, bearing: 0 },
+    regions: ['ireland'],
+    eyebrow: { en: '19 BC → · Rome' },
+    title:   { en: 'Rome crushes the continent' },
+    body:    { en: 'Augustus subdued the Gallaeci; Britain fell soon after. Latin erased the continental Celtic tongues — but Rome never took Ireland. There, sheltered, the imported Q-Celtic was left to become Old Irish.' },
+  },
+  {
+    id: 'dal-riata',
+    camera: { center: [-6, 55.4], zoom: 5.4, pitch: 0, bearing: 0 },
+    regions: ['ireland', 'scotland'],
+    eyebrow: { en: 'c. 500 AD · Dàl Riata' },
+    title:   { en: 'Ireland to Alba' },
+    body:    { en: 'By 500 AD the Irish Gaels crossed the North Channel into Argyll — the kingdom of Dàl Riata. Old Irish became Gàidhlig, rooted in the western Highlands and Isles exactly where it lives today.' },
+  },
+
+  // ── Chapter 3 · The Scattering ────────────────────────────────────────
+  {
+    id: 'darien-dream',
+    camera: { center: [-40, 32], zoom: 1.7, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1698 · Darién' },
+    title:   { en: 'Scotland reaches for the world' },
+    body:    { en: 'Almost the whole nation’s wealth was staked on one dream: a Scottish colony at Darién, on the isthmus of Panama — a gateway between two oceans.' },
+  },
+  {
+    id: 'darien-fall',
+    camera: { center: [-77.7, 8.7], zoom: 5.0, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1700 · The collapse' },
+    title:   { en: 'The dream drowns' },
+    body:    { en: 'Disease, hunger and abandonment destroyed the colony. Darién bankrupted Scotland — and by 1707 a broke nation was folded into union with England. The road out was about to be forced open.' },
+  },
+  {
+    id: 'clearances',
+    camera: { center: [-4.6, 57.4], zoom: 5.3, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'c. 1750–1860 · Fuadach nan Gàidheal' },
+    title:   { en: 'The Clearances' },
+    body:    { en: 'Landlords cleared the glens for sheep. Families who had held the land for a thousand years were burned out, driven to the shore — and onto ships. The Gàidhealtachd emptied.' },
+  },
+  {
+    id: 'scattering',
+    camera: { center: [-30, 25], zoom: 1.2, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'The diaspora' },
+    title:   { en: 'The scattering' },
+    body:    { en: 'They carried Gàidhlig across the world — back to Ireland, to Cape Breton and the Carolinas, to Otago and the Australian bush. Wherever they landed, the ceilidh went on.' },
+  },
+  {
+    id: 'you',
+    camera: { center: [-40, 45], zoom: 1.6, pitch: 0, bearing: 0 },
+    eyebrow: { en: '…and now, you' },
+    title:   { en: 'You are the next chapter' },
+    body:    { en: 'Wherever you stand, you are part of the largest Gàidhlig community the world has ever known. Add your pin — be 700,001.' },
+  },
 ];
 
 const pick = (obj, language) => (obj && language === 'gd' && obj.gd) ? obj.gd : (obj ? obj.en : '');
@@ -189,18 +265,19 @@ export default function SaoghalPage() {
     });
   }, [storyActive, storyStep, mapReady]);
 
-  // Region highlights (Scotland blue, Ireland green) — fade in on the intro
-  // beat, fade out as the red origin bloom takes over.
+  // Region highlights (Scotland blue, Ireland green) — driven per beat by the
+  // beat's `regions` list, so reordering beats can't break them.
   useEffect(() => {
     if (!mapReady) return;
     const map = mapRef.current;
     if (!map) return;
-    const show = storyActive && storyStep === 0;
+    const regions = (storyActive && STORY[storyStep]?.regions) || [];
+    const sc = regions.includes('scotland'), ir = regions.includes('ireland');
     const set = (id, prop, v) => { if (map.getLayer(id)) map.setPaintProperty(id, prop, v); };
-    set('scotland-fill', 'fill-opacity', show ? 0.34 : 0);
-    set('scotland-line', 'line-opacity', show ? 0.85 : 0);
-    set('ireland-fill', 'fill-opacity', show ? 0.34 : 0);
-    set('ireland-line', 'line-opacity', show ? 0.85 : 0);
+    set('scotland-fill', 'fill-opacity', sc ? 0.34 : 0);
+    set('scotland-line', 'line-opacity', sc ? 0.85 : 0);
+    set('ireland-fill', 'fill-opacity', ir ? 0.34 : 0);
+    set('ireland-line', 'line-opacity', ir ? 0.85 : 0);
   }, [mapReady, storyActive, storyStep]);
 
   // Red origin bloom: fade in on the steppe (beat 2 = Proto-Gaels), then
@@ -213,11 +290,12 @@ export default function SaoghalPage() {
     if (!src) return;
     if (spreadRaf.current) { cancelAnimationFrame(spreadRaf.current); spreadRaf.current = null; }
 
+    const cur = storyActive ? STORY[storyStep]?.id : null;
     const steppe = STEPPE_PTS.map((c) => heatFeat(c, 1));
-    if (storyActive && storyStep === 1) {
+    if (cur === 'proto') {
       src.setData(heatFC(steppe));
       map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
-    } else if (storyActive && storyStep === 2) {
+    } else if (cur === 'central-europe') {
       map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
       const dur = 2600, t0 = performance.now();
       const frame = (now) => {
@@ -226,13 +304,12 @@ export default function SaoghalPage() {
         if (t < 1) spreadRaf.current = requestAnimationFrame(frame);
       };
       spreadRaf.current = requestAnimationFrame(frame);
-    } else if (storyActive && storyStep === 3) {
-      // Galatians beat — the red bloom stays up; the purple arrow leaves it.
+    } else if (cur === 'galatians') {
+      // Red bloom stays up; the violet arrow leaves it.
       src.setData(heatFC([...steppe, ...CENTRAL_PTS.map((c) => heatFeat(c, 1))]));
       map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
-    } else if (storyActive && storyStep === 5) {
-      // Keltoi pan-out — the Central-European Celts only (the steppe origin is
-      // pre-Celtic, so it's not shown among the Keltoi).
+    } else if (cur === 'keltoi') {
+      // Keltoi pan-out — Central-European Celts only (the steppe is pre-Celtic).
       src.setData(heatFC(CENTRAL_PTS.map((c) => heatFeat(c, 1))));
       map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
     } else {
@@ -246,7 +323,8 @@ export default function SaoghalPage() {
     if (!mapReady) return;
     const map = mapRef.current;
     if (!map || !map.getLayer('atlantic-heat-layer')) return;
-    const show = storyActive && (storyStep === 4 || storyStep === 5); // Atlantic beat + Keltoi pan-out
+    const cur = storyActive ? STORY[storyStep]?.id : null;
+    const show = cur === 'atlantic' || cur === 'keltoi' || cur === 'castros'; // + Galicia focus
     map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity', show ? 0.9 : 0);
   }, [mapReady, storyActive, storyStep]);
 
@@ -256,11 +334,21 @@ export default function SaoghalPage() {
     if (!mapReady) return;
     const map = mapRef.current;
     if (!map || !map.getLayer('galatia-heat-layer')) return;
-    if (storyActive && storyStep === 5) {
-      map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0.9); // Keltoi pan-out
-    } else if (!(storyActive && storyStep === 3)) {
-      map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0);   // step 3 = arrow frame fades it in
+    const cur = storyActive ? STORY[storyStep]?.id : null;
+    if (cur === 'keltoi') {
+      map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0.9);
+    } else if (cur !== 'galatians') {
+      map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0);   // galatians = arrow frame fades it in
     }
+  }, [mapReady, storyActive, storyStep]);
+
+  // Rome crimson wash — fades in on the Rome beat (Ireland stays clear).
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    if (!map || !map.getLayer('rome-heat-layer')) return;
+    const show = storyActive && STORY[storyStep]?.id === 'rome';
+    map.setPaintProperty('rome-heat-layer', 'heatmap-opacity', show ? 0.9 : 0);
   }, [mapReady, storyActive, storyStep]);
 
   // Keltoi merge — on the final beat, teal is already up and red + violet
@@ -273,7 +361,7 @@ export default function SaoghalPage() {
     if (!map) return;
     if (keltoiTimer.current) { clearTimeout(keltoiTimer.current); keltoiTimer.current = null; }
     const set = (id, v) => { if (map.getLayer(id)) map.setPaintProperty(id, 'heatmap-opacity', v); };
-    if (storyActive && storyStep === 5) {
+    if (storyActive && STORY[storyStep]?.id === 'keltoi') {
       set('keltoi-heat-layer', 0);
       keltoiTimer.current = setTimeout(() => {
         set('proto-heat-layer', 0);
@@ -297,7 +385,8 @@ export default function SaoghalPage() {
     if (!lsrc || !hsrc) return;
     if (arrowRaf.current) { cancelAnimationFrame(arrowRaf.current); arrowRaf.current = null; }
 
-    const active = storyActive ? ARROW_PATHS.filter((a) => a.step === storyStep) : [];
+    const cur = storyActive ? STORY[storyStep]?.id : null;
+    const active = cur ? ARROW_PATHS.filter((a) => a.beat === cur) : [];
     if (active.length) {
       const dur = 2600, t0 = performance.now();
       const frame = (now) => {
@@ -313,8 +402,8 @@ export default function SaoghalPage() {
         }
         lsrc.setData(heatFC(lines));
         hsrc.setData(heatFC(heads));
-        // As the arrow nears Anatolia, bloom purple where the tribes settled.
-        if (t >= 0.82 && map.getLayer('galatia-heat-layer')) {
+        // As the Galatian arrow nears Anatolia, bloom purple at the settlements.
+        if (cur === 'galatians' && t >= 0.82 && map.getLayer('galatia-heat-layer')) {
           map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0.9);
         }
         if (t < 1) arrowRaf.current = requestAnimationFrame(frame);
@@ -424,6 +513,7 @@ export default function SaoghalPage() {
       addRegionHighlights(map);
       addProtoHeat(map);
       addAtlanticHeat(map);
+      addRomeHeat(map);
       addGalatiaHeat(map);
       addKeltoiHeat(map);
       addMigrationArrows(map);
@@ -673,9 +763,12 @@ export default function SaoghalPage() {
                   ))}
                 </div>
                 {last ? (
-                  <button type="button" onClick={endStory} style={navBtn(false)}>
-                    {language === 'gd' ? 'Fosgail an saoghal' : 'Explore the map'} →
-                  </button>
+                  <a href="/welcome" style={{
+                    ...navBtn(false), textDecoration: 'none',
+                    color: '#0A0807', background: '#F2D78A', borderColor: '#F2D78A', fontWeight: 700,
+                  }}>
+                    {language === 'gd' ? 'Gabh d’àite' : 'Stake your claim'} →
+                  </a>
                 ) : (
                   <button type="button" onClick={nextStep} style={navBtn(false)}>
                     {language === 'gd' ? 'Air adhart' : 'Next'} →
@@ -822,6 +915,9 @@ const CENTRAL_PTS = [[8, 48], [12, 48], [16, 49], [20, 49], [24, 50], [14, 46], 
 // Atlantic model — a teal bloom hugging the western seaboard (Brittany → the
 // Bay of Biscay → NW Iberia / Galicia), where Celtic culture grew in place.
 const ATLANTIC_PTS = [[-4, 48], [-2.5, 47], [-1.5, 45.5], [-1.5, 44], [-8, 43], [-8.5, 42], [-9, 41.5], [-8, 41], [-6.5, 43], [-3.5, 46]];
+// Rome — a crimson wash over Iberia, Gaul and Britain (Latin erasing the
+// continental Celtic tongues). Deliberately NO points over Ireland.
+const ROME_PTS = [[-4, 40], [0, 41], [3, 43], [-1, 45], [2, 47], [5, 46], [8, 48], [4, 49], [1, 50], [-2, 52], [-1, 53], [10, 47], [6, 44], [-6, 40], [-8, 38.5], [12, 49]];
 const heatFeat = (c, w) => ({ type: 'Feature', properties: { weight: w }, geometry: { type: 'Point', coordinates: c } });
 const heatFC = (feats) => ({ type: 'FeatureCollection', features: feats });
 
@@ -869,6 +965,29 @@ function addAtlanticHeat(map) {
     },
   }, firstLabel);
   map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
+}
+
+// Rome — crimson wash over the continent + Britain (Ireland left clear).
+function addRomeHeat(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+  map.addSource('rome-heat', { type: 'geojson', data: heatFC(ROME_PTS.map((c) => heatFeat(c, 1))) });
+  map.addLayer({
+    id: 'rome-heat-layer', type: 'heatmap', source: 'rome-heat', maxzoom: 9,
+    paint: {
+      'heatmap-weight': ['get', 'weight'],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 28, 3, 70, 5, 130, 7, 220],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+        0, 'rgba(0,0,0,0)',
+        0.15, 'rgba(80,8,10,0.42)',
+        0.4, 'rgba(140,15,18,0.62)',
+        0.7, 'rgba(190,35,35,0.80)',
+        1.0, 'rgba(220,70,60,0.90)'],
+      'heatmap-opacity': 0,
+    },
+  }, firstLabel);
+  map.setPaintProperty('rome-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
 }
 
 // Purple Galatian settlement blooms (Tectosages/Tolistobogii/Trocmi). Static
@@ -925,12 +1044,34 @@ function addKeltoiHeat(map) {
 // recolours). Two Celtic waves a millennium apart: the Gallaeci west into
 // Galicia (c.1000 BC) and the Galatians east into Anatolia (279 BC). Native
 // line+symbol layers so they track the camera; the story draws them on.
+// Tagged by beat id (not step number) so beats can be reordered freely.
+// Colours: violet = Galatians · white = the mythic Milesian voyage · green =
+// Dàl Riata · GOLD is reserved for the modern diaspora out of Scotland.
+const GOLD = '#F2D78A';
 const ARROW_DEFS = [
-  // No Gallaeci arrow: the Atlantic model is in-situ development along the
-  // seaboard, not a migration — shown as a teal bloom instead (addAtlanticHeat).
-  // Galatians: a real migration, launching from inside the red bloom (Central
-  // Europe/Balkans) east into Anatolia.
-  { step: 3, from: [20, 47], to: [33, 39.9], color: '#B368E8', bow: -0.22 },
+  // Galatians — a real migration out of the red bloom into Anatolia (violet).
+  { beat: 'galatians', from: [20, 47], to: [33, 39.9], color: '#B368E8', bow: -0.22 },
+
+  // The sea road — teal maritime network (Galicia ↔ Brittany ↔ Britain ↔ Ireland).
+  { beat: 'sea-road', from: [-8, 43], to: [-9, 52],  color: '#34C4D8', bow:  0.16 },
+  { beat: 'sea-road', from: [-8, 43], to: [-4.5, 48], color: '#34C4D8', bow: 0.12 },
+  { beat: 'sea-road', from: [-5, 50], to: [-7, 52],  color: '#34C4D8', bow: -0.12 },
+
+  // Book of Invasions — the mythic Milesian voyage (white; gold is reserved).
+  { beat: 'book-of-invasions', from: [-8.4, 43.4], to: [-6.5, 52.2], color: '#EAF0FF', bow: 0.14 },
+
+  // Dàl Riata — Ireland to Argyll (green).
+  { beat: 'dal-riata', from: [-6, 55], to: [-5.4, 56.1], color: '#6FD8A6', bow: -0.20 },
+
+  // Darién — Scotland reaches for Panama (gold).
+  { beat: 'darien-dream', from: [-4.5, 56.8], to: [-77.7, 8.7], color: GOLD, bow: 0.16 },
+
+  // The scattering — gold migrations out of Scotland.
+  { beat: 'scattering', from: [-4.5, 57], to: [-6.5, 54.6],   color: GOLD, bow:  0.22 }, // back to Ireland
+  { beat: 'scattering', from: [-4.5, 57], to: [-60.2, 46.1],  color: GOLD, bow:  0.18 }, // Cape Breton
+  { beat: 'scattering', from: [-4.5, 57], to: [-79, 34.8],    color: GOLD, bow:  0.16 }, // the Carolinas
+  { beat: 'scattering', from: [-4.5, 57], to: [151.2, -33.9], color: GOLD, bow: -0.12 }, // Australia
+  { beat: 'scattering', from: [-4.5, 57], to: [170.5, -45.9], color: GOLD, bow: -0.10 }, // Otago, NZ
 ];
 // Where the three Galatian tribes settled — purple blooms form here as the
 // arrow arrives. Tectosages (Ankara, centre), Tolistobogii (west), Trocmi (east).
@@ -948,7 +1089,7 @@ function arcCurve(a, b, bow = 0.18, n = 48) {
   }
   return pts;
 }
-const ARROW_PATHS = ARROW_DEFS.map((d) => ({ step: d.step, pts: arcCurve(d.from, d.to, d.bow), color: d.color }));
+const ARROW_PATHS = ARROW_DEFS.map((d) => ({ beat: d.beat, pts: arcCurve(d.from, d.to, d.bow), color: d.color }));
 function bearingDeg(a, b) {
   const R = Math.PI / 180, D = 180 / Math.PI;
   const φ1 = a[1] * R, φ2 = b[1] * R, Δλ = (b[0] - a[0]) * R;
