@@ -20,6 +20,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HEAT_POINTS } from './heat';
 import { PLACES } from './places';
+import { SCOTLAND_GEO, IRELAND_GEO } from './regions';
 import { useLanguage } from '../../context/LanguageContext';
 import DiasporaClock from '../../components/DiasporaClock';
 
@@ -57,7 +58,7 @@ const STORY = [
     camera: { center: [6, 47], zoom: 2.4, pitch: 0, bearing: 0 },
     eyebrow: { en: 'An Saoghal · The Story', gd: 'An Saoghal · An Sgeul' },
     title:   { en: 'Where did the Gaels come from?', gd: 'Cò às a tha thu?' },
-    body:    { en: 'Every Gael’s story begins far older, and far further away, than Scotland.' },
+    body:    { en: 'Every Gael’s story begins far older, and far further away, than Scotland or Ireland.' },
   },
   {
     id: 'proto',
@@ -181,6 +182,17 @@ export default function SaoghalPage() {
     });
   }, [storyActive, storyStep, mapReady]);
 
+  // Region highlights (Scotland blue, Ireland green) — shown on the intro beat.
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const show = storyActive && storyStep === 0;
+    ['scotland-fill', 'scotland-line', 'ireland-fill', 'ireland-line'].forEach((id) => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', show ? 'visible' : 'none');
+    });
+  }, [mapReady, storyActive, storyStep]);
+
   // Keyboard: R or Home resets, Escape closes the side panel.
   useEffect(() => {
     function onKey(e) {
@@ -271,8 +283,11 @@ export default function SaoghalPage() {
       try { map.setProjection({ type: 'globe' }); } catch (e) { console.warn('globe projection unsupported:', e); }
     });
     map.on('load', () => {
-      addHeatLayer(map);
-      addPlacesLayer(map);
+      // Clean story globe: heat + place pins are kept in code (heat.js /
+      // places.js, addHeatLayer / addPlacesLayer below) but NOT drawn here.
+      // They return once the density layer + Sgrùdadh-verified place pins are
+      // reintroduced — see the memory note for where/why.
+      addRegionHighlights(map);
       uniformLabelTiming(map);
       setMapReady(true);
     });
@@ -630,6 +645,31 @@ function Longform({ text }) {
       })}
     </div>
   );
+}
+
+// Region highlights for the story — Scotland (saltire blue) and the island of
+// Ireland (green). Added hidden; the story toggles visibility per beat. Fills
+// go beneath the basemap labels so place names stay legible on top.
+function addRegionHighlights(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+
+  map.addSource('scotland', { type: 'geojson', data: SCOTLAND_GEO });
+  map.addSource('ireland', { type: 'geojson', data: IRELAND_GEO });
+
+  const fill = (id, source, color) => map.addLayer({
+    id, type: 'fill', source, layout: { visibility: 'none' },
+    paint: { 'fill-color': color, 'fill-opacity': 0.34 },
+  }, firstLabel);
+  const line = (id, source, color) => map.addLayer({
+    id, type: 'line', source, layout: { visibility: 'none' },
+    paint: { 'line-color': color, 'line-width': 1.4, 'line-opacity': 0.85 },
+  }, firstLabel);
+
+  fill('scotland-fill', 'scotland', '#2F6FD0');   // saltire blue
+  line('scotland-line', 'scotland', '#8FB8F2');
+  fill('ireland-fill', 'ireland', '#1A9E5F');      // Irish green
+  line('ireland-line', 'ireland', '#6FD8A6');
 }
 
 // Heat layer setup. Source = HEAT_POINTS as a GeoJSON FeatureCollection.
