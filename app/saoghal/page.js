@@ -76,10 +76,10 @@ const STORY = [
   },
   {
     id: 'atlantic',
-    camera: { center: [1, 44], zoom: 3.6, pitch: 0, bearing: 0 },
+    camera: { center: [-4, 46], zoom: 3.9, pitch: 0, bearing: 0 },
     eyebrow: { en: 'c. 2500 BC · The Atlantic model' },
     title:   { en: 'The Atlantic coasts' },
-    body:    { en: 'By another model, the culture formed far earlier still — along the Atlantic coasts of France and Spain, as early as 2500 BC. Along that same seaboard the Gallaeci settled Galicia, their Q-Celtic tongue the closest continental cousin to early Gaelic.' },
+    body:    { en: 'By another model, the culture never marched in from the east — it grew in place along the whole Atlantic seaboard, from Brittany to Iberia, as early as 2500 BC. Here belong the Gallaeci of Galicia, whose Q-Celtic tongue is the closest continental cousin to early Gaelic.' },
   },
   {
     id: 'galatians',
@@ -232,7 +232,16 @@ export default function SaoghalPage() {
     return () => { if (spreadRaf.current) { cancelAnimationFrame(spreadRaf.current); spreadRaf.current = null; } };
   }, [mapReady, storyActive, storyStep]);
 
-  // Migration arrows draw on during the Celtic-expansion beat (step 3).
+  // Teal Atlantic-model bloom — fades in on the Atlantic beat (step 3).
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    if (!map || !map.getLayer('atlantic-heat-layer')) return;
+    const show = storyActive && storyStep === 3;
+    map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity', show ? 0.9 : 0);
+  }, [mapReady, storyActive, storyStep]);
+
+  // Migration arrows — per beat (Galatians on the Galatians beat, via step tag).
   const arrowRaf = useRef(null);
   useEffect(() => {
     if (!mapReady) return;
@@ -364,6 +373,7 @@ export default function SaoghalPage() {
       // reintroduced — see the memory note for where/why.
       addRegionHighlights(map);
       addProtoHeat(map);
+      addAtlanticHeat(map);
       addMigrationArrows(map);
       uniformLabelTiming(map);
       setMapReady(true);
@@ -757,6 +767,9 @@ function addRegionHighlights(map) {
 // `weight`; the effect animates the Central-Europe points' weight up to spread.
 const STEPPE_PTS = [[38, 50], [42, 49], [46, 50], [50, 49], [44, 52], [48, 47], [52, 51], [40, 47]];
 const CENTRAL_PTS = [[8, 48], [12, 48], [16, 49], [20, 49], [24, 50], [14, 46], [18, 47], [28, 49], [32, 50]];
+// Atlantic model — a teal bloom hugging the western seaboard (Brittany → the
+// Bay of Biscay → NW Iberia / Galicia), where Celtic culture grew in place.
+const ATLANTIC_PTS = [[-4, 48], [-2.5, 47], [-1.5, 45.5], [-1.5, 44], [-8, 43], [-8.5, 42], [-9, 41.5], [-8, 41], [-6.5, 43], [-3.5, 46]];
 const heatFeat = (c, w) => ({ type: 'Feature', properties: { weight: w }, geometry: { type: 'Point', coordinates: c } });
 const heatFC = (feats) => ({ type: 'FeatureCollection', features: feats });
 
@@ -782,13 +795,38 @@ function addProtoHeat(map) {
   map.setPaintProperty('proto-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
 }
 
+// Atlantic-model bloom (teal). Static points along the western seaboard; the
+// story just fades its opacity in on the Atlantic beat.
+function addAtlanticHeat(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+  map.addSource('atlantic-heat', { type: 'geojson', data: heatFC(ATLANTIC_PTS.map((c) => heatFeat(c, 1))) });
+  map.addLayer({
+    id: 'atlantic-heat-layer', type: 'heatmap', source: 'atlantic-heat', maxzoom: 9,
+    paint: {
+      'heatmap-weight': ['get', 'weight'],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 28, 3, 70, 5, 130, 7, 220],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+        0, 'rgba(0,0,0,0)',
+        0.15, 'rgba(18,80,100,0.42)',
+        0.4, 'rgba(28,150,175,0.60)',
+        0.7, 'rgba(52,196,216,0.78)',
+        1.0, 'rgba(150,235,245,0.90)'],
+      'heatmap-opacity': 0,
+    },
+  }, firstLabel);
+  map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
+}
+
 // Migration arrows — military-map style, per-arrow colour (SDF arrowhead so it
 // recolours). Two Celtic waves a millennium apart: the Gallaeci west into
 // Galicia (c.1000 BC) and the Galatians east into Anatolia (279 BC). Native
 // line+symbol layers so they track the camera; the story draws them on.
 const ARROW_DEFS = [
-  { step: 3, from: [10, 46], to: [-8, 43],   color: '#34C4D8', bow:  0.22 }, // Gallaeci → Galicia (Atlantic beat)
-  { step: 4, from: [19, 45], to: [33, 39.9], color: '#B368E8', bow: -0.22 }, // Galatians → Galatia
+  // No Gallaeci arrow: the Atlantic model is in-situ development along the
+  // seaboard, not a migration — shown as a teal bloom instead (addAtlanticHeat).
+  { step: 4, from: [19, 45], to: [33, 39.9], color: '#B368E8', bow: -0.22 }, // Galatians → Galatia (a real migration)
 ];
 function arcCurve(a, b, bow = 0.18, n = 48) {
   const [ax, ay] = a, [bx, by] = b;
