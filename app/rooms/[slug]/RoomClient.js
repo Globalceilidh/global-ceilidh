@@ -14,18 +14,15 @@
 //      re-validates the Clerk session before minting a LiveKit JWT.
 //   4. Handoff to <LiveKitRoom/>.
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useUser, useAuth, SignInButton } from '@clerk/nextjs';
 import {
   LiveKitRoom,
   VideoConference,
   RoomAudioRenderer,
-  useTracks,
-  useParticipants,
 } from '@livekit/components-react';
-import { Track } from 'livekit-client';
 import '@livekit/components-styles';
-import BothyCanvas from '../../../components/BothyBoardroom';
+import CeilidhStage from './CeilidhStage';
 
 export default function RoomClient({ room }) {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -83,7 +80,7 @@ function RoomConnector({ room, displayName }) {
   const [token, setToken] = useState(null);
   const [url, setUrl]     = useState(null);
   const [error, setError] = useState(null);
-  const [view, setView]   = useState('standard'); // 'standard' | 'bothy'
+  const [view, setView]   = useState('stage'); // 'stage' | 'standard'
 
   // Invite-only rooms: seed the code from the shared link (?code=XXXX) so an
   // invitee following it joins with no extra step. If the code is missing or
@@ -207,61 +204,18 @@ function RoomConnector({ room, displayName }) {
         style={{ height: '100%' }}
         onDisconnected={() => { window.location.href = '/home'; }}
       >
-        {view === 'bothy' ? <BothyBridge /> : <VideoConference />}
+        {view === 'stage' ? <CeilidhStage slug={room.slug} /> : <VideoConference />}
         <RoomAudioRenderer />
       </LiveKitRoom>
 
-      {/* View toggle — standard tiles are the reliable default; the bothy
-          is the 3D experience. Flipping never drops the LiveKit connection. */}
-      <button style={viewToggle} onClick={() => setView((v) => (v === 'bothy' ? 'standard' : 'bothy'))}>
-        {view === 'bothy' ? '▢ Standard view' : '⛰ Bothy view (beta)'}
+      {/* View toggle — the Ceilidh Room stage is the experience; standard
+          tiles are the reliable fallback. Flipping never drops the LiveKit
+          connection. */}
+      <button style={viewToggle} onClick={() => setView((v) => (v === 'stage' ? 'standard' : 'stage'))}>
+        {view === 'stage' ? '▢ Standard view' : '🎬 Ceilidh Room'}
       </button>
     </div>
   );
-}
-
-// Feeds live LiveKit camera tracks into the 3D bothy. Runs INSIDE
-// <LiveKitRoom> so the hooks have context; it attaches each participant's
-// camera track to a hidden <video> and hands the elements to the R3F scene
-// as seat occupants (props cross the Canvas boundary cleanly — no context
-// bridge needed).
-function BothyBridge() {
-  const trackRefs = useTracks([Track.Source.Camera], { onlySubscribed: false });
-  const participants = useParticipants();
-  const elMap = useRef(new Map());
-  const [, setTick] = useState(0);
-
-  useEffect(() => {
-    trackRefs.forEach((ref) => {
-      const id = ref.participant?.identity;
-      const track = ref.publication?.track;
-      if (!id || !track) return;
-      let el = elMap.current.get(id);
-      if (!el) {
-        el = document.createElement('video');
-        el.muted = true; el.playsInline = true; el.autoplay = true;
-        el.style.cssText = 'position:absolute;width:2px;height:2px;opacity:0;pointer-events:none;left:-10px;top:-10px;';
-        document.body.appendChild(el);
-        elMap.current.set(id, el);
-      }
-      try { track.attach(el); } catch { /* re-attach ok */ }
-    });
-    setTick((t) => t + 1);
-  }, [trackRefs]);
-
-  useEffect(() => () => {
-    elMap.current.forEach((el) => { try { el.remove(); } catch { /* gone */ } });
-    elMap.current.clear();
-  }, []);
-
-  const occupants = participants.map((p, i) => ({
-    seatIndex: i,
-    name: p.name || p.identity || 'Guest',
-    isLocal: !!p.isLocal,
-    videoEl: elMap.current.get(p.identity) || null,
-  }));
-
-  return <BothyCanvas occupants={occupants} />;
 }
 
 
