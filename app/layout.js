@@ -29,6 +29,11 @@ export const metadata = {
   title: 'GlobalCeilidh.com — The Global Home of Scottish Gaelic Culture',
   description: 'Learn Scottish Gaelic, connect with the global diaspora, find events, and join the community. Fàilte gu GlobalCeilidh.com.',
   keywords: 'Scottish Gaelic, Gàidhlig, learn Gaelic, diaspora, Highland Games, ceilidh, GlobalCeilidh',
+  verification: {
+    // Google Search Console — emits <meta name="google-site-verification">
+    // into <head> on every page (incl. the public root Google verifies).
+    google: 'wXtbLb38imkQ48PncdfQTOpRdE94RJGRczonz54iU9M',
+  },
   openGraph: {
     title: 'GlobalCeilidh.com',
     description: 'The global home of Scottish Gaelic language, culture and community.',
