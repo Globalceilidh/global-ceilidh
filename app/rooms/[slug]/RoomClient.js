@@ -14,14 +14,18 @@
 //      re-validates the Clerk session before minting a LiveKit JWT.
 //   4. Handoff to <LiveKitRoom/>.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useUser, useAuth, SignInButton } from '@clerk/nextjs';
 import {
   LiveKitRoom,
   VideoConference,
   RoomAudioRenderer,
+  useTracks,
+  useParticipants,
 } from '@livekit/components-react';
+import { Track } from 'livekit-client';
 import '@livekit/components-styles';
+import BothyCanvas from '../../../components/BothyBoardroom';
 
 export default function RoomClient({ room }) {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -79,6 +83,7 @@ function RoomConnector({ room, displayName }) {
   const [token, setToken] = useState(null);
   const [url, setUrl]     = useState(null);
   const [error, setError] = useState(null);
+  const [view, setView]   = useState('standard'); // 'standard' | 'bothy'
 
   // Invite-only rooms: seed the code from the shared link (?code=XXXX) so an
   // invitee following it joins with no extra step. If the code is missing or
@@ -192,7 +197,7 @@ function RoomConnector({ room, displayName }) {
   }
 
   return (
-    <div data-lk-theme="default" style={{ height: '100vh' }}>
+    <div data-lk-theme="default" style={{ height: '100vh', position: 'relative' }}>
       <LiveKitRoom
         token={token}
         serverUrl={url}
@@ -202,11 +207,61 @@ function RoomConnector({ room, displayName }) {
         style={{ height: '100%' }}
         onDisconnected={() => { window.location.href = '/home'; }}
       >
-        <VideoConference />
+        {view === 'bothy' ? <BothyBridge /> : <VideoConference />}
         <RoomAudioRenderer />
       </LiveKitRoom>
+
+      {/* View toggle — standard tiles are the reliable default; the bothy
+          is the 3D experience. Flipping never drops the LiveKit connection. */}
+      <button style={viewToggle} onClick={() => setView((v) => (v === 'bothy' ? 'standard' : 'bothy'))}>
+        {view === 'bothy' ? '▢ Standard view' : '⛰ Bothy view (beta)'}
+      </button>
     </div>
   );
+}
+
+// Feeds live LiveKit camera tracks into the 3D bothy. Runs INSIDE
+// <LiveKitRoom> so the hooks have context; it attaches each participant's
+// camera track to a hidden <video> and hands the elements to the R3F scene
+// as seat occupants (props cross the Canvas boundary cleanly — no context
+// bridge needed).
+function BothyBridge() {
+  const trackRefs = useTracks([Track.Source.Camera], { onlySubscribed: false });
+  const participants = useParticipants();
+  const elMap = useRef(new Map());
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    trackRefs.forEach((ref) => {
+      const id = ref.participant?.identity;
+      const track = ref.publication?.track;
+      if (!id || !track) return;
+      let el = elMap.current.get(id);
+      if (!el) {
+        el = document.createElement('video');
+        el.muted = true; el.playsInline = true; el.autoplay = true;
+        el.style.cssText = 'position:absolute;width:2px;height:2px;opacity:0;pointer-events:none;left:-10px;top:-10px;';
+        document.body.appendChild(el);
+        elMap.current.set(id, el);
+      }
+      try { track.attach(el); } catch { /* re-attach ok */ }
+    });
+    setTick((t) => t + 1);
+  }, [trackRefs]);
+
+  useEffect(() => () => {
+    elMap.current.forEach((el) => { try { el.remove(); } catch { /* gone */ } });
+    elMap.current.clear();
+  }, []);
+
+  const occupants = participants.map((p, i) => ({
+    seatIndex: i,
+    name: p.name || p.identity || 'Guest',
+    isLocal: !!p.isLocal,
+    videoEl: elMap.current.get(p.identity) || null,
+  }));
+
+  return <BothyCanvas occupants={occupants} />;
 }
 
 
@@ -255,6 +310,14 @@ const secondaryLink = {
   textDecoration: 'underline',
   fontFamily: '"IBM Plex Mono", monospace',
   letterSpacing: 0.5,
+};
+
+const viewToggle = {
+  position: 'absolute', top: 14, right: 14, zIndex: 20,
+  background: 'rgba(20,14,8,0.8)', color: '#F2ECDC',
+  border: '1px solid rgba(201,160,71,0.5)', borderRadius: 999,
+  padding: '8px 16px', cursor: 'pointer',
+  fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, letterSpacing: 0.3,
 };
 
 const codeInput = {
