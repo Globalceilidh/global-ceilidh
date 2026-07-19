@@ -80,9 +80,22 @@ function RoomConnector({ room, displayName }) {
   const [url, setUrl]     = useState(null);
   const [error, setError] = useState(null);
 
+  // Invite-only rooms: seed the code from the shared link (?code=XXXX) so an
+  // invitee following it joins with no extra step. If the code is missing or
+  // wrong the server 403s 'invite_required' and we show a code box.
+  const [code, setCode] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('code') || '';
+  });
+  const [attempt, setAttempt] = useState(0);
+  const [needsCode, setNeedsCode] = useState(false);
+  const [codeError, setCodeError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setError(null);
       try {
         // Send the Clerk session token explicitly as a Bearer header.
         // The __session cookie doesn't reliably reach the server across
@@ -96,22 +109,66 @@ function RoomConnector({ room, displayName }) {
             'Content-Type': 'application/json',
             ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
           },
-          body: JSON.stringify({ displayName }),
+          body: JSON.stringify({ displayName, inviteCode: code || undefined }),
         });
         const body = await res.json();
+        if (res.status === 403 && body?.error === 'invite_required') {
+          if (!cancelled) {
+            setNeedsCode(true);
+            setCodeError(code ? 'That invite code didn’t match.' : null);
+            setSubmitting(false);
+          }
+          return;
+        }
         if (!res.ok) {
           throw new Error(body?.message || `Token request failed (${res.status})`);
         }
         if (!cancelled) {
           setToken(body.token);
           setUrl(body.url);
+          setNeedsCode(false);
+          setSubmitting(false);
         }
       } catch (e) {
-        if (!cancelled) setError(e.message || String(e));
+        if (!cancelled) { setError(e.message || String(e)); setSubmitting(false); }
       }
     })();
     return () => { cancelled = true; };
-  }, [room.slug, displayName, getToken]);
+  }, [room.slug, displayName, getToken, code, attempt]);
+
+  function submitCode(e) {
+    e.preventDefault();
+    const v = String(e.target.code.value || '').trim();
+    if (!v) return;
+    setSubmitting(true);
+    setCode(v);
+    setAttempt((a) => a + 1); // force a retry even if the value is unchanged
+  }
+
+  if (needsCode && !token) {
+    return (
+      <main style={msgWrap}>
+        <h1 style={msgTitle}>{room.name}</h1>
+        <p style={{ marginTop: 8, marginBottom: 18, maxWidth: 420, textAlign: 'center', color: '#3A2A0C' }}>
+          This meeting is invite-only. Enter your invite code to join.
+        </p>
+        <form onSubmit={submitCode} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <input
+            name="code"
+            defaultValue=""
+            placeholder="Invite code"
+            autoFocus
+            autoComplete="off"
+            style={codeInput}
+          />
+          <button type="submit" style={signInButton} disabled={submitting}>
+            {submitting ? 'Checking…' : 'Join'}
+          </button>
+        </form>
+        {codeError && <p style={{ marginTop: 14, color: '#B83232', fontSize: 13 }}>{codeError}</p>}
+      </main>
+    );
+  }
 
   if (error) {
     return (
@@ -198,4 +255,19 @@ const secondaryLink = {
   textDecoration: 'underline',
   fontFamily: '"IBM Plex Mono", monospace',
   letterSpacing: 0.5,
+};
+
+const codeInput = {
+  fontFamily: '"IBM Plex Mono", monospace',
+  fontSize: 18,
+  letterSpacing: '0.18em',
+  textAlign: 'center',
+  textTransform: 'uppercase',
+  padding: '12px 18px',
+  width: 240,
+  border: '1px solid #C6BCA5',
+  borderRadius: 6,
+  background: '#FFFFFF',
+  color: '#1A3A2A',
+  outline: 'none',
 };

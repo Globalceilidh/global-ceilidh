@@ -109,9 +109,11 @@ export async function POST(request, { params }) {
   // from Clerk. Clients pass it explicitly so the room can render
   // participant labels before the token round-trip completes.
   let displayName = null;
+  let providedInviteCode = null;
   try {
     const body = await request.json();
     if (body?.displayName) displayName = String(body.displayName).slice(0, 60);
+    if (body?.inviteCode) providedInviteCode = String(body.inviteCode).slice(0, 64);
   } catch { /* empty body ok */ }
   if (!displayName) {
     const user = await currentUser();
@@ -152,6 +154,28 @@ export async function POST(request, { params }) {
       if (!ok) {
         return jerr(403, 'no_active_grant',
           'This room requires a paid access grant. Purchase one to join.');
+      }
+    } else if (room.access_tier === 'invite_only') {
+      // Per-meeting invite gate. Already-granted attendees pass straight
+      // through; a first-timer presenting the room's current invite code
+      // self-claims a standing 'invited' grant (so they never need the code
+      // again — the grant rows become the meeting's attendee list).
+      const hasGrant = await userHasActiveGrant(supabase, room.id, userId);
+      if (!hasGrant) {
+        const code = (providedInviteCode || '').trim();
+        const roomCode = (room.invite_code || '').trim();
+        if (roomCode && code && code === roomCode) {
+          const { error: grantErr } = await supabase
+            .from('gc_room_access_grants')
+            .upsert(
+              { room_id: room.id, user_id: userId, tier: 'invited', granted_by: 'invite_code' },
+              { onConflict: 'room_id,user_id,tier' },
+            );
+          if (grantErr) return jerr(500, 'grant_failed', grantErr.message);
+        } else {
+          return jerr(403, 'invite_required',
+            'This meeting is invite-only. Enter your invite code to join.');
+        }
       }
     }
     // 'public' tier: any signed-in user passes.
