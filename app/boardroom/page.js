@@ -32,6 +32,63 @@ const WOOD = '#3A2616';
 const STONE = '#B4AA92';
 const STONE_LOW = '#2C2013';
 
+// ── Procedural textures (canvas-drawn, no external files) ──────────────
+// Not photoreal — that needs an artist-built model — but a real step up
+// from flat colour: surface grain + tonal variation so stone reads as
+// stone and wood as wood, with matching bump for relief under the lamps.
+function makeStone() {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const x = c.getContext('2d');
+  x.fillStyle = '#B4AA92'; x.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 4000; i++) {
+    const dark = Math.random() > 0.5;
+    x.fillStyle = dark ? `rgba(70,58,44,${Math.random() * 0.14})` : `rgba(240,236,222,${Math.random() * 0.12})`;
+    x.beginPath(); x.arc(Math.random() * 512, Math.random() * 512, Math.random() * 8 + 1, 0, 7); x.fill();
+  }
+  // faint mortar lines
+  x.strokeStyle = 'rgba(40,32,22,0.18)'; x.lineWidth = 2;
+  for (let gy = 64; gy < 512; gy += 90) {
+    x.beginPath(); x.moveTo(0, gy + Math.random() * 8); x.lineTo(512, gy + Math.random() * 8); x.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+}
+function makeWood(base) {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const x = c.getContext('2d');
+  x.fillStyle = base; x.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 90; i++) {
+    const y = Math.random() * 512;
+    x.strokeStyle = `rgba(0,0,0,${Math.random() * 0.14})`; x.lineWidth = Math.random() * 2 + 0.4;
+    x.beginPath(); x.moveTo(0, y);
+    for (let px = 0; px <= 512; px += 16) x.lineTo(px, y + Math.sin(px / 38 + i) * 3);
+    x.stroke();
+  }
+  for (let i = 0; i < 40; i++) {
+    const y = Math.random() * 512;
+    x.strokeStyle = `rgba(255,220,170,${Math.random() * 0.07})`; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(0, y);
+    for (let px = 0; px <= 512; px += 20) x.lineTo(px, y + Math.sin(px / 50) * 2);
+    x.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+}
+let _TEX = null;
+function tex() {
+  if (_TEX) return _TEX;
+  if (typeof document === 'undefined') return {};
+  const cfg = (t, rx, ry) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); return t; };
+  _TEX = {
+    stone: cfg(makeStone(), 3, 1.6),
+    gable: cfg(makeStone(), 2, 1.6),
+    floor: cfg(makeWood('#2A2013'), 10, 6),
+    roof: cfg(makeWood('#241812'), 8, 2),
+    tableTop: cfg(makeWood('#6A4526'), 5, 1),
+    woodDark: cfg(makeWood('#3A2616'), 3, 2),
+    bench: cfg(makeWood('#5A3D22'), 5, 1),
+  };
+  return _TEX;
+}
+
 // Ten seats: four along each bench, one at each gable end.
 function useSeats() {
   return useMemo(() => {
@@ -65,25 +122,26 @@ function Occupant({ seat }) {
 }
 
 function TableAndBenches() {
+  const T = tex();
   return (
     <group>
       {/* long plank table */}
       <mesh position={[0, 1.0, 0]} receiveShadow castShadow>
         <boxGeometry args={[9.2, 0.12, 1.9]} />
-        <meshStandardMaterial color="#6A4526" roughness={0.55} />
+        <meshStandardMaterial map={T.tableTop} bumpMap={T.tableTop} bumpScale={0.02} color="#9A7048" roughness={0.5} />
       </mesh>
       {/* trestle legs */}
       {[-3.8, 3.8].map((x) => (
         <mesh key={x} position={[x, 0.47, 0]}>
           <boxGeometry args={[0.5, 0.9, 1.5]} />
-          <meshStandardMaterial color={WOOD} roughness={0.8} />
+          <meshStandardMaterial map={T.woodDark} color="#7A6446" roughness={0.8} />
         </mesh>
       ))}
       {/* benches down each long side */}
       {[-1.7, 1.7].map((z) => (
         <mesh key={z} position={[0, 0.5, z]} castShadow>
           <boxGeometry args={[8.4, 0.1, 0.5]} />
-          <meshStandardMaterial color="#5A3D22" roughness={0.7} />
+          <meshStandardMaterial map={T.bench} bumpMap={T.bench} bumpScale={0.02} color="#8A6242" roughness={0.7} />
         </mesh>
       ))}
     </group>
@@ -132,12 +190,13 @@ function Room() {
   const midY = (EAVE_Y + RIDGE_Y) / 2;
 
   const S = THREE.DoubleSide;
+  const T = tex();
   return (
     <group>
       {/* floor — worn flagstone/board */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[HALF_X * 2 + 1, HALF_Z * 2 + 1]} />
-        <meshStandardMaterial color="#2A2013" roughness={0.95} />
+        <meshStandardMaterial map={T.floor} bumpMap={T.floor} bumpScale={0.03} color="#6A5238" roughness={0.95} />
       </mesh>
 
       {/* long stone walls (z = ±HALF_Z) with a dark wood wainscot */}
@@ -145,11 +204,11 @@ function Room() {
         <group key={z}>
           <mesh position={[0, EAVE_Y / 2 + 0.5, z]} rotation={[0, z < 0 ? 0 : Math.PI, 0]}>
             <planeGeometry args={[HALF_X * 2, EAVE_Y + 1]} />
-            <meshStandardMaterial color={STONE} roughness={0.98} side={S} />
+            <meshStandardMaterial map={T.stone} bumpMap={T.stone} bumpScale={0.04} color="#FFFFFF" roughness={0.98} side={S} />
           </mesh>
           <mesh position={[0, 0.45, z + (z < 0 ? 0.02 : -0.02)]} rotation={[0, z < 0 ? 0 : Math.PI, 0]}>
             <planeGeometry args={[HALF_X * 2, 0.9]} />
-            <meshStandardMaterial color={STONE_LOW} roughness={0.9} side={S} />
+            <meshStandardMaterial map={T.woodDark} bumpMap={T.woodDark} bumpScale={0.03} color="#8A7454" roughness={0.9} side={S} />
           </mesh>
         </group>
       ))}
@@ -158,27 +217,27 @@ function Room() {
       {[-HALF_X, HALF_X].map((x) => (
         <mesh key={x} position={[x, EAVE_Y / 2 + 0.5, 0]} rotation={[0, x < 0 ? Math.PI / 2 : -Math.PI / 2, 0]}>
           <planeGeometry args={[HALF_Z * 2, EAVE_Y + 1]} />
-          <meshStandardMaterial color={STONE} roughness={0.98} side={S} />
+          <meshStandardMaterial map={T.gable} bumpMap={T.gable} bumpScale={0.04} color="#FFFFFF" roughness={0.98} side={S} />
         </mesh>
       ))}
 
       {/* gable timber roof — two slopes + ridge + tie beams */}
       <mesh position={[0, midY, HALF_Z / 2]} rotation={[-(Math.PI / 2) + slope, 0, 0]}>
         <planeGeometry args={[HALF_X * 2 + 0.6, roofLen]} />
-        <meshStandardMaterial color="#241812" roughness={1} side={S} />
+        <meshStandardMaterial map={T.roof} bumpMap={T.roof} bumpScale={0.05} color="#B89A78" roughness={1} side={S} />
       </mesh>
       <mesh position={[0, midY, -HALF_Z / 2]} rotation={[(Math.PI / 2) - slope, 0, 0]}>
         <planeGeometry args={[HALF_X * 2 + 0.6, roofLen]} />
-        <meshStandardMaterial color="#241812" roughness={1} side={S} />
+        <meshStandardMaterial map={T.roof} bumpMap={T.roof} bumpScale={0.05} color="#B89A78" roughness={1} side={S} />
       </mesh>
       <mesh position={[0, RIDGE_Y, 0]}>
         <boxGeometry args={[HALF_X * 2 + 0.6, 0.2, 0.2]} />
-        <meshStandardMaterial color={WOOD} roughness={0.9} />
+        <meshStandardMaterial map={T.woodDark} color="#8A7454" roughness={0.9} />
       </mesh>
       {[-6, -3, 0, 3, 6].map((x) => (
         <mesh key={x} position={[x, EAVE_Y + 0.05, 0]}>
           <boxGeometry args={[0.16, 0.16, HALF_Z * 2]} />
-          <meshStandardMaterial color={WOOD} roughness={0.9} />
+          <meshStandardMaterial map={T.woodDark} color="#8A7454" roughness={0.9} />
         </mesh>
       ))}
 
@@ -301,12 +360,16 @@ export default function BoardroomPage() {
       <Canvas
         shadows
         camera={{ fov: 58, position: [seats[0].pos[0], EYE_Y, seats[0].pos[2]], near: 0.1, far: 100 }}
+        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.08 }}
         style={{ position: 'absolute', inset: 0 }}
       >
         <color attach="background" args={['#0B0805']} />
         <fog attach="fog" args={['#0B0805', 9, 22]} />
         <Scene seats={seats} selected={selected} />
       </Canvas>
+
+      {/* cinematic vignette — darkens the corners for depth */}
+      <div style={vignette} />
 
       <div style={titleBox}>
         <div style={titleMain}>Global Ceilidh Boardroom</div>
@@ -326,6 +389,10 @@ export default function BoardroomPage() {
 }
 
 const wrap = { position: 'fixed', inset: 0, background: '#0B0805', overflow: 'hidden' };
+const vignette = {
+  position: 'absolute', inset: 0, pointerEvents: 'none',
+  background: 'radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%)',
+};
 const titleBox = { position: 'absolute', top: 20, left: 22, color: '#F2ECDC', pointerEvents: 'none' };
 const titleMain = { fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif', fontSize: 30, letterSpacing: '0.08em', lineHeight: 1 };
 const titleSub = { fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, color: '#C9A047', marginTop: 6 };
