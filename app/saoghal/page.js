@@ -20,7 +20,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HEAT_POINTS } from './heat';
 import { PLACES } from './places';
-import { SCOTLAND_GEO, IRELAND_GEO, WALES_GEO, MAN_GEO } from './regions';
+import { SCOTLAND_GEO, IRELAND_GEO, WALES_GEO, MAN_GEO, DAL_RIATA_GEO } from './regions';
 import { useLanguage } from '../../context/LanguageContext';
 import DiasporaClock from '../../components/DiasporaClock';
 
@@ -120,19 +120,27 @@ const STORY = [
   },
   {
     id: 'rome',
-    camera: { center: [-2, 48], zoom: 3.4, pitch: 0, bearing: 0 },
+    camera: { center: [-3, 50.5], zoom: 3.8, pitch: 0, bearing: 0 },
     regions: ['ireland'],
     eyebrow: { en: '19 BC → · Rome' },
     title:   { en: 'Rome crushes the continent' },
-    body:    { en: 'Augustus subdued the Gallaeci; Britain fell soon after. Latin erased the continental Celtic tongues — but Rome never took Ireland. There, sheltered, the imported Q-Celtic was left to become Old Irish.' },
+    body:    { en: 'Augustus subdued the Gallaeci; southern Britain fell soon after. But Rome halted at Hadrian’s Wall — beyond it the Picts stayed free — and it never crossed to Ireland. In those free lands the imported Q-Celtic was left to become Old Irish.' },
   },
   {
     id: 'dal-riata',
-    camera: { center: [-6, 55.4], zoom: 5.4, pitch: 0, bearing: 0 },
-    regions: ['ireland', 'scotland'],
+    camera: { center: [-5.6, 55.7], zoom: 6.0, pitch: 0, bearing: 0 },
+    regions: ['ireland', 'dalriata'],
     eyebrow: { en: 'c. 500 AD · Dàl Riata' },
     title:   { en: 'Ireland to Alba' },
-    body:    { en: 'By 500 AD the Irish Gaels crossed the North Channel into Argyll — the kingdom of Dàl Riata. Old Irish became Gàidhlig, rooted in the western Highlands and Isles exactly where it lives today.' },
+    body:    { en: 'By 500 AD the Irish Gaels crossed the North Channel into Argyll — the kingdom of Dàl Riata, straddling the sea. It held only the western seaboard and the isles, but from there Old Irish became Gàidhlig.' },
+  },
+  {
+    id: 'columba',
+    camera: { center: [-6.4, 56.33], zoom: 7.2, pitch: 0, bearing: 0 },
+    regions: ['dalriata'],
+    eyebrow: { en: '563 AD · Ì Chaluim Chille' },
+    title:   { en: 'Columba and Iona' },
+    body:    { en: 'From Ireland, Colum Cille — Columba — founded a monastery on the tiny isle of Iona. It became the powerhouse of Gaelic Christianity and learning, sending monks, manuscripts and the faith across Alba and far beyond.' },
   },
   {
     id: 'the-name',
@@ -156,6 +164,29 @@ const STORY = [
     eyebrow: { en: 'c. 793–1266 · The Norse' },
     title:   { en: 'Vikings and Danes' },
     body:    { en: 'Then came the Norse. Norwegians seized the Hebrides and Man and married into the Gaels — the Gall-Ghàidheil, the Norse-Gaels. Danes founded Dublin and held the Danelaw. Longships, blood and words all folded into the Gael.' },
+  },
+  {
+    id: 'high-water',
+    camera: { center: [-4, 57], zoom: 5.0, pitch: 0, bearing: 0 },
+    regions: ['scotland-gael'],
+    eyebrow: { en: 'c. 1000–1100 AD · High-water' },
+    title:   { en: 'Gàidhlig across all Alba' },
+    body:    { en: 'At its height, Gàidhlig was spoken across almost the whole of Scotland — from Galloway in the south to the far north. It was the tongue of kings, court and country alike.' },
+  },
+  {
+    id: 'lordship',
+    camera: { center: [-6.2, 57], zoom: 5.3, pitch: 0, bearing: 0 },
+    regions: ['dalriata'],
+    eyebrow: { en: '1336–1493 · Rìoghachd nan Eilean' },
+    title:   { en: 'The Lordship of the Isles' },
+    body:    { en: 'From Somerled’s Norse-Gaelic line rose the Lordship of the Isles — a sea-kingdom of the Hebrides and western seaboard, ruled from Finlaggan on Islay. A golden age of Gaelic poetry, law, music and galleys.' },
+  },
+  {
+    id: 'north-inch',
+    camera: { center: [-3.43, 56.4], zoom: 8.5, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1396 · The North Inch' },
+    title:   { en: 'The Battle of the North Inch' },
+    body:    { en: 'At Perth, thirty against thirty, two Highland kindreds were made to fight to the death before the king — as sport. Clan turned upon clan. The beginning of the end, as the crown learned to set the Gael against the Gael.' },
   },
 
   // ── Chapter 3 · The Scattering ────────────────────────────────────────
@@ -305,6 +336,10 @@ export default function SaoghalPage() {
     set('wales-line', 'line-opacity', has('wales') ? 0.85 : 0);
     set('man-fill', 'fill-opacity', has('man') ? 0.55 : 0);   // Man is tiny — punchier
     set('man-line', 'line-opacity', has('man') ? 0.95 : 0);
+    set('scotland-gael-fill', 'fill-opacity', has('scotland-gael') ? 0.34 : 0);
+    set('scotland-gael-line', 'line-opacity', has('scotland-gael') ? 0.7 : 0);
+    set('dalriata-fill', 'fill-opacity', has('dalriata') ? 0.42 : 0);
+    set('dalriata-line', 'line-opacity', has('dalriata') ? 0.95 : 0);
   }, [mapReady, storyActive, storyStep]);
 
   // Red origin bloom: fade in on the steppe (beat 2 = Proto-Gaels), then
@@ -376,6 +411,9 @@ export default function SaoghalPage() {
     if (!map || !map.getLayer('rome-heat-layer')) return;
     const show = storyActive && STORY[storyStep]?.id === 'rome';
     map.setPaintProperty('rome-heat-layer', 'heatmap-opacity', show ? 0.9 : 0);
+    if (map.getLayer('hadrians-wall-layer')) {
+      map.setPaintProperty('hadrians-wall-layer', 'line-opacity', show ? 0.9 : 0);
+    }
   }, [mapReady, storyActive, storyStep]);
 
   // Keltoi merge — on the final beat, teal is already up and red + violet
@@ -929,15 +967,20 @@ function addRegionHighlights(map) {
 
   map.addSource('wales', { type: 'geojson', data: WALES_GEO });
   map.addSource('man', { type: 'geojson', data: MAN_GEO });
+  map.addSource('dalriata', { type: 'geojson', data: DAL_RIATA_GEO });
 
-  fill('scotland-fill', 'scotland', '#2F6FD0');   // saltire blue
+  fill('scotland-fill', 'scotland', '#2F6FD0');   // saltire blue (the modern country)
   line('scotland-line', 'scotland', '#8FB8F2');
+  fill('scotland-gael-fill', 'scotland', '#2FA36A'); // Gàidhlig across all Scotland (green)
+  line('scotland-gael-line', 'scotland', '#7FD9AC');
   fill('ireland-fill', 'ireland', '#1A9E5F');      // Irish green (Goidelic)
   line('ireland-line', 'ireland', '#6FD8A6');
   fill('wales-fill', 'wales', '#E0873C');          // Brythonic — warm amber
   line('wales-line', 'wales', '#F2B577');
   fill('man-fill', 'man', '#1A9E5F');              // Manx = Goidelic, green like Ireland
   line('man-line', 'man', '#6FD8A6');
+  fill('dalriata-fill', 'dalriata', '#2FB57E');    // Dàl Riata / the Lordship — Gael green
+  line('dalriata-line', 'dalriata', '#7CE3B4');
 }
 
 // Red "origin" heat bloom for the story. Fades in on the Pontic-Caspian steppe
@@ -949,9 +992,12 @@ const CENTRAL_PTS = [[8, 48], [12, 48], [16, 49], [20, 49], [24, 50], [14, 46], 
 // Atlantic model — a teal bloom hugging the western seaboard (Brittany → the
 // Bay of Biscay → NW Iberia / Galicia), where Celtic culture grew in place.
 const ATLANTIC_PTS = [[-4, 48], [-2.5, 47], [-1.5, 45.5], [-1.5, 44], [-8, 43], [-8.5, 42], [-9, 41.5], [-8, 41], [-6.5, 43], [-3.5, 46]];
-// Rome — a crimson wash over Iberia, Gaul and Britain (Latin erasing the
-// continental Celtic tongues). Deliberately NO points over Ireland.
-const ROME_PTS = [[-4, 40], [0, 41], [3, 43], [-1, 45], [2, 47], [5, 46], [8, 48], [4, 49], [1, 50], [-2, 52], [-1, 53], [10, 47], [6, 44], [-6, 40], [-8, 38.5], [12, 49]];
+// Rome — a crimson wash over Iberia, Gaul and southern Britain only. NO points
+// over Ireland, and nothing past ~53°N so the bloom fades before Hadrian's Wall
+// — Rome never took the Pictish north.
+const ROME_PTS = [[-4, 40], [0, 41], [3, 43], [-1, 45], [2, 47], [5, 46], [8, 48], [4, 49], [1, 50], [-2, 52], [-2, 53], [10, 47], [6, 44], [-6, 40], [-8, 38.5], [12, 49]];
+// Hadrian's Wall — Rome's northern limit (Solway → Tyne).
+const HADRIANS_WALL = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[-3.21, 54.95], [-2.55, 54.99], [-1.53, 54.99]] } }] };
 const heatFeat = (c, w) => ({ type: 'Feature', properties: { weight: w }, geometry: { type: 'Point', coordinates: c } });
 const heatFC = (feats) => ({ type: 'FeatureCollection', features: feats });
 
@@ -1023,6 +1069,15 @@ function addRomeHeat(map) {
     },
   }, firstLabel);
   map.setPaintProperty('rome-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
+
+  // Hadrian's Wall — a dashed stone line marking Rome's northern limit.
+  map.addSource('hadrians-wall', { type: 'geojson', data: HADRIANS_WALL });
+  map.addLayer({
+    id: 'hadrians-wall-layer', type: 'line', source: 'hadrians-wall',
+    layout: { 'line-cap': 'round' },
+    paint: { 'line-color': '#E7DCC6', 'line-width': 2.5, 'line-dasharray': [2, 2], 'line-opacity': 0 },
+  });
+  map.setPaintProperty('hadrians-wall-layer', 'line-opacity-transition', { duration: 900 });
 }
 
 // Purple Galatian settlement blooms (Tectosages/Tolistobogii/Trocmi). Static
