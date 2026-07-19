@@ -90,10 +90,10 @@ const STORY = [
   },
   {
     id: 'keltoi',
-    camera: { center: [7, 47], zoom: 3.0, pitch: 0, bearing: 0 },
+    camera: { center: [12, 45], zoom: 2.7, pitch: 0, bearing: 0 },
     eyebrow: { en: 'The ancient world' },
     title:   { en: 'The Keltoi' },
-    body:    { en: 'To the rest of the ancient world, they were not yet “Gaels”. They were simply known as the Keltoi.' },
+    body:    { en: 'From Iberia to Anatolia, the ancient world knew them all by a single name — not yet “Gaels”, but the Keltoi.' },
   },
 ];
 
@@ -230,6 +230,11 @@ export default function SaoghalPage() {
       // Galatians beat — the red bloom stays up; the purple arrow leaves it.
       src.setData(heatFC([...steppe, ...CENTRAL_PTS.map((c) => heatFeat(c, 1))]));
       map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
+    } else if (storyActive && storyStep === 5) {
+      // Keltoi pan-out — the Central-European Celts only (the steppe origin is
+      // pre-Celtic, so it's not shown among the Keltoi).
+      src.setData(heatFC(CENTRAL_PTS.map((c) => heatFeat(c, 1))));
+      map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
     } else {
       map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0);
     }
@@ -241,7 +246,7 @@ export default function SaoghalPage() {
     if (!mapReady) return;
     const map = mapRef.current;
     if (!map || !map.getLayer('atlantic-heat-layer')) return;
-    const show = storyActive && storyStep === 4;
+    const show = storyActive && (storyStep === 4 || storyStep === 5); // Atlantic beat + Keltoi pan-out
     map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity', show ? 0.9 : 0);
   }, [mapReady, storyActive, storyStep]);
 
@@ -251,7 +256,11 @@ export default function SaoghalPage() {
     if (!mapReady) return;
     const map = mapRef.current;
     if (!map || !map.getLayer('galatia-heat-layer')) return;
-    if (!(storyActive && storyStep === 3)) map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0);
+    if (storyActive && storyStep === 5) {
+      map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0.9); // Keltoi pan-out
+    } else if (!(storyActive && storyStep === 3)) {
+      map.setPaintProperty('galatia-heat-layer', 'heatmap-opacity', 0);   // step 3 = arrow frame fades it in
+    }
   }, [mapReady, storyActive, storyStep]);
 
   // Migration arrows — per beat (Galatians on the Galatians beat, via step tag).
