@@ -182,15 +182,47 @@ export default function SaoghalPage() {
     });
   }, [storyActive, storyStep, mapReady]);
 
-  // Region highlights (Scotland blue, Ireland green) — shown on the intro beat.
+  // Region highlights (Scotland blue, Ireland green) — fade in on the intro
+  // beat, fade out as the red origin bloom takes over.
   useEffect(() => {
     if (!mapReady) return;
     const map = mapRef.current;
     if (!map) return;
     const show = storyActive && storyStep === 0;
-    ['scotland-fill', 'scotland-line', 'ireland-fill', 'ireland-line'].forEach((id) => {
-      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', show ? 'visible' : 'none');
-    });
+    const set = (id, prop, v) => { if (map.getLayer(id)) map.setPaintProperty(id, prop, v); };
+    set('scotland-fill', 'fill-opacity', show ? 0.34 : 0);
+    set('scotland-line', 'line-opacity', show ? 0.85 : 0);
+    set('ireland-fill', 'fill-opacity', show ? 0.34 : 0);
+    set('ireland-line', 'line-opacity', show ? 0.85 : 0);
+  }, [mapReady, storyActive, storyStep]);
+
+  // Red origin bloom: fade in on the steppe (beat 2 = Proto-Gaels), then
+  // spread west into Central Europe (beat 3). Points animate via rAF.
+  const spreadRaf = useRef(null);
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    const src = map?.getSource('proto-heat');
+    if (!src) return;
+    if (spreadRaf.current) { cancelAnimationFrame(spreadRaf.current); spreadRaf.current = null; }
+
+    const steppe = STEPPE_PTS.map((c) => heatFeat(c, 1));
+    if (storyActive && storyStep === 1) {
+      src.setData(heatFC(steppe));
+      map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
+    } else if (storyActive && storyStep === 2) {
+      map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0.9);
+      const dur = 2600, t0 = performance.now();
+      const frame = (now) => {
+        const t = Math.min((now - t0) / dur, 1);
+        src.setData(heatFC([...steppe, ...CENTRAL_PTS.map((c) => heatFeat(c, t))]));
+        if (t < 1) spreadRaf.current = requestAnimationFrame(frame);
+      };
+      spreadRaf.current = requestAnimationFrame(frame);
+    } else {
+      map.setPaintProperty('proto-heat-layer', 'heatmap-opacity', 0);
+    }
+    return () => { if (spreadRaf.current) { cancelAnimationFrame(spreadRaf.current); spreadRaf.current = null; } };
   }, [mapReady, storyActive, storyStep]);
 
   // Keyboard: R or Home resets, Escape closes the side panel.
@@ -288,6 +320,7 @@ export default function SaoghalPage() {
       // They return once the density layer + Sgrùdadh-verified place pins are
       // reintroduced — see the memory note for where/why.
       addRegionHighlights(map);
+      addProtoHeat(map);
       uniformLabelTiming(map);
       setMapReady(true);
     });
@@ -657,19 +690,52 @@ function addRegionHighlights(map) {
   map.addSource('scotland', { type: 'geojson', data: SCOTLAND_GEO });
   map.addSource('ireland', { type: 'geojson', data: IRELAND_GEO });
 
-  const fill = (id, source, color) => map.addLayer({
-    id, type: 'fill', source, layout: { visibility: 'none' },
-    paint: { 'fill-color': color, 'fill-opacity': 0.34 },
-  }, firstLabel);
-  const line = (id, source, color) => map.addLayer({
-    id, type: 'line', source, layout: { visibility: 'none' },
-    paint: { 'line-color': color, 'line-width': 1.4, 'line-opacity': 0.85 },
-  }, firstLabel);
+  // Added visible but at opacity 0, with an opacity transition, so the story
+  // can fade them in/out per beat.
+  const fill = (id, source, color) => {
+    map.addLayer({ id, type: 'fill', source, paint: { 'fill-color': color, 'fill-opacity': 0 } }, firstLabel);
+    map.setPaintProperty(id, 'fill-opacity-transition', { duration: 900 });
+  };
+  const line = (id, source, color) => {
+    map.addLayer({ id, type: 'line', source, paint: { 'line-color': color, 'line-width': 1.4, 'line-opacity': 0 } }, firstLabel);
+    map.setPaintProperty(id, 'line-opacity-transition', { duration: 900 });
+  };
 
   fill('scotland-fill', 'scotland', '#2F6FD0');   // saltire blue
   line('scotland-line', 'scotland', '#8FB8F2');
   fill('ireland-fill', 'ireland', '#1A9E5F');      // Irish green
   line('ireland-line', 'ireland', '#6FD8A6');
+}
+
+// Red "origin" heat bloom for the story. Fades in on the Pontic-Caspian steppe
+// (Proto-Gaels beat), then spreads west into Central Europe (next beat) — the
+// Indo-European migration, rendered as a growing bloom. Points carry a 0..1
+// `weight`; the effect animates the Central-Europe points' weight up to spread.
+const STEPPE_PTS = [[38, 50], [42, 49], [46, 50], [50, 49], [44, 52], [48, 47], [52, 51], [40, 47]];
+const CENTRAL_PTS = [[8, 48], [12, 48], [16, 49], [20, 49], [24, 50], [14, 46], [18, 47], [28, 49], [32, 50]];
+const heatFeat = (c, w) => ({ type: 'Feature', properties: { weight: w }, geometry: { type: 'Point', coordinates: c } });
+const heatFC = (feats) => ({ type: 'FeatureCollection', features: feats });
+
+function addProtoHeat(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+  map.addSource('proto-heat', { type: 'geojson', data: heatFC([]) });
+  map.addLayer({
+    id: 'proto-heat-layer', type: 'heatmap', source: 'proto-heat', maxzoom: 9,
+    paint: {
+      'heatmap-weight': ['get', 'weight'],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 28, 3, 70, 5, 130, 7, 220],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+        0, 'rgba(0,0,0,0)',
+        0.15, 'rgba(120,12,10,0.45)',
+        0.4, 'rgba(190,30,22,0.60)',
+        0.7, 'rgba(230,70,35,0.78)',
+        1.0, 'rgba(255,150,80,0.90)'],
+      'heatmap-opacity': 0,
+    },
+  }, firstLabel);
+  map.setPaintProperty('proto-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
 }
 
 // Heat layer setup. Source = HEAT_POINTS as a GeoJSON FeatureCollection.
