@@ -46,11 +46,92 @@ const COLORS = {
 const serif = "'Fraunces', Georgia, serif";
 const mono = "'IBM Plex Mono', Menlo, Consolas, monospace";
 
+// ── The Saoghal story ──────────────────────────────────────────────────
+// A chapter-based cinematic: each beat flies the camera somewhere and shows
+// a line of narration. Chapter 1 = origins (Scott's script). Prose is English
+// for now; Gàidhlig titles only where validated — the rest awaits Lewis/Joe.
+// Voiceover audio, faint video, and a B&W+gold map restyle layer on later.
+const STORY = [
+  {
+    id: 'intro',
+    camera: { center: [6, 47], zoom: 2.4, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'An Saoghal · The Story', gd: 'An Saoghal · An Sgeul' },
+    title:   { en: 'Where did the Gaels come from?', gd: 'Cò às a tha thu?' },
+    body:    { en: 'Every Gael’s story begins far older, and far further away, than Scotland.' },
+  },
+  {
+    id: 'proto',
+    camera: { center: [40, 50], zoom: 2.0, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'Bronze Age · Eurasia' },
+    title:   { en: 'The Proto-Gaels' },
+    body:    { en: 'The very first Proto-Gaels were Indo-European Bronze Age tribes — part of the great migrations that spread a family of languages across Eurasia.' },
+  },
+  {
+    id: 'central-europe',
+    camera: { center: [12, 48], zoom: 4.2, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'c. 1200 BC · Central Europe' },
+    title:   { en: 'The forests of Central Europe' },
+    body:    { en: 'By one archaeological model, they consolidated their distinct culture in the forests of Central Europe, around 1200 BC.' },
+  },
+  {
+    id: 'atlantic',
+    camera: { center: [-4, 44], zoom: 4.2, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'c. 2500 BC · The Atlantic' },
+    title:   { en: 'The Atlantic coasts' },
+    body:    { en: 'By another, their culture formed far earlier still — along the Atlantic coasts of France and Spain, as early as 2500 BC.' },
+  },
+  {
+    id: 'keltoi',
+    camera: { center: [7, 47], zoom: 3.0, pitch: 0, bearing: 0 },
+    eyebrow: { en: 'The ancient world' },
+    title:   { en: 'The Keltoi' },
+    body:    { en: 'To the rest of the ancient world, they were not yet “Gaels”. They were simply known as the Keltoi.' },
+  },
+];
+
+const pick = (obj, language) => (obj && language === 'gd' && obj.gd) ? obj.gd : (obj ? obj.en : '');
+
+const playBtnStyle = {
+  position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 6,
+  padding: '12px 24px', background: 'rgba(10,8,7,0.82)', color: '#F2D78A',
+  border: '1px solid #C9A24A', borderRadius: 999, cursor: 'pointer',
+  fontFamily: mono, fontSize: 11, letterSpacing: '2.5px', textTransform: 'uppercase',
+  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+};
+const skipBtnStyle = {
+  position: 'absolute', top: 20, right: 20, zIndex: 7,
+  padding: '8px 14px', background: 'rgba(10,8,7,0.72)', color: '#9C8B6E',
+  border: '1px solid #3A2E1E', borderRadius: 999, cursor: 'pointer',
+  fontFamily: mono, fontSize: 10, letterSpacing: '2px', textTransform: 'uppercase',
+  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+};
+const storyCardStyle = {
+  position: 'absolute', left: '50%', bottom: 36, transform: 'translateX(-50%)', zIndex: 6,
+  width: 'min(680px, 92vw)', textAlign: 'center', padding: '22px 26px 18px',
+  background: 'rgba(10,8,7,0.82)', border: '1px solid #3A2E1E', borderRadius: 8,
+  backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+};
+const storyEyebrowStyle = { margin: '0 0 8px', fontFamily: mono, fontSize: 10, letterSpacing: '2.5px', color: '#9C8B6E', textTransform: 'uppercase' };
+const storyTitleStyle = { margin: '0 0 10px', fontFamily: serif, fontWeight: 700, fontSize: 30, lineHeight: 1.15, color: '#F2D78A' };
+const storyBodyStyle = { margin: '0 auto 18px', maxWidth: 560, fontFamily: serif, fontSize: 16, lineHeight: 1.6, color: '#F2ECDC' };
+const storyNavStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 };
+const dotsStyle = { display: 'flex', gap: 6, alignItems: 'center' };
+const dotStyle = { width: 7, height: 7, borderRadius: '50%', display: 'inline-block', transition: 'background 200ms' };
+const navBtn = (disabled) => ({
+  padding: '8px 16px', background: 'transparent',
+  color: disabled ? '#3A2E1E' : '#F2ECDC',
+  border: `1px solid ${disabled ? '#3A2E1E' : '#6B4E1F'}`, borderRadius: 999,
+  cursor: disabled ? 'default' : 'pointer',
+  fontFamily: mono, fontSize: 10, letterSpacing: '1.5px', textTransform: 'uppercase',
+});
+
 export default function SaoghalPage() {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const [selected, setSelected] = useState(null);
   const [mapReady, setMapReady] = useState(false);
+  const [storyActive, setStoryActive] = useState(false);
+  const [storyStep, setStoryStep] = useState(0);
   const { language, toggleLanguage, t } = useLanguage();
 
   const flyHome = useCallback(() => {
@@ -76,6 +157,29 @@ export default function SaoghalPage() {
       duration: 1400, essential: true,
     });
   }, []);
+
+  // ── Story controls ──────────────────────────────────────────────────
+  const startStory = useCallback(() => {
+    setSelected(null);
+    setStoryStep(0);
+    setStoryActive(true);
+  }, []);
+  const endStory = useCallback(() => {
+    setStoryActive(false);
+    flyHome();
+  }, [flyHome]);
+  const nextStep = useCallback(() => setStoryStep((s) => Math.min(s + 1, STORY.length - 1)), []);
+  const prevStep = useCallback(() => setStoryStep((s) => Math.max(s - 1, 0)), []);
+
+  // Fly the camera as the story advances.
+  useEffect(() => {
+    if (!storyActive || !mapReady) return;
+    const c = STORY[storyStep].camera;
+    mapRef.current?.flyTo({
+      center: c.center, zoom: c.zoom, pitch: c.pitch || 0, bearing: c.bearing || 0,
+      duration: 2600, essential: true,
+    });
+  }, [storyActive, storyStep, mapReady]);
 
   // Keyboard: R or Home resets, Escape closes the side panel.
   useEffect(() => {
@@ -259,7 +363,7 @@ export default function SaoghalPage() {
         title={t('saoghal.reset_title')}
         style={{
           position: 'absolute', top: 20, right: 20, zIndex: 5,
-          display: 'flex', alignItems: 'center', gap: 8,
+          display: storyActive ? 'none' : 'flex', alignItems: 'center', gap: 8,
           padding: '10px 14px',
           background: 'rgba(10, 8, 7, 0.72)',
           color: COLORS.text,
@@ -339,6 +443,7 @@ export default function SaoghalPage() {
           Click a row to fly the globe there. */}
       <div style={{
         position: 'absolute', bottom: 52, left: 20, zIndex: 5,
+        display: storyActive ? 'none' : 'block',
         width: 'min(300px, 82vw)',
         padding: '12px 14px',
         background: 'rgba(10, 8, 7, 0.72)',
@@ -377,11 +482,56 @@ export default function SaoghalPage() {
 
       <footer style={{
         position: 'absolute', bottom: 16, left: 20, zIndex: 4,
+        display: storyActive ? 'none' : 'block',
         fontFamily: mono, fontSize: 9, letterSpacing: '1.5px',
         color: COLORS.textMuted, textTransform: 'uppercase',
       }}>
         Tìr nan Gàidheal · Everywhere
       </footer>
+
+      {/* Story entry — begins the cinematic orientation. */}
+      {!storyActive && (
+        <button type="button" onClick={startStory} style={playBtnStyle}>
+          ▶ {language === 'gd' ? 'Tòisich an sgeul' : 'Begin the story'}
+        </button>
+      )}
+
+      {/* Story overlay — narration card + Back/Next/Skip. */}
+      {storyActive && (() => {
+        const ch = STORY[storyStep];
+        const last = storyStep === STORY.length - 1;
+        return (
+          <>
+            <button type="button" onClick={endStory} style={skipBtnStyle}>
+              {language === 'gd' ? 'Leum thairis' : 'Skip'} ✕
+            </button>
+            <div style={storyCardStyle}>
+              <p style={storyEyebrowStyle}>{pick(ch.eyebrow, language)}</p>
+              <h2 style={storyTitleStyle}>{pick(ch.title, language)}</h2>
+              {pick(ch.body, language) && <p style={storyBodyStyle}>{pick(ch.body, language)}</p>}
+              <div style={storyNavStyle}>
+                <button type="button" onClick={prevStep} disabled={storyStep === 0} style={navBtn(storyStep === 0)}>
+                  ← {language === 'gd' ? 'Air ais' : 'Back'}
+                </button>
+                <div style={dotsStyle}>
+                  {STORY.map((_, i) => (
+                    <span key={i} style={{ ...dotStyle, background: i === storyStep ? '#F2D78A' : '#3A2E1E' }} />
+                  ))}
+                </div>
+                {last ? (
+                  <button type="button" onClick={endStory} style={navBtn(false)}>
+                    {language === 'gd' ? 'Fosgail an saoghal' : 'Explore the map'} →
+                  </button>
+                ) : (
+                  <button type="button" onClick={nextStep} style={navBtn(false)}>
+                    {language === 'gd' ? 'Air adhart' : 'Next'} →
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </main>
   );
 }
