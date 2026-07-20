@@ -84,7 +84,7 @@ function startChromaKey(video, canvas, onDebug) {
         + keyAt(uv+vec2(o.x,0.0))*0.125 + keyAt(uv-vec2(o.x,0.0))*0.125
         + keyAt(uv+vec2(0.0,o.y))*0.125 + keyAt(uv-vec2(0.0,o.y))*0.125;
       float pa = texture2D(prevTex, uv).a;
-      a = mix(a, pa, useHist * 0.68);              // temporal smoothing
+      a = mix(a, pa, useHist * 0.9);               // temporal smoothing (TEST: cranked high)
       vec4 c = texture2D(videoTex, vec2(uv.x, 1.0-uv.y));
       float d = c.g - max(c.r,c.b);
       float spill = clamp(d*1.6, 0.0, 1.0);
@@ -172,7 +172,7 @@ function startChromaKey(video, canvas, onDebug) {
       ping ^= 1; frame++;
       if (onDebug && (frame % 30 === 0)) {
         gl.readPixels(3, 3, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
-        onDebug({ webgl: 'OK', size: `${w}x${h}`, corner: [px[0], px[1], px[2], px[3]] });
+        onDebug({ webgl: 'OK', size: `${w}x${h}`, corner: [px[0], px[1], px[2], px[3]], hist: (useHistLoc !== null && prevLoc !== null) ? 'wired' : 'NULL', fbo: fbos ? 'yes' : 'no' });
       }
     } else if (onDebug && (frame++ % 60 === 0)) {
       onDebug({ webgl: 'OK', size: 'video-not-ready', ready: video.readyState });
@@ -351,7 +351,7 @@ export default function CeilidhStage({ slug }) {
       {localOcc && (
         <div className="cr-dbg">
           you → gs:{String(localOcc.gs)} cam:{String(localOcc.camOn)} track:{String(!!localOcc.trackRef)} path:{!localOcc.camOn ? 'name' : (localOcc.gs && localOcc.trackRef ? 'KEYED' : 'framed')}
-          {dbg ? ` | keyer:${dbg.webgl} ${dbg.size || ''} ${dbg.corner ? `rgba(${dbg.corner.join(',')})` : ''} ${dbg.log || ''}` : ' | keyer:—'}
+          {dbg ? ` | keyer:${dbg.webgl} ${dbg.size || ''} ${dbg.corner ? `rgba(${dbg.corner.join(',')})` : ''} ${dbg.hist ? `hist:${dbg.hist}` : ''} ${dbg.fbo ? `fbo:${dbg.fbo}` : ''} ${dbg.log || ''}` : ' | keyer:—'}
         </div>
       )}
       <StageControls gsOn={localGs} onToggleGs={toggleGs} />
