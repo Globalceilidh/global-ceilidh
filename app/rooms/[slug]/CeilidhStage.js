@@ -193,6 +193,10 @@ export default function CeilidhStage({ slug }) {
   }, [room]);
 
   const [dbg, setDbg] = useState(null);
+  // Local source of truth for your own green-screen state — so your view
+  // keys immediately, independent of the attribute round-trip to the server
+  // (which also propagates it to everyone else).
+  const [myGs, setMyGs] = useState(false);
   const speakingIds = useMemo(() => new Set(speakers.map((p) => p.identity)), [speakers]);
   const trackByIdentity = useMemo(() => {
     const m = {};
@@ -200,7 +204,7 @@ export default function CeilidhStage({ slug }) {
     return m;
   }, [cameraTracks]);
 
-  const localGs = localParticipant?.attributes?.greenscreen === 'on';
+  const localGs = myGs;
 
   const occupants = participants.map((p) => ({
     key: p.identity,
@@ -215,7 +219,8 @@ export default function CeilidhStage({ slug }) {
   const localOcc = occupants.find((o) => o.isLocal);
   const toggleGs = async () => {
     if (!localParticipant) return;
-    const turningOn = !localGs;
+    const turningOn = !myGs;
+    setMyGs(turningOn); // local view keys immediately
     const track = localParticipant.getTrackPublication(Track.Source.Camera)?.track;
     try {
       if (track) {

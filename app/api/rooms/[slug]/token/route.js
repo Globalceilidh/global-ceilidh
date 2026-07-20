@@ -196,6 +196,9 @@ export async function POST(request, { params }) {
     canPublish: true,
     canSubscribe: true,
     canPublishData: true,
+    // Lets a participant set their own attributes (e.g. greenscreen: on) so
+    // the "Sit in the room" state propagates to everyone for chroma-keying.
+    canUpdateOwnMetadata: true,
   });
 
   const token = await at.toJwt();
