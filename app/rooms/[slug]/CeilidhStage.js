@@ -61,13 +61,23 @@ function startChromaKey(video, canvas, onDebug) {
     return s;
   };
   const vs = 'attribute vec2 p; varying vec2 uv; void main(){ uv=(p+1.0)/2.0; gl_Position=vec4(p,0.0,1.0); }';
-  const fs = `precision mediump float; varying vec2 uv; uniform sampler2D tex;
+  const fs = `precision mediump float; varying vec2 uv;
+    uniform sampler2D tex; uniform vec2 res;
+    float keyAt(vec2 p){
+      vec4 c = texture2D(tex, p);
+      float d = c.g - max(c.r, c.b);
+      return 1.0 - smoothstep(0.02, 0.22, d);   // feathered key
+    }
     void main(){
+      vec2 o = 1.3 / res;                          // ~1px offsets
+      // 5-tap spatial average softens the jagged/jittery mask edge
+      float a = keyAt(uv) * 0.5
+        + keyAt(uv + vec2(o.x, 0.0)) * 0.125 + keyAt(uv - vec2(o.x, 0.0)) * 0.125
+        + keyAt(uv + vec2(0.0, o.y)) * 0.125 + keyAt(uv - vec2(0.0, o.y)) * 0.125;
       vec4 c = texture2D(tex, uv);
-      float d = c.g - max(c.r, c.b);            // how green-dominant
-      float a = 1.0 - smoothstep(0.04, 0.18, d); // key it out
-      float spill = clamp(d, 0.0, 1.0);
-      c.g = mix(c.g, max(c.r, c.b), spill);       // suppress green fringe
+      float d = c.g - max(c.r, c.b);
+      float spill = clamp(d * 1.6, 0.0, 1.0);      // stronger despill
+      c.g = mix(c.g, (c.r + c.b) * 0.5, spill);    // pull green fringe to neutral
       gl_FragColor = vec4(c.rgb, a);
     }`;
   const prog = gl.createProgram();
@@ -85,6 +95,7 @@ function startChromaKey(video, canvas, onDebug) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.uniform1i(gl.getUniformLocation(prog, 'tex'), 0);
+  const resLoc = gl.getUniformLocation(prog, 'res');
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   // No blending: the quad covers the whole canvas and we write the alpha
   // straight into the drawing buffer (0 where green). The browser composites
@@ -96,6 +107,7 @@ function startChromaKey(video, canvas, onDebug) {
     if (video.readyState >= 2 && video.videoWidth) {
       const w = video.videoWidth, h = video.videoHeight;
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+      gl.uniform2f(resLoc, w, h);
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
