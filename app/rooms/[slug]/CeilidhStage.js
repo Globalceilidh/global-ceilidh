@@ -56,12 +56,12 @@ function seatStyle(seat) {
 // green video AND blends it with the previous frame's alpha (temporal EMA)
 // to stop the ML mask trembling; PRESENT draws the result to the visible
 // canvas so the room shows through. Ping-pong FBOs hold the frame history.
-function startChromaKey(video, canvas, onDebug) {
+function startChromaKey(video, canvas) {
   const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true });
-  if (!gl) { onDebug?.({ webgl: 'NO-CONTEXT' }); return () => {}; }
+  if (!gl) return () => {};
   const compile = (type, src) => {
     const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) onDebug?.({ webgl: 'SHADER-FAIL', log: gl.getShaderInfoLog(s) });
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error('chroma shader:', gl.getShaderInfoLog(s));
     return s;
   };
   const link = (vsSrc, fsSrc) => {
@@ -69,7 +69,7 @@ function startChromaKey(video, canvas, onDebug) {
     gl.attachShader(p, compile(gl.VERTEX_SHADER, vsSrc));
     gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fsSrc));
     gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) onDebug?.({ webgl: 'LINK-FAIL', log: gl.getProgramInfoLog(p) });
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) console.error('chroma link:', gl.getProgramInfoLog(p));
     return p;
   };
   const VS = 'attribute vec2 pos; varying vec2 uv; void main(){ uv=(pos+1.0)/2.0; gl_Position=vec4(pos,0.0,1.0); }';
@@ -134,7 +134,6 @@ function startChromaKey(video, canvas, onDebug) {
     W = w; H = h; frame = 0;
   };
 
-  const px = new Uint8Array(4);
   let raf, stopped = false;
   const bindQuad = (posLoc) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
@@ -174,12 +173,6 @@ function startChromaKey(video, canvas, onDebug) {
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       ping ^= 1; frame++;
-      if (onDebug && (frame % 30 === 0)) {
-        gl.readPixels(3, 3, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
-        onDebug({ webgl: 'OK', size: `${w}x${h}`, corner: [px[0], px[1], px[2], px[3]], hist: (useHistLoc !== null && prevLoc !== null) ? 'wired' : 'NULL', fbo: fbos ? 'yes' : 'no' });
-      }
-    } else if (onDebug && (frame++ % 60 === 0)) {
-      onDebug({ webgl: 'OK', size: 'video-not-ready', ready: video.readyState });
     }
     raf = requestAnimationFrame(draw);
   };
@@ -187,7 +180,7 @@ function startChromaKey(video, canvas, onDebug) {
   return () => { stopped = true; cancelAnimationFrame(raf); };
 }
 
-function ChromaKeyVideo({ trackRef, onDebug }) {
+function ChromaKeyVideo({ trackRef }) {
   const canvasRef = useRef(null);
   useEffect(() => {
     const track = trackRef?.publication?.track;
@@ -196,7 +189,7 @@ function ChromaKeyVideo({ trackRef, onDebug }) {
     video.muted = true; video.playsInline = true; video.autoplay = true;
     track.attach(video);
     const p = video.play?.(); if (p?.catch) p.catch(() => {});
-    const stop = startChromaKey(video, canvasRef.current, onDebug);
+    const stop = startChromaKey(video, canvasRef.current);
     return () => { stop(); try { track.detach(video); } catch { /* gone */ } };
   }, [trackRef?.publication?.track]);
   return <canvas ref={canvasRef} className="cr-keyed" />;
@@ -214,14 +207,14 @@ function Portrait({ trackRef, name, isLocal, speaking }) {
 }
 
 // One seat's content: green-key, framed, or name-only (camera off).
-function SeatContent({ o, allowKey, onDebug }) {
+function SeatContent({ o, allowKey }) {
   if (!o.camOn) {
     return <div className="cr-nameonly"><div className="cr-name">{o.name}{o.isLocal ? ' (you)' : ''}</div></div>;
   }
   if (allowKey && o.gs && o.trackRef) {
     return (
       <div className={`cr-keyedwrap${o.speaking ? ' cr-glow' : ''}`}>
-        <ChromaKeyVideo trackRef={o.trackRef} onDebug={onDebug} />
+        <ChromaKeyVideo trackRef={o.trackRef} />
         <div className="cr-name">{o.name}{o.isLocal ? ' (you)' : ''}</div>
       </div>
     );
@@ -265,7 +258,6 @@ export default function CeilidhStage({ slug }) {
     };
   }, [room]);
 
-  const [dbg, setDbg] = useState(null);
   // Local source of truth for your own green-screen state — so your view
   // keys immediately, independent of the attribute round-trip to the server
   // (which also propagates it to everyone else).
@@ -289,7 +281,6 @@ export default function CeilidhStage({ slug }) {
     trackRef: trackByIdentity[p.identity] || null,
     speaking: speakingIds.has(p.identity),
   }));
-  const localOcc = occupants.find((o) => o.isLocal);
   const toggleGs = async () => {
     if (!localParticipant) return;
     const turningOn = !myGs;
@@ -331,7 +322,7 @@ export default function CeilidhStage({ slug }) {
           const o = occupants[i];
           return (
             <div key={i} className="cr-seat" style={seatStyle(seat)}>
-              {o ? <SeatContent o={o} allowKey onDebug={o.isLocal ? setDbg : undefined} /> : <div className="cr-ghost">Seat {i + 1}</div>}
+              {o ? <SeatContent o={o} allowKey /> : <div className="cr-ghost">Seat {i + 1}</div>}
             </div>
           );
         })}
@@ -352,12 +343,6 @@ export default function CeilidhStage({ slug }) {
           </div>
         )}
       </div>
-      {localOcc && (
-        <div className="cr-dbg">
-          you → gs:{String(localOcc.gs)} cam:{String(localOcc.camOn)} track:{String(!!localOcc.trackRef)} path:{!localOcc.camOn ? 'name' : (localOcc.gs && localOcc.trackRef ? 'KEYED' : 'framed')}
-          {dbg ? ` | keyer:${dbg.webgl} ${dbg.size || ''} ${dbg.corner ? `rgba(${dbg.corner.join(',')})` : ''} ${dbg.hist ? `hist:${dbg.hist}` : ''} ${dbg.fbo ? `fbo:${dbg.fbo}` : ''} ${dbg.log || ''}` : ' | keyer:—'}
-        </div>
-      )}
       <StageControls gsOn={localGs} onToggleGs={toggleGs} />
       <style>{CSS}</style>
     </div>
@@ -402,12 +387,6 @@ const CSS = `
   border: 2px dashed rgba(201,160,71,0.55); border-radius: 4px; color: rgba(242,236,220,0.72);
   background: rgba(11,8,5,0.28); font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: 0.85vw; letter-spacing: 0.04em; text-transform: uppercase; }
-
-/* temporary keyer diagnostic */
-.cr-dbg { position: absolute; top: 12px; left: 12px; z-index: 20;
-  font-family: ui-monospace, monospace; font-size: 12px; color: #9EE39E;
-  background: rgba(0,0,0,0.8); padding: 6px 10px; border-radius: 6px;
-  border: 1px solid rgba(158,227,158,0.4); max-width: 90vw; }
 
 /* the agenda, written on the room's whiteboard */
 .cr-whiteboard { position: absolute; background: rgba(240,238,230,0.9);
