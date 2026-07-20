@@ -51,69 +51,126 @@ function seatStyle(seat) {
   };
 }
 
-// ── WebGL chroma key: green → transparent, with spill suppression ──────
+// ── WebGL chroma key with temporal + spatial mask smoothing ────────────
+// Two passes: KEY computes a feathered, spatially-blurred alpha from the
+// green video AND blends it with the previous frame's alpha (temporal EMA)
+// to stop the ML mask trembling; PRESENT draws the result to the visible
+// canvas so the room shows through. Ping-pong FBOs hold the frame history.
 function startChromaKey(video, canvas, onDebug) {
-  const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true, antialias: true });
+  const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true });
   if (!gl) { onDebug?.({ webgl: 'NO-CONTEXT' }); return () => {}; }
   const compile = (type, src) => {
     const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) onDebug?.({ webgl: 'SHADER-FAIL', log: gl.getShaderInfoLog(s) });
     return s;
   };
-  const vs = 'attribute vec2 p; varying vec2 uv; void main(){ uv=(p+1.0)/2.0; gl_Position=vec4(p,0.0,1.0); }';
-  const fs = `precision mediump float; varying vec2 uv;
-    uniform sampler2D tex; uniform vec2 res;
-    float keyAt(vec2 p){
-      vec4 c = texture2D(tex, p);
-      float d = c.g - max(c.r, c.b);
-      return 1.0 - smoothstep(0.02, 0.22, d);   // feathered key
-    }
+  const link = (vsSrc, fsSrc) => {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(gl.VERTEX_SHADER, vsSrc));
+    gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fsSrc));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) onDebug?.({ webgl: 'LINK-FAIL', log: gl.getProgramInfoLog(p) });
+    return p;
+  };
+  const VS = 'attribute vec2 pos; varying vec2 uv; void main(){ uv=(pos+1.0)/2.0; gl_Position=vec4(pos,0.0,1.0); }';
+  // KEY: video is uploaded un-flipped, so sample it y-inverted. Feathered
+  // 5-tap spatial key, then EMA with the previous frame's alpha.
+  const KEY_FS = `precision mediump float; varying vec2 uv;
+    uniform sampler2D videoTex; uniform sampler2D prevTex; uniform vec2 res; uniform float useHist;
+    float keyAt(vec2 p){ vec4 c=texture2D(videoTex, vec2(p.x, 1.0-p.y)); float d=c.g-max(c.r,c.b); return 1.0-smoothstep(0.02,0.22,d); }
     void main(){
-      vec2 o = 1.3 / res;                          // ~1px offsets
-      // 5-tap spatial average softens the jagged/jittery mask edge
-      float a = keyAt(uv) * 0.5
-        + keyAt(uv + vec2(o.x, 0.0)) * 0.125 + keyAt(uv - vec2(o.x, 0.0)) * 0.125
-        + keyAt(uv + vec2(0.0, o.y)) * 0.125 + keyAt(uv - vec2(0.0, o.y)) * 0.125;
-      vec4 c = texture2D(tex, uv);
-      float d = c.g - max(c.r, c.b);
-      float spill = clamp(d * 1.6, 0.0, 1.0);      // stronger despill
-      c.g = mix(c.g, (c.r + c.b) * 0.5, spill);    // pull green fringe to neutral
+      vec2 o = 1.3/res;
+      float a = keyAt(uv)*0.5
+        + keyAt(uv+vec2(o.x,0.0))*0.125 + keyAt(uv-vec2(o.x,0.0))*0.125
+        + keyAt(uv+vec2(0.0,o.y))*0.125 + keyAt(uv-vec2(0.0,o.y))*0.125;
+      float pa = texture2D(prevTex, uv).a;
+      a = mix(a, pa, useHist * 0.68);              // temporal smoothing
+      vec4 c = texture2D(videoTex, vec2(uv.x, 1.0-uv.y));
+      float d = c.g - max(c.r,c.b);
+      float spill = clamp(d*1.6, 0.0, 1.0);
+      c.g = mix(c.g, (c.r+c.b)*0.5, spill);
       gl_FragColor = vec4(c.rgb, a);
     }`;
-  const prog = gl.createProgram();
-  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
-  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
-  gl.linkProgram(prog); gl.useProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) onDebug?.({ webgl: 'LINK-FAIL', log: gl.getProgramInfoLog(prog) });
-  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  const PRESENT_FS = 'precision mediump float; varying vec2 uv; uniform sampler2D src; void main(){ gl_FragColor = texture2D(src, uv); }';
+
+  const keyProg = link(VS, KEY_FS);
+  const presentProg = link(VS, PRESENT_FS);
+  const quad = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quad);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(prog, 'p');
-  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.uniform1i(gl.getUniformLocation(prog, 'tex'), 0);
-  const resLoc = gl.getUniformLocation(prog, 'res');
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-  // No blending: the quad covers the whole canvas and we write the alpha
-  // straight into the drawing buffer (0 where green). The browser composites
-  // the alpha:true canvas over the stage, so the room shows through.
-  let raf, stopped = false, frame = 0;
+  const keyPos = gl.getAttribLocation(keyProg, 'pos');
+  const presentPos = gl.getAttribLocation(presentProg, 'pos');
+  const videoLoc = gl.getUniformLocation(keyProg, 'videoTex');
+  const prevLoc = gl.getUniformLocation(keyProg, 'prevTex');
+  const resLoc = gl.getUniformLocation(keyProg, 'res');
+  const useHistLoc = gl.getUniformLocation(keyProg, 'useHist');
+  const srcLoc = gl.getUniformLocation(presentProg, 'src');
+
+  const setupTex = (t) => {
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  };
+  const videoTex = gl.createTexture(); setupTex(videoTex);
+
+  let fbos = null, W = 0, H = 0, ping = 0, frame = 0;
+  const makeFbos = (w, h) => {
+    const mk = () => {
+      const t = gl.createTexture(); setupTex(t);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      const fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+      return { fb, tex: t };
+    };
+    fbos = [mk(), mk()];
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    W = w; H = h; frame = 0;
+  };
+
   const px = new Uint8Array(4);
+  let raf, stopped = false;
+  const bindQuad = (posLoc) => {
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+  };
   const draw = () => {
     if (stopped) return;
     if (video.readyState >= 2 && video.videoWidth) {
       const w = video.videoWidth, h = video.videoHeight;
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
-      gl.uniform2f(resLoc, w, h);
-      gl.bindTexture(gl.TEXTURE_2D, tex);
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      if (W !== w || H !== h) makeFbos(w, h);
+
+      gl.bindTexture(gl.TEXTURE_2D, videoTex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+
+      const cur = fbos[ping], prev = fbos[ping ^ 1];
+
+      // KEY pass → cur FBO
+      gl.bindFramebuffer(gl.FRAMEBUFFER, cur.fb);
+      gl.viewport(0, 0, w, h);
+      gl.useProgram(keyProg);
+      bindQuad(keyPos);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, videoTex); gl.uniform1i(videoLoc, 0);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, prev.tex); gl.uniform1i(prevLoc, 1);
+      gl.uniform2f(resLoc, w, h);
+      gl.uniform1f(useHistLoc, frame < 2 ? 0.0 : 1.0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      // PRESENT pass → visible canvas
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, w, h);
+      gl.useProgram(presentProg);
+      bindQuad(presentPos);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, cur.tex); gl.uniform1i(srcLoc, 0);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      if (onDebug && (frame++ % 30 === 0)) {
-        // sample a bottom-left corner pixel (usually background) of the OUTPUT
+
+      ping ^= 1; frame++;
+      if (onDebug && (frame % 30 === 0)) {
         gl.readPixels(3, 3, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
         onDebug({ webgl: 'OK', size: `${w}x${h}`, corner: [px[0], px[1], px[2], px[3]] });
       }
