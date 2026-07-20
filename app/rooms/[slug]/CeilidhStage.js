@@ -84,7 +84,11 @@ function startChromaKey(video, canvas, onDebug) {
         + keyAt(uv+vec2(o.x,0.0))*0.125 + keyAt(uv-vec2(o.x,0.0))*0.125
         + keyAt(uv+vec2(0.0,o.y))*0.125 + keyAt(uv-vec2(0.0,o.y))*0.125;
       float pa = texture2D(prevTex, uv).a;
-      a = mix(a, pa, useHist * 0.9);               // temporal smoothing (TEST: cranked high)
+      // Motion-adaptive: smooth hard where the mask is stable (kills edge
+      // shimmer), back off where it's changing fast (avoids ghosting).
+      float diff = abs(a - pa);
+      float k = useHist * 0.82 * (1.0 - smoothstep(0.04, 0.28, diff));
+      a = mix(a, pa, k);
       vec4 c = texture2D(videoTex, vec2(uv.x, 1.0-uv.y));
       float d = c.g - max(c.r,c.b);
       float spill = clamp(d*1.6, 0.0, 1.0);
