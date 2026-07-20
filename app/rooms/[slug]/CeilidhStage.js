@@ -84,6 +84,10 @@ function startChromaKey(video, canvas) {
         + keyAt(uv+vec2(o.x,0.0))*0.125 + keyAt(uv-vec2(o.x,0.0))*0.125
         + keyAt(uv+vec2(0.0,o.y))*0.125 + keyAt(uv-vec2(0.0,o.y))*0.125;
       float pa = texture2D(prevTex, uv).a;
+      // Hysteresis: only near the uncertain edge (a≈0.5), nudge toward the
+      // previous frame's decision so pixels stop flipping fg/bg each frame.
+      float edge = 1.0 - abs(a - 0.5) * 2.0;       // 1 at the edge, 0 when confident
+      a = clamp(a + (pa - 0.5) * 0.55 * edge, 0.0, 1.0);
       // Motion-adaptive: smooth hard where the mask is stable (kills edge
       // shimmer), back off where it's changing fast (avoids ghosting).
       float diff = abs(a - pa);
