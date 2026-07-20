@@ -20,8 +20,8 @@ const BOARDROOM = {
     { x: 89, y: 71, width: 17, rotation: -6 },  // 2 — across from you (mirror)
     { x: 26, y: 58, width: 13, rotation: 4 },   // 3 — mid-left
     { x: 74, y: 58, width: 13, rotation: -4 },  // 4 — mid-right
-    { x: 42, y: 43, width: 9,  rotation: 2 },   // 5 — back-left (up + toward table)
-    { x: 58, y: 43, width: 9,  rotation: -2 },  // 6 — back-right (up + toward table)
+    { x: 38, y: 47, width: 10, rotation: 2 },   // 5 — back-left
+    { x: 62, y: 47, width: 10, rotation: -2 },  // 6 — back-right
   ],
   // The whiteboard on the wall in the art — overlay position (% of image)
   // + the agenda written on it. Tune the box to sit on the real board.

@@ -212,6 +212,7 @@ export default function CeilidhStage({ slug }) {
     trackRef: trackByIdentity[p.identity] || null,
     speaking: speakingIds.has(p.identity),
   }));
+  const localOcc = occupants.find((o) => o.isLocal);
   const toggleGs = async () => {
     if (!localParticipant) return;
     const turningOn = !localGs;
@@ -273,13 +274,10 @@ export default function CeilidhStage({ slug }) {
           </div>
         )}
       </div>
-      {dbg && (
+      {localOcc && (
         <div className="cr-dbg">
-          keyer: {dbg.webgl}
-          {dbg.size ? ` · ${dbg.size}` : ''}
-          {dbg.corner ? ` · corner rgba(${dbg.corner.join(',')})` : ''}
-          {dbg.ready != null ? ` · readyState ${dbg.ready}` : ''}
-          {dbg.log ? ` · ${dbg.log}` : ''}
+          you → gs:{String(localOcc.gs)} cam:{String(localOcc.camOn)} track:{String(!!localOcc.trackRef)} path:{!localOcc.camOn ? 'name' : (localOcc.gs && localOcc.trackRef ? 'KEYED' : 'framed')}
+          {dbg ? ` | keyer:${dbg.webgl} ${dbg.size || ''} ${dbg.corner ? `rgba(${dbg.corner.join(',')})` : ''} ${dbg.log || ''}` : ' | keyer:—'}
         </div>
       )}
       <StageControls gsOn={localGs} onToggleGs={toggleGs} />
