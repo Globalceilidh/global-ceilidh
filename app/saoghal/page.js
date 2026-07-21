@@ -119,11 +119,14 @@ const STORY = [
   },
   {
     id: 'rome',
-    camera: { center: [-3, 50.5], zoom: 3.8, pitch: 0, bearing: 0 },
+    // Pulled back to fit the whole empire — Iberia to the Euphrates, the Wall to
+    // Aswan — while keeping Ireland and the Pictish north on screen, because the
+    // two holes in the bloom are the point of the beat.
+    camera: { center: [10, 43], zoom: 3.0, pitch: 0, bearing: 0 },
     regions: ['ireland'],
     eyebrow: { en: '19 BC → · Rome' },
     title:   { en: 'Rome crushes the continent' },
-    body:    { en: 'Augustus subdued the Gallaeci; southern Britain fell soon after. But Rome halted at Hadrian’s Wall — beyond it the Picts stayed free — and it never crossed to Ireland. In those free lands the imported Q-Celtic was left to become Old Irish.' },
+    body:    { en: 'Augustus subdued the Gallaeci; southern Britain fell soon after. In time Rome held every shore of the Mediterranean — Gaul, Iberia, Egypt, Judaea, Africa, Asia Minor — from the Atlantic to the Euphrates. But it halted at Hadrian’s Wall, beyond which the Picts stayed free, and it never crossed to Ireland. In those two free lands the imported Q-Celtic was left to become Old Irish.' },
   },
   {
     id: 'dal-riata',
@@ -1153,9 +1156,13 @@ const CENTRAL_PTS = [[8, 48], [12, 48], [16, 49], [20, 49], [24, 50], [14, 46], 
 // Atlantic model — a teal bloom hugging the western seaboard (Brittany → the
 // Bay of Biscay → NW Iberia / Galicia), where Celtic culture grew in place.
 const ATLANTIC_PTS = [[-4, 48], [-2.5, 47], [-1.5, 45.5], [-1.5, 44], [-8, 43], [-8.5, 42], [-9, 41.5], [-8, 41], [-6.5, 43], [-3.5, 46]];
-// Rome — a crimson wash over Iberia, Gaul and southern Britain only. NO points
-// over Ireland, and nothing past ~53°N so the bloom fades before Hadrian's Wall
-// — Rome never took the Pictish north.
+// Rome — a crimson wash over the WHOLE empire at its height (c. AD 117): every
+// shore of the Mediterranean, from Iberia round through Egypt and Judaea to
+// Asia Minor and the Danube. The two deliberate holes are the story's whole
+// point: NO points over Ireland, and nothing past ~55°N, so the bloom dies at
+// Hadrian's Wall — Rome took the known world but never the Gaels or the Picts.
+// South-east limit is Hegra (~26.8°N) in the Hejaz: Arabia Petraea reached that
+// far and no further. The rest of the Arabian peninsula was never Roman.
 const ROME_PTS = [
   // Iberia
   [-8, 40], [-6, 40], [-4, 40], [-4, 38], [-6, 37.5], [-8, 38.5], [-2, 39], [-1, 41], [-3, 42], [-5, 42], [-7, 42], [0, 41], [-2, 43],
@@ -1165,8 +1172,26 @@ const ROME_PTS = [
   [-2, 51], [0, 52], [-1, 53], [-2.5, 54], [-1.5, 54.7], [1, 52],
   // Italy + the Alps
   [8, 45], [10, 45], [12, 42], [14, 41], [15, 40], [16, 41], [12, 44], [9, 44], [8, 47], [10, 47], [11, 46],
-  // Mediterranean rim — N Africa, Greece, the Balkans, W Asia Minor
-  [3, 36], [8, 36], [10, 34], [-1, 35], [20, 40], [22, 39], [24, 41], [18, 43], [27, 39],
+  // the great islands — Sicily, Sardinia, Corsica, Crete, Cyprus
+  [14, 37.5], [15, 37], [9, 40], [9, 42], [25, 35], [33, 35],
+  // N Africa west — Mauretania, Numidia, Africa Proconsularis
+  [-6, 35], [-4, 35], [-2, 35], [0, 36], [2, 36], [4, 36], [6, 36], [8, 36], [9, 35], [10, 36], [10, 34], [11, 33],
+  // Libya — Tripolitania then Cyrenaica, a coastal strip (the Sahara was never provincial)
+  [13, 32.5], [15, 31.5], [17, 31], [19, 31], [20, 32], [22, 32.5], [24, 31.5],
+  // Egypt — the delta and the Nile valley south to the First Cataract at Aswan
+  [26, 31], [28, 31], [30, 31], [31, 30], [31, 29], [32, 28], [32, 27], [33, 26], [33, 25], [33, 24],
+  // Judaea, Phoenicia, Syria — east to the Euphrates frontier
+  [35, 31.5], [35, 32.5], [35.5, 33.5], [36, 34.5], [36.5, 35.5], [37, 36], [38, 36.5], [40, 36], [38, 35],
+  // Sinai + Arabia Petraea — Petra, Bostra, and south to Hegra. NOT the peninsula.
+  [34, 29], [35, 30], [36, 30], [36, 31], [37, 29], [38, 28], [37.9, 26.8],
+  // Asia Minor
+  [27, 38], [29, 38], [31, 38], [33, 38], [35, 38], [37, 38], [27, 40], [29, 40], [31, 40], [33, 40], [35, 40], [37, 40],
+  [28, 37], [30, 37], [32, 37], [34, 37], [36, 37], [39, 39], [41, 40], [28, 38.5],
+  // Greece, the Aegean and Thrace
+  [20, 40], [22, 39], [24, 41], [22, 41], [21, 38], [23, 38], [25, 39], [24, 37], [22, 37], [26, 41], [28, 41],
+  // the Danube — Noricum, Pannonia, Dacia, Moesia
+  [13, 47], [14, 45], [15, 45], [16, 46], [17, 47], [18, 45], [19, 47], [20, 46],
+  [22, 45], [23, 46], [24, 44], [25, 46], [26, 44], [27, 45], [28, 44], [18, 43], [20, 43], [22, 43], [24, 43], [26, 43],
 ];
 // Alba (beat: picts). Two blooms of blue — the Gaelic west and the Pictish
 // north-east — that hold apart for a beat, then crossfade into one saltire blue
@@ -1345,7 +1370,11 @@ function addRomeHeat(map) {
     paint: {
       'heatmap-weight': ['get', 'weight'],
       'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
-      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 28, 3, 70, 5, 130, 7, 220],
+      // Radius is in SCREEN px, so it covers more ground the further you zoom
+      // out. Kept tight (~3.3° of lng at the beat's zoom 3.0) — wide enough that
+      // the 2°-spaced points blend into one wash, narrow enough that the bloom
+      // cannot bleed the ~5.5° across the Irish Sea and redden Ireland.
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 14, 3, 38, 5, 72, 7, 130],
       // Dark oxblood — much darker than the bright orange-red steppe bloom.
       'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
         0, 'rgba(0,0,0,0)',
