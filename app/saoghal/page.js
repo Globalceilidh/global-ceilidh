@@ -634,20 +634,20 @@ export default function SaoghalPage() {
         zIndex: 5, display: storyActive ? 'none' : 'block',
         width: 'min(640px, 92vw)', textAlign: 'center',
         padding: isMobile ? '13px 16px' : '16px 22px',
-        background: 'rgba(10, 8, 7, 0.74)',
-        border: `1px solid ${COLORS.border}`,
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        borderRadius: 8,
+        background: 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(255,255,255,0.14)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+        borderRadius: 12,
       }}>
         <p style={{
           margin: 0, fontFamily: mono, fontSize: 10, letterSpacing: '2.5px',
-          color: COLORS.textMuted, textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', textShadow: '0 1px 10px rgba(0,0,0,0.8)',
         }}>Global Ceilidh · An Saoghal</p>
 
         <p style={{
           margin: '9px 0 8px', fontFamily: serif, fontStyle: 'italic',
-          fontSize: isMobile ? 16 : 20, lineHeight: 1.35, color: COLORS.text,
+          fontSize: isMobile ? 16 : 20, lineHeight: 1.35, color: '#FFFFFF', textShadow: '0 2px 20px rgba(0,0,0,0.85)',
         }}>
           {language === 'gd'
             ? 'Chan e àite as motha a th’ anns a’ choimhearsnachd Ghàidhlig san t‑saoghal — tha i air‑loidhne, anns gach àite. Agus tha thu gu bhith a’ tighinn dhan Chèilidh.'
@@ -655,15 +655,14 @@ export default function SaoghalPage() {
         </p>
         <p style={{
           margin: 0, fontFamily: serif, fontSize: isMobile ? 12.5 : 14,
-          lineHeight: 1.55, color: COLORS.textMuted,
+          lineHeight: 1.55, color: 'rgba(255,255,255,0.96)', textShadow: '0 1px 14px rgba(0,0,0,0.85)',
         }}>
           {language === 'gd'
             ? 'Tha barrachd dhaoine ag ionnsachadh ’s a’ bruidhinn Gàidhlig an‑diugh na aig àm sam bith eile san eachdraidh. Faigh a‑mach cò às a thàinig na Gàidheil, càit an deach iad — agus mar a chuireas tusa ris an sgeul.'
             : 'There are more people learning and speaking Gàidhlig today than at any moment in history. Find out where the Gaels came from, where they went — and how you’ll add to the story.'}
         </p>
 
-        {/* EN ⇄ GD pill toggle — mirrors the site-nav toggle but
-            restyled for the dark map chrome. */}
+        {/* EN ⇄ GD pill toggle — white-on-glass to match the story player. */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
           <button
             type="button"
@@ -673,29 +672,29 @@ export default function SaoghalPage() {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '5px 10px',
-              background: 'rgba(10, 8, 7, 0.5)',
-              border: `1px solid ${COLORS.border}`,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.3)',
               cursor: 'pointer',
               fontFamily: mono, fontSize: 10, letterSpacing: '2px',
-              textTransform: 'uppercase',
+              textTransform: 'uppercase', textShadow: '0 1px 8px rgba(0,0,0,0.6)',
             }}
           >
-            <span style={{ color: language === 'en' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>EN</span>
+            <span style={{ color: language === 'en' ? '#FFFFFF' : 'rgba(255,255,255,0.5)', fontWeight: 600 }}>EN</span>
             <span style={{
               display: 'inline-block', position: 'relative',
               width: 28, height: 14, borderRadius: 7,
-              background: language === 'gd' ? COLORS.goldDeep : '#3A2E1E',
+              background: language === 'gd' ? '#FFFFFF' : 'rgba(255,255,255,0.22)',
               transition: 'background 200ms ease',
             }}>
               <span style={{
                 position: 'absolute', top: 1.5,
                 width: 11, height: 11, borderRadius: '50%',
-                background: COLORS.text,
+                background: language === 'gd' ? '#14110D' : '#FFFFFF',
                 left: language === 'gd' ? 14 : 1.5,
                 transition: 'left 200ms ease',
               }}/>
             </span>
-            <span style={{ color: language === 'gd' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>GD</span>
+            <span style={{ color: language === 'gd' ? '#FFFFFF' : 'rgba(255,255,255,0.5)', fontWeight: 600 }}>GD</span>
           </button>
         </div>
       </header>
