@@ -20,7 +20,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HEAT_POINTS } from './heat';
 import { PLACES } from './places';
-import { SCOTLAND_GEO, IRELAND_GEO, WALES_GEO, MAN_GEO, DAL_RIATA_GEO } from './regions';
+import { SCOTLAND_GEO, IRELAND_GEO, WALES_GEO, MAN_GEO, DAL_RIATA_GEO, BRITTANY_GEO, IONA_GEO, ISLAY_GEO, LORDSHIP_GEO, NORTH_INCH_GEO } from './regions';
 import { useLanguage } from '../../context/LanguageContext';
 
 const BASEMAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
@@ -135,16 +135,17 @@ const STORY = [
   },
   {
     id: 'columba',
-    camera: { center: [-6.4, 56.33], zoom: 7.2, pitch: 0, bearing: 0 },
-    regions: ['dalriata'],
+    // Iona is only about 5km long — at the old zoom 7.6 it was a few pixels.
+    camera: { center: [-6.40, 56.334], zoom: 10.2, pitch: 0, bearing: 0 },
+    regions: ['iona'],
     eyebrow: { en: '563 AD · Ì Chaluim Chille' },
     title:   { en: 'Columba and Iona' },
     body:    { en: 'From Ireland, Colum Cille — Columba — founded a monastery on the tiny isle of Iona. It became the powerhouse of Gaelic Christianity and learning, sending monks, manuscripts and the faith across Alba and far beyond.' },
   },
   {
     id: 'the-name',
-    camera: { center: [-4, 53], zoom: 5.0, pitch: 0, bearing: 0 },
-    regions: ['wales', 'man'],
+    camera: { center: [-4, 52], zoom: 4.8, pitch: 0, bearing: 0 },
+    regions: ['wales', 'man', 'breton'],
     eyebrow: { en: 'The cousins · the name' },
     title:   { en: 'Who named the Gaels' },
     body:    { en: 'Our Brythonic cousins — the Welsh, with the Cornish and Bretons — called the Irish Gwyddel. That word became Goídel, then Gàidheal: “Gael”. Our own Goidelic family runs Irish, Scottish Gaelic, and the Manx of the Isle of Man.' },
@@ -152,7 +153,7 @@ const STORY = [
   {
     id: 'picts',
     camera: { center: [-4.2, 57], zoom: 5.1, pitch: 0, bearing: 0 },
-    regions: ['scotland'],
+    regions: [],   // the saltire fill is faded in by the Alba merge effect, on a delay
     eyebrow: { en: 'c. 843 AD · Alba' },
     title:   { en: 'The Gael and the Pict' },
     body:    { en: 'The west was Gaelic Dàl Riata; the north and east belonged to the Picts. Under Cináed mac Ailpín the two crowns became one kingdom — Alba — and the Pictish tongue dissolved into Gàidhlig.' },
@@ -167,25 +168,62 @@ const STORY = [
   {
     id: 'high-water',
     camera: { center: [-4, 57], zoom: 5.0, pitch: 0, bearing: 0 },
-    regions: ['scotland-gael'],
+    regions: [],   // the gold sweep carries this beat on its own
     eyebrow: { en: 'c. 1000–1100 AD · High-water' },
     title:   { en: 'Gàidhlig across all Alba' },
     body:    { en: 'At its height, Gàidhlig was spoken across almost the whole of Scotland — from Galloway in the south to the far north. It was the tongue of kings, court and country alike.' },
   },
   {
+    id: 'bruce',
+    camera: { center: [-5.4, 55.6], zoom: 5.2, pitch: 0, bearing: 0 },
+    regions: ['scotland', 'ireland'],
+    eyebrow: { en: '1314–1318 · Am Brusach' },
+    title:   { en: 'Robert the Bruce — the true Braveheart' },
+    body:    { en: 'Bannockburn was won with Gaelic swords: Aonghas Òg of Islay and the MacDonalds held Bruce’s right flank. The name “Braveheart” is his own — his heart was carried into battle in Spain in a silver casket. And in 1316 his brother Edward was crowned High King of Ireland: for two years one house came close to ruling every Gael alive.' },
+  },
+  {
     id: 'lordship',
     camera: { center: [-6.2, 57], zoom: 5.3, pitch: 0, bearing: 0 },
-    regions: ['dalriata'],
+    regions: ['lordship', 'islay'],
     eyebrow: { en: '1336–1493 · Rìoghachd nan Eilean' },
     title:   { en: 'The Lordship of the Isles' },
     body:    { en: 'From Somerled’s Norse-Gaelic line rose the Lordship of the Isles — a sea-kingdom of the Hebrides and western seaboard, ruled from Finlaggan on Islay. A golden age of Gaelic poetry, law, music and galleys.' },
   },
   {
     id: 'north-inch',
-    camera: { center: [-3.43, 56.4], zoom: 8.5, pitch: 0, bearing: 0 },
+    camera: { center: [-3.4329, 56.4045], zoom: 14.9, pitch: 0, bearing: 0 },
+    regions: ['north-inch'],
     eyebrow: { en: '1396 · The North Inch' },
     title:   { en: 'The Battle of the North Inch' },
-    body:    { en: 'At Perth, thirty against thirty, two Highland kindreds were made to fight to the death before the king — as sport. Clan turned upon clan. The beginning of the end, as the crown learned to set the Gael against the Gael.' },
+    body:    { en: 'On this meadow by the Tay, thirty against thirty, two Highland kindreds were made to fight to the death before the king — as sport. Robert III Stewart watched from the stand; his brothers, the Duke of Albany and Alexander, the Wolf of Badenoch, had spent years playing kindred against kindred in the north. Clan turned upon clan. The crown had learned to set the Gael against the Gael.' },
+  },
+  {
+    id: 'harlaw',
+    camera: { center: [-2.44, 57.31], zoom: 8.4, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1411 · Cath Gairbheach' },
+    title:   { en: 'Red Harlaw' },
+    body:    { en: 'Dòmhnall of Islay, Lord of the Isles, marched east to claim the earldom of Ross — the men of the Gàidhealtachd against the burghers of Aberdeen. Both sides left the field claiming victory, and the dead lay in heaps. Lowland Scotland remembered it as the day the Gael came for them.' },
+  },
+  {
+    id: 'forfeiture',
+    camera: { center: [-6.2, 56.9], zoom: 5.2, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1493 · The forfeiture' },
+    title:   { en: 'The Lordship is broken' },
+    body:    { en: 'James IV stripped the last Lord of the Isles of everything. The sea-kingdom was carved up among rival kindreds, and the one power that could answer Edinburgh was gone. The clans were left to fight each other over the wreckage — exactly as the crown intended.' },
+  },
+  {
+    id: 'inverlochy',
+    camera: { center: [-5.08, 56.83], zoom: 9.0, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1645 · Blàr Inbhir Lòchaidh' },
+    title:   { en: 'Inverlochy' },
+    body:    { en: 'Alasdair Mac Colla brought his MacDonalds over the winter shoulder of the Nevis range and fell on Clan Campbell at dawn. Fifteen hundred Campbells died. It was fought under the crown’s quarrel — but the blades were Gaelic on both sides, and the grudge behind them was three hundred years old.' },
+  },
+  {
+    id: 'killiecrankie',
+    camera: { center: [-3.75, 56.73], zoom: 9.4, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1689 · Raon Ruairidh' },
+    title:   { en: 'Killiecrankie' },
+    body:    { en: 'The Highland charge at its most terrible — the clans came down the pass and broke a government army in the time it takes to say a paternoster. Then Iain Dubh nan Cath, Bonnie Dundee, took a musket ball at the moment of victory, and the rising died with him.' },
   },
 
   // ── Chapter 3 · The Scattering ────────────────────────────────────────
@@ -202,6 +240,20 @@ const STORY = [
     eyebrow: { en: '1700 · The collapse' },
     title:   { en: 'The dream drowns' },
     body:    { en: 'Disease, hunger and abandonment destroyed the colony. Darién bankrupted Scotland — and by 1707 a broke nation was folded into union with England. The road out was about to be forced open.' },
+  },
+  {
+    id: 'risings',
+    camera: { center: [-4.2, 56.7], zoom: 6.4, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1715 & 1719 · The risings' },
+    title:   { en: 'Sheriffmuir and Glen Shiel' },
+    body:    { en: 'The Earl of Mar raised the standard at Braemar, outnumbered his enemy two to one at Sheriffmuir — and threw it away. Four years later a Spanish-backed rising ended in Glen Shiel, beneath the peak still called Sgùrr nan Spàinteach, the Spaniards’ Peak. Each failure brought more forts, more roads and more redcoats into the glens.' },
+  },
+  {
+    id: 'culloden',
+    camera: { center: [-4.093, 57.478], zoom: 11.4, pitch: 0, bearing: 0 },
+    eyebrow: { en: '1746 · Blàr Chùil Lodair' },
+    title:   { en: 'Culloden' },
+    body:    { en: 'Forty minutes on open moor — and Gaels stood on both sides of it. Then the killing of the wounded, the burning of the glens, and the Act of Proscription: the tartan outlawed, the chiefs’ powers broken, the clan system dismantled by statute. Not merely the end of a rising — the beginning of the deliberate unmaking of the Gàidhealtachd.' },
   },
   {
     id: 'clearances',
@@ -357,12 +409,22 @@ export default function SaoghalPage() {
     set('ireland-line', 'line-opacity', has('ireland') ? 0.85 : 0);
     set('wales-fill', 'fill-opacity', has('wales') ? 0.34 : 0);
     set('wales-line', 'line-opacity', has('wales') ? 0.85 : 0);
-    set('man-fill', 'fill-opacity', has('man') ? 0.55 : 0);   // Man is tiny — punchier
-    set('man-line', 'line-opacity', has('man') ? 0.95 : 0);
+    set('man-fill', 'fill-opacity', has('man') ? 0.6 : 0);    // Man is tiny — punchier
+    set('man-line', 'line-opacity', has('man') ? 1 : 0);
+    set('brittany-fill', 'fill-opacity', has('breton') ? 0.9 : 0); // bright hot white
+    set('brittany-line', 'line-opacity', has('breton') ? 1 : 0);
     set('scotland-gael-fill', 'fill-opacity', has('scotland-gael') ? 0.34 : 0);
     set('scotland-gael-line', 'line-opacity', has('scotland-gael') ? 0.7 : 0);
     set('dalriata-fill', 'fill-opacity', has('dalriata') ? 0.42 : 0);
     set('dalriata-line', 'line-opacity', has('dalriata') ? 0.95 : 0);
+    set('iona-fill', 'fill-opacity', has('iona') ? 0.85 : 0);   // tiny island — near-solid
+    set('iona-line', 'line-opacity', has('iona') ? 1 : 0);
+    set('lordship-fill', 'fill-opacity', has('lordship') ? 0.28 : 0);  // light reach…
+    set('lordship-line', 'line-opacity', has('lordship') ? 0.8 : 0);
+    set('islay-fill', 'fill-opacity', has('islay') ? 0.92 : 0);        // …dark seat
+    set('islay-line', 'line-opacity', has('islay') ? 1 : 0);
+    set('north-inch-fill', 'fill-opacity', has('north-inch') ? 0.55 : 0);
+    set('north-inch-line', 'line-opacity', has('north-inch') ? 1 : 0);
   }, [mapReady, storyActive, storyStep]);
 
   // Red origin bloom: fade in on the steppe (beat 2 = Proto-Gaels), then
@@ -461,6 +523,88 @@ export default function SaoghalPage() {
       set('keltoi-heat-layer', 0);
     }
     return () => { if (keltoiTimer.current) { clearTimeout(keltoiTimer.current); keltoiTimer.current = null; } };
+  }, [mapReady, storyActive, storyStep]);
+
+  // Alba — two blooms of blue (Gaelic west, Pictish north-east) hold apart, then
+  // crossfade into one saltire blue as the two crowns become one kingdom. Same
+  // shape as the Keltoi merge above; the saltire region fill comes up with it.
+  const albaTimer = useRef(null);
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    if (!map) return;
+    if (albaTimer.current) { clearTimeout(albaTimer.current); albaTimer.current = null; }
+    const set = (id, v) => { if (map.getLayer(id)) map.setPaintProperty(id, 'heatmap-opacity', v); };
+    if (storyActive && STORY[storyStep]?.id === 'picts') {
+      set('gael-blue-heat-layer', 0.9);
+      set('pict-blue-heat-layer', 0.9);
+      set('alba-heat-layer', 0);
+      albaTimer.current = setTimeout(() => {
+        set('gael-blue-heat-layer', 0);
+        set('pict-blue-heat-layer', 0);
+        set('alba-heat-layer', 0.92);
+        if (map.getLayer('scotland-fill')) map.setPaintProperty('scotland-fill', 'fill-opacity', 0.3);
+        if (map.getLayer('scotland-line')) map.setPaintProperty('scotland-line', 'line-opacity', 0.85);
+      }, 2200);
+    } else {
+      set('gael-blue-heat-layer', 0);
+      set('pict-blue-heat-layer', 0);
+      set('alba-heat-layer', 0);
+    }
+    return () => { if (albaTimer.current) { clearTimeout(albaTimer.current); albaTimer.current = null; } };
+  }, [mapReady, storyActive, storyStep]);
+
+  // Gàidhlig high-water — the gold tide sweeps in from the Outer Hebrides and
+  // runs east across the country. Each point lights as the front passes it.
+  const sweepRaf = useRef(null);
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    const src = map?.getSource('high-water-heat');
+    if (!src) return;
+    if (sweepRaf.current) { cancelAnimationFrame(sweepRaf.current); sweepRaf.current = null; }
+
+    if (!(storyActive && STORY[storyStep]?.id === 'high-water')) {
+      map.setPaintProperty('high-water-heat-layer', 'heatmap-opacity', 0);
+      src.setData(heatFC([]));
+      return;
+    }
+    map.setPaintProperty('high-water-heat-layer', 'heatmap-opacity', 0.92);
+    // The front runs a little past the east coast so the last points reach full
+    // weight; `feather` is how many degrees of longitude the leading edge blurs.
+    const feather = 1.4;
+    const span = (HW_EAST - HW_WEST) + feather * 2;
+    const dur = 4200, t0 = performance.now();
+    const frame = (now) => {
+      const t = Math.min((now - t0) / dur, 1);
+      const front = HW_WEST - feather + t * span;
+      src.setData(heatFC(HIGH_WATER_PTS.map((c) => {
+        const w = Math.max(0, Math.min(1, (front - c[0]) / feather));
+        return heatFeat(c, w);
+      })));
+      if (t < 1) sweepRaf.current = requestAnimationFrame(frame);
+    };
+    sweepRaf.current = requestAnimationFrame(frame);
+    return () => { if (sweepRaf.current) { cancelAnimationFrame(sweepRaf.current); sweepRaf.current = null; } };
+  }, [mapReady, storyActive, storyStep]);
+
+  // Battle-site markers — shown on the beats listed in BATTLE_SITES.
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    const src = map?.getSource('battles');
+    if (!src) return;
+    const cur = storyActive ? STORY[storyStep]?.id : null;
+    const sites = (cur && BATTLE_SITES[cur]) || [];
+    src.setData(heatFC(sites.map(([lng, lat, name]) => ({
+      type: 'Feature', properties: { name }, geometry: { type: 'Point', coordinates: [lng, lat] },
+    }))));
+    const on = sites.length > 0;
+    const set = (id, prop, v) => { if (map.getLayer(id)) map.setPaintProperty(id, prop, v); };
+    set('battles-halo', 'circle-opacity', on ? 0.45 : 0);
+    set('battles-dot', 'circle-opacity', on ? 0.95 : 0);
+    set('battles-dot', 'circle-stroke-opacity', on ? 1 : 0);
+    set('battles-label', 'text-opacity', on ? 1 : 0);
   }, [mapReady, storyActive, storyStep]);
 
   // Migration arrows — per beat (Galatians on the Galatians beat, via step tag).
@@ -604,6 +748,9 @@ export default function SaoghalPage() {
       addRomeHeat(map);
       addGalatiaHeat(map);
       addKeltoiHeat(map);
+      addAlbaHeat(map);
+      addHighWaterHeat(map);
+      addBattleSites(map);
       addMigrationArrows(map);
       uniformLabelTiming(map);
       setMapReady(true);
@@ -964,7 +1111,12 @@ function addRegionHighlights(map) {
 
   map.addSource('wales', { type: 'geojson', data: WALES_GEO });
   map.addSource('man', { type: 'geojson', data: MAN_GEO });
+  map.addSource('brittany', { type: 'geojson', data: BRITTANY_GEO });
   map.addSource('dalriata', { type: 'geojson', data: DAL_RIATA_GEO });
+  map.addSource('iona', { type: 'geojson', data: IONA_GEO });
+  map.addSource('islay', { type: 'geojson', data: ISLAY_GEO });
+  map.addSource('lordship', { type: 'geojson', data: LORDSHIP_GEO });
+  map.addSource('north-inch', { type: 'geojson', data: NORTH_INCH_GEO });
 
   fill('scotland-fill', 'scotland', '#2F6FD0');   // saltire blue (the modern country)
   line('scotland-line', 'scotland', '#8FB8F2');
@@ -972,12 +1124,24 @@ function addRegionHighlights(map) {
   line('scotland-gael-line', 'scotland', '#7FD9AC');
   fill('ireland-fill', 'ireland', '#1A9E5F');      // Irish green (Goidelic)
   line('ireland-line', 'ireland', '#6FD8A6');
-  fill('wales-fill', 'wales', '#E0873C');          // Brythonic — warm amber
-  line('wales-line', 'wales', '#F2B577');
-  fill('man-fill', 'man', '#1A9E5F');              // Manx = Goidelic, green like Ireland
-  line('man-line', 'man', '#6FD8A6');
-  fill('dalriata-fill', 'dalriata', '#2FB57E');    // Dàl Riata / the Lordship — Gael green
+  fill('wales-fill', 'wales', '#C8102E');          // Welsh flag red
+  line('wales-line', 'wales', '#00AB39');          // Welsh flag green
+  fill('man-fill', 'man', '#CE1124');              // Isle of Man — red…
+  line('man-line', 'man', '#E4B23C');              // …with a gold outline
+  fill('brittany-fill', 'brittany', '#FFFFFF');    // the Bretons — bright hot white
+  line('brittany-line', 'brittany', '#FFFFFF');
+  fill('dalriata-fill', 'dalriata', '#2FB57E');    // Dàl Riata — Gael green
   line('dalriata-line', 'dalriata', '#7CE3B4');
+  fill('iona-fill', 'iona', '#F2D78A');            // Iona — the lamp; gold, glowing
+  line('iona-line', 'iona', '#FFF6DA');
+  // Lordship of the Isles — royal violet. The reach is the light fill; Islay,
+  // the seat at Finlaggan, is the same hue driven much darker to read as capital.
+  fill('lordship-fill', 'lordship', '#B79CE0');
+  line('lordship-line', 'lordship', '#CBB7EE');
+  fill('islay-fill', 'islay', '#4C2A7A');
+  line('islay-line', 'islay', '#E8DBFF');
+  fill('north-inch-fill', 'north-inch', '#B3121B');  // the meadow at Perth — blood red…
+  line('north-inch-line', 'north-inch', '#E4B23C');  // …ringed in gold
 }
 
 // Red "origin" heat bloom for the story. Fades in on the Pontic-Caspian steppe
@@ -992,7 +1156,50 @@ const ATLANTIC_PTS = [[-4, 48], [-2.5, 47], [-1.5, 45.5], [-1.5, 44], [-8, 43], 
 // Rome — a crimson wash over Iberia, Gaul and southern Britain only. NO points
 // over Ireland, and nothing past ~53°N so the bloom fades before Hadrian's Wall
 // — Rome never took the Pictish north.
-const ROME_PTS = [[-4, 40], [0, 41], [3, 43], [-1, 45], [2, 47], [5, 46], [8, 48], [4, 49], [1, 50], [-2, 52], [-2, 53], [10, 47], [6, 44], [-6, 40], [-8, 38.5], [12, 49]];
+const ROME_PTS = [
+  // Iberia
+  [-8, 40], [-6, 40], [-4, 40], [-4, 38], [-6, 37.5], [-8, 38.5], [-2, 39], [-1, 41], [-3, 42], [-5, 42], [-7, 42], [0, 41], [-2, 43],
+  // Gaul
+  [-1, 45], [1, 44], [3, 43], [2, 47], [5, 46], [4, 48], [6, 45], [0, 48], [2, 49], [-1, 47], [5, 50], [7, 48], [0, 46],
+  // southern Britain — up to Hadrian's Wall (~54.9), never beyond
+  [-2, 51], [0, 52], [-1, 53], [-2.5, 54], [-1.5, 54.7], [1, 52],
+  // Italy + the Alps
+  [8, 45], [10, 45], [12, 42], [14, 41], [15, 40], [16, 41], [12, 44], [9, 44], [8, 47], [10, 47], [11, 46],
+  // Mediterranean rim — N Africa, Greece, the Balkans, W Asia Minor
+  [3, 36], [8, 36], [10, 34], [-1, 35], [20, 40], [22, 39], [24, 41], [18, 43], [27, 39],
+];
+// Alba (beat: picts). Two blooms of blue — the Gaelic west and the Pictish
+// north-east — that hold apart for a beat, then crossfade into one saltire blue
+// as the two crowns become one kingdom under Cináed mac Ailpín.
+const GAEL_BLUE_PTS = [[-5.6, 55.6], [-5.3, 56.0], [-5.6, 56.4], [-6.1, 56.6], [-5.9, 57.0], [-6.4, 57.4], [-5.5, 56.8], [-6.6, 56.0], [-5.1, 55.8]];
+const PICT_BLUE_PTS = [[-3.5, 57.5], [-2.6, 57.5], [-3.0, 58.0], [-4.0, 57.9], [-2.8, 56.9], [-3.4, 56.6], [-4.2, 57.4], [-2.2, 57.2], [-3.9, 58.3], [-2.5, 56.6]];
+// The merged kingdom — both bloom fields plus the central Highlands that join them.
+const ALBA_PTS = [...GAEL_BLUE_PTS, ...PICT_BLUE_PTS, [-4.3, 56.9], [-4.6, 57.2], [-4.0, 56.5], [-4.4, 56.3]];
+
+// Gàidhlig high-water (beat: high-water). A gold tide that starts in the Outer
+// Hebrides and runs east across the whole country. Deliberately listed west to
+// east — the sweep animation reads longitude, so order here is documentation.
+const HIGH_WATER_PTS = [
+  [-7.4, 57.6], [-7.3, 58.2], [-7.0, 57.0], [-6.8, 58.2], [-6.5, 57.4], [-6.4, 56.4], [-6.2, 55.8],
+  [-5.9, 57.8], [-5.6, 56.3], [-5.4, 55.6], [-5.2, 58.3], [-5.0, 56.8], [-4.8, 57.5], [-4.6, 55.2],
+  [-4.4, 58.4], [-4.4, 54.9], [-4.2, 56.9], [-4.0, 57.6], [-4.0, 55.0], [-3.8, 55.9], [-3.6, 56.5],
+  [-3.4, 58.4], [-3.2, 55.7], [-3.0, 57.9], [-2.8, 57.2], [-2.5, 56.8], [-2.2, 57.5],
+];
+const HW_WEST = Math.min(...HIGH_WATER_PTS.map((p) => p[0]));
+const HW_EAST = Math.max(...HIGH_WATER_PTS.map((p) => p[0]));
+
+// Battle sites, keyed by story beat. These beats sit at zoom 8–14, well past the
+// heatmaps' maxzoom of 9, so the bloom layers can't mark them — a plain circle
+// does. `risings` carries two: Sheriffmuir and Glen Shiel.
+const BATTLE_SITES = {
+  bruce:         [[-3.915, 56.090, 'Bannockburn 1314']],
+  harlaw:        [[-2.443, 57.318, 'Harlaw 1411']],
+  inverlochy:    [[-5.085, 56.828, 'Inverlochy 1645']],
+  killiecrankie: [[-3.760, 56.735, 'Killiecrankie 1689']],
+  risings:       [[-3.905, 56.222, 'Sheriffmuir 1715'], [-5.320, 57.150, 'Glen Shiel 1719']],
+  culloden:      [[-4.093, 57.478, 'Culloden 1746']],
+};
+
 // Hadrian's Wall — Rome's northern limit (Solway → Tyne).
 const HADRIANS_WALL = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[-3.21, 54.95], [-2.55, 54.99], [-1.53, 54.99]] } }] };
 const heatFeat = (c, w) => ({ type: 'Feature', properties: { weight: w }, geometry: { type: 'Point', coordinates: c } });
@@ -1042,6 +1249,90 @@ function addAtlanticHeat(map) {
     },
   }, firstLabel);
   map.setPaintProperty('atlantic-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
+}
+
+// Shared heatmap paint for the story blooms — only the colour ramp differs.
+const bloomPaint = (ramp) => ({
+  'heatmap-weight': ['get', 'weight'],
+  'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 1.1, 7, 1.6],
+  'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 28, 3, 70, 5, 130, 7, 220],
+  'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], ...ramp],
+  'heatmap-opacity': 0,
+});
+
+// Alba — the two blues and the saltire blue they become.
+function addAlbaHeat(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+  const add = (id, pts, ramp) => {
+    map.addSource(id, { type: 'geojson', data: heatFC(pts.map((c) => heatFeat(c, 1))) });
+    map.addLayer({ id: `${id}-layer`, type: 'heatmap', source: id, maxzoom: 9, paint: bloomPaint(ramp) }, firstLabel);
+    map.setPaintProperty(`${id}-layer`, 'heatmap-opacity-transition', { duration: 1200 });
+  };
+  // The Gaelic west — a bright sea-blue.
+  add('gael-blue-heat', GAEL_BLUE_PTS, [
+    0, 'rgba(0,0,0,0)', 0.15, 'rgba(10,60,110,0.45)', 0.4, 'rgba(20,110,190,0.62)',
+    0.7, 'rgba(55,160,235,0.80)', 1.0, 'rgba(150,215,255,0.92)']);
+  // The Pictish north-east — a deeper, colder indigo.
+  add('pict-blue-heat', PICT_BLUE_PTS, [
+    0, 'rgba(0,0,0,0)', 0.15, 'rgba(20,22,80,0.45)', 0.4, 'rgba(38,44,140,0.62)',
+    0.7, 'rgba(72,84,200,0.80)', 1.0, 'rgba(150,160,245,0.92)']);
+  // One kingdom — saltire blue (#2F6FD0), the same blue the Scotland fill uses.
+  add('alba-heat', ALBA_PTS, [
+    0, 'rgba(0,0,0,0)', 0.15, 'rgba(16,45,95,0.48)', 0.4, 'rgba(31,80,160,0.66)',
+    0.7, 'rgba(47,111,208,0.84)', 1.0, 'rgba(143,184,242,0.94)']);
+}
+
+// Battle sites — a blood-red disc ringed in gold, with the name beside it.
+function addBattleSites(map) {
+  map.addSource('battles', { type: 'geojson', data: heatFC([]) });
+  map.addLayer({
+    id: 'battles-halo', type: 'circle', source: 'battles',
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 10, 9, 22, 13, 40],
+      'circle-color': '#B3121B', 'circle-opacity': 0, 'circle-blur': 0.9,
+    },
+  });
+  map.addLayer({
+    id: 'battles-dot', type: 'circle', source: 'battles',
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 4.5, 9, 7, 13, 11],
+      'circle-color': '#C8102E', 'circle-opacity': 0,
+      'circle-stroke-color': '#E4B23C', 'circle-stroke-width': 1.8, 'circle-stroke-opacity': 0,
+    },
+  });
+  map.addLayer({
+    id: 'battles-label', type: 'symbol', source: 'battles',
+    layout: {
+      'text-field': ['get', 'name'],
+      // Same font as the place-name labels — the only one proven present in the
+      // CARTO dark-matter glyph set. Don't swap it for a weight that 404s.
+      'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+      'text-size': 12.5, 'text-offset': [0, 1.5], 'text-anchor': 'top',
+      'text-allow-overlap': true,
+    },
+    paint: {
+      'text-color': '#F2ECDC', 'text-halo-color': '#0B0B0B', 'text-halo-width': 1.6,
+      'text-opacity': 0,
+    },
+  });
+  for (const [id, prop] of [['battles-halo', 'circle-opacity'], ['battles-dot', 'circle-opacity'], ['battles-dot', 'circle-stroke-opacity'], ['battles-label', 'text-opacity']]) {
+    map.setPaintProperty(id, `${prop}-transition`, { duration: 900 });
+  }
+}
+
+// Gàidhlig high-water — one gold bloom, swept on from the west.
+function addHighWaterHeat(map) {
+  const layers = map.getStyle().layers || [];
+  const firstLabel = layers.find((l) => /label|place|country/i.test(l.id))?.id;
+  map.addSource('high-water-heat', { type: 'geojson', data: heatFC([]) });
+  map.addLayer({
+    id: 'high-water-heat-layer', type: 'heatmap', source: 'high-water-heat', maxzoom: 9,
+    paint: bloomPaint([
+      0, 'rgba(0,0,0,0)', 0.15, 'rgba(90,60,10,0.45)', 0.4, 'rgba(170,120,25,0.64)',
+      0.7, 'rgba(225,175,55,0.82)', 1.0, 'rgba(255,232,150,0.94)']),
+  }, firstLabel);
+  map.setPaintProperty('high-water-heat-layer', 'heatmap-opacity-transition', { duration: 1200 });
 }
 
 // Rome — crimson wash over the continent + Britain (Ireland left clear).

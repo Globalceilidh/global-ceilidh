@@ -10,5 +10,28 @@ export const WALES_GEO = {"type":"FeatureCollection","features":[{"type":"Featur
 
 export const MAN_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Isle of Man"},"geometry":{"type":"Polygon","coordinates":[[[-4.412,54.185],[-4.614,54.059],[-4.696,54.081],[-4.766,54.069],[-4.785,54.073],[-4.746,54.119],[-4.699,54.225],[-4.615,54.267],[-4.509,54.377],[-4.425,54.407],[-4.396,54.403],[-4.377,54.393],[-4.338,54.269],[-4.392,54.225],[-4.412,54.185]]]}}]};
 
+// The Brittany peninsula (the Bretons — Brythonic cousins). A coast envelope
+// derived from the OSM Bretagne région boundary (north = max lat per lon bin,
+// south = min lat), so it sits on the real coastline instead of floating.
+export const BRITTANY_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Brittany"},"geometry":{"type":"Polygon","coordinates":[[[-4.705,48.592],[-4.476,48.647],[-4.247,48.679],[-4.017,48.742],[-3.788,48.716],[-3.558,48.882],[-3.329,48.855],[-3.1,48.866],[-2.87,48.781],[-2.641,48.582],[-2.412,48.679],[-2.182,48.659],[-1.953,48.699],[-1.723,48.715],[-1.494,48.555],[-1.265,48.539],[-1.035,48.514],[-1.035,47.98],[-1.265,47.798],[-1.494,47.778],[-1.723,47.7],[-1.953,47.693],[-2.182,47.507],[-2.412,47.446],[-2.641,47.496],[-2.87,47.345],[-3.1,47.288],[-3.329,47.302],[-3.558,47.644],[-3.788,47.781],[-4.017,47.713],[-4.247,47.798],[-4.476,47.823],[-4.705,48.026],[-4.705,48.592]]]}}]};
+
 // Hand-drawn: the Dàl Riata / western-seaboard heartland (Argyll + inner Hebrides).
 export const DAL_RIATA_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Dal Riata"},"geometry":{"type":"Polygon","coordinates":[[[-5.75,55.3],[-5.2,55.45],[-5.05,55.9],[-5.1,56.25],[-5.45,56.55],[-6.05,56.65],[-6.4,56.45],[-6.35,55.95],[-6.45,55.6],[-6.1,55.35],[-5.75,55.3]]]}}]};
+
+// Ì Chaluim Chille — the isle of Iona itself. Tiny (about 5km by 2.5km), so the
+// Columba beat zooms right in on it; at that zoom a hand-traced outline is fine.
+export const IONA_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Iona"},"geometry":{"type":"Polygon","coordinates":[[[-6.382,56.35],[-6.388,56.351],[-6.391,56.348],[-6.408,56.347],[-6.415,56.342],[-6.427,56.339],[-6.431,56.333],[-6.422,56.329],[-6.422,56.325],[-6.425,56.324],[-6.425,56.321],[-6.445,56.314],[-6.44,56.312],[-6.44,56.31],[-6.422,56.307],[-6.407,56.314],[-6.392,56.331],[-6.385,56.336],[-6.385,56.343],[-6.382,56.35]]]}}]};
+
+// Islay — the seat of the Lordship (Finlaggan). Ring lifted from the Natural
+// Earth Scotland multipolygon above so the coastline matches the basemap exactly.
+export const ISLAY_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Islay"},"geometry":{"type":"Polygon","coordinates":[[[-6.129,55.931],[-6.093,55.802],[-6.058,55.723],[-6.055,55.695],[-6.088,55.658],[-6.253,55.607],[-6.305,55.607],[-6.307,55.619],[-6.27,55.67],[-6.302,55.728],[-6.286,55.773],[-6.302,55.781],[-6.334,55.774],[-6.452,55.704],[-6.491,55.697],[-6.496,55.712],[-6.466,55.769],[-6.463,55.808],[-6.445,55.832],[-6.413,55.855],[-6.375,55.871],[-6.344,55.874],[-6.311,55.856],[-6.216,55.905],[-6.129,55.931]]]}}]};
+
+// Hand-drawn: the full reach of the Lordship of the Isles at its height —
+// Kintyre and Argyll up the western seaboard through Lochaber and Wester Ross,
+// out across Skye, the Uists and Lewis. Wider than DAL_RIATA_GEO on purpose.
+export const LORDSHIP_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Lordship of the Isles"},"geometry":{"type":"Polygon","coordinates":[[[-5.60,55.30],[-5.05,55.45],[-4.95,55.95],[-5.05,56.30],[-5.35,56.60],[-5.60,56.90],[-5.65,57.25],[-5.55,57.60],[-5.30,58.00],[-5.10,58.30],[-6.10,58.55],[-7.20,58.30],[-7.70,57.70],[-7.60,57.00],[-7.10,56.60],[-6.60,56.20],[-6.60,55.60],[-6.30,55.25],[-5.60,55.30]]]}}]};
+
+// The North Inch at Perth — the meadow between the town and the River Tay where
+// the thirty-against-thirty was fought in 1396. Still a park; outline is the
+// real OSM leisure=park boundary (way 24240615), simplified to 3–5dp.
+export const NORTH_INCH_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"North Inch"},"geometry":{"type":"Polygon","coordinates":[[[-3.42927,56.39908],[-3.43153,56.39961],[-3.43277,56.40108],[-3.4326,56.40112],[-3.43444,56.40359],[-3.4359,56.40335],[-3.43639,56.40416],[-3.43514,56.40446],[-3.43596,56.40574],[-3.43615,56.40675],[-3.43568,56.40765],[-3.43488,56.40859],[-3.43372,56.40856],[-3.43315,56.40835],[-3.43214,56.40755],[-3.43057,56.40678],[-3.42977,56.40585],[-3.42885,56.40394],[-3.42702,56.39895],[-3.42927,56.39908]]]}}]};
