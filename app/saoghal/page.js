@@ -229,6 +229,32 @@ const STORY = [
 
 const pick = (obj, language) => (obj && language === 'gd' && obj.gd) ? obj.gd : (obj ? obj.en : '');
 
+// Small viewport detection — the page is all inline styles (no media queries),
+// so mobile layout branches read this instead.
+function useIsMobile(bp = 760) {
+  const [m, setM] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width:${bp}px)`);
+    const on = () => setM(mq.matches);
+    on(); mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, [bp]);
+  return m;
+}
+
+// Pick a home zoom that keeps the whole globe on screen. On a narrow phone the
+// desktop zoom (1.5 ≈ 460px sphere) overflows the viewport width; scale the
+// zoom so the globe diameter lands at ~0.8× the smaller screen dimension.
+// Globe diameter in px ≈ 512 · 2^zoom / π (MapLibre globe projection).
+function fitGlobeZoom() {
+  if (typeof window === 'undefined') return HOME_ZOOM;
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w >= 760) return HOME_ZOOM;               // desktop unchanged
+  const targetPx = 0.8 * Math.min(w, h);
+  const z = Math.log2((targetPx * Math.PI) / 512);
+  return Math.max(-1, Math.min(z, HOME_ZOOM));
+}
+
 const playBtnStyle = {
   position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 6,
   padding: '12px 24px', background: 'rgba(10,8,7,0.82)', color: '#F2D78A',
@@ -270,6 +296,8 @@ export default function SaoghalPage() {
   const [mapReady, setMapReady] = useState(false);
   const [storyActive, setStoryActive] = useState(false);
   const [storyStep, setStoryStep] = useState(0);
+  const isMobile = useIsMobile();
+  const [bearingsOpen, setBearingsOpen] = useState(false); // mobile: collapsed by default
   const { language, toggleLanguage, t } = useLanguage();
 
   const flyHome = useCallback(() => {
@@ -277,7 +305,7 @@ export default function SaoghalPage() {
     if (!map) return;
     setSelected(null);
     map.flyTo({
-      center: HOME_CENTER, zoom: HOME_ZOOM,
+      center: HOME_CENTER, zoom: fitGlobeZoom(),
       bearing: 0, pitch: 0,
       duration: 1200, essential: true,
     });
@@ -559,7 +587,7 @@ export default function SaoghalPage() {
       // place-name pins still work at town scale.
       projection: 'globe',
       center: HOME_CENTER,        // North Atlantic — Scotland + Cape Breton + diaspora arc all visible
-      zoom: HOME_ZOOM,
+      zoom: fitGlobeZoom(),
       attributionControl: { compact: true },
     });
     mapRef.current = map;
@@ -594,6 +622,41 @@ export default function SaoghalPage() {
       mapRef.current = null;
     };
   }, []);
+
+  // The bearings panel's inner content — shared between the desktop panel and
+  // the mobile collapsible sheet so there's one source of truth.
+  const bearingsInner = (
+    <>
+      <p style={{
+        margin: '0 0 10px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
+        color: COLORS.textMuted, textTransform: 'uppercase',
+      }}>The heartlands · and how far you stand</p>
+
+      <DiasporaClock onSelect={flyToAnchor} />
+
+      {/* The reframe: the largest Gàidhlig community isn't a place — it's the
+          global online one. Join from anywhere and you're 700,001. */}
+      <div style={{ height: 1, background: COLORS.border, margin: '12px 0' }} />
+      <p style={{
+        margin: '0 0 8px', fontFamily: serif, fontStyle: 'italic',
+        fontSize: 13, lineHeight: 1.5, color: COLORS.text,
+      }}>
+        The largest Gàidhlig community in the world isn’t a place — it’s online, everywhere.
+      </p>
+      <p style={{
+        margin: '0 0 12px', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.5px',
+        lineHeight: 1.6, color: COLORS.textMuted,
+      }}>
+        <span style={{ color: COLORS.goldLight }}>700,000</span> speakers &amp; learners.
+        Join from where you stand — and you’re <span style={{ color: COLORS.goldLight }}>700,001</span>.
+      </p>
+      <a href="/welcome" style={{
+        display: 'inline-block', fontFamily: mono, fontSize: 10, letterSpacing: '2px',
+        textTransform: 'uppercase', color: COLORS.goldLight, textDecoration: 'none',
+        borderBottom: `1px solid ${COLORS.goldDeep}`, paddingBottom: 2,
+      }}>Join the Cèilidh →</a>
+    </>
+  );
 
   return (
     <main style={{
@@ -749,49 +812,58 @@ export default function SaoghalPage() {
       )}
 
       {/* Diaspora nav panel — your bearings to the cultural anchors.
-          Click a row to fly the globe there. */}
-      <div style={{
-        position: 'absolute', bottom: 52, left: 20, zIndex: 5,
-        display: storyActive ? 'none' : 'block',
-        width: 'min(300px, 82vw)',
-        padding: '12px 14px',
-        background: 'rgba(10, 8, 7, 0.72)',
-        border: `1px solid ${COLORS.border}`,
-        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-      }}>
-        <p style={{
-          margin: '0 0 10px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
-          color: COLORS.textMuted, textTransform: 'uppercase',
-        }}>The heartlands · and how far you stand</p>
-
-        <DiasporaClock onSelect={flyToAnchor} />
-
-        {/* The reframe: the largest Gàidhlig community isn't a place — it's the
-            global online one. Join from anywhere and you're 700,001. */}
-        <div style={{ height: 1, background: COLORS.border, margin: '12px 0' }} />
-        <p style={{
-          margin: '0 0 8px', fontFamily: serif, fontStyle: 'italic',
-          fontSize: 13, lineHeight: 1.5, color: COLORS.text,
+          Click a row to fly the globe there. On desktop it's an always-open
+          panel bottom-left; on mobile it would eat the whole screen (6 cards +
+          reframe ≈ 550px), so it collapses behind a "Your bearings" pill and
+          expands into a height-capped, scrollable sheet. */}
+      {!storyActive && !isMobile && (
+        <div style={{
+          position: 'absolute', bottom: 52, left: 20, zIndex: 5,
+          width: 'min(300px, 82vw)',
+          padding: '12px 14px',
+          background: 'rgba(10, 8, 7, 0.72)',
+          border: `1px solid ${COLORS.border}`,
+          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
         }}>
-          The largest Gàidhlig community in the world isn’t a place — it’s online, everywhere.
-        </p>
-        <p style={{
-          margin: '0 0 12px', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.5px',
-          lineHeight: 1.6, color: COLORS.textMuted,
-        }}>
-          <span style={{ color: COLORS.goldLight }}>700,000</span> speakers &amp; learners.
-          Join from where you stand — and you’re <span style={{ color: COLORS.goldLight }}>700,001</span>.
-        </p>
-        <a href="/welcome" style={{
-          display: 'inline-block', fontFamily: mono, fontSize: 10, letterSpacing: '2px',
-          textTransform: 'uppercase', color: COLORS.goldLight, textDecoration: 'none',
-          borderBottom: `1px solid ${COLORS.goldDeep}`, paddingBottom: 2,
-        }}>Join the Cèilidh →</a>
-      </div>
+          {bearingsInner}
+        </div>
+      )}
+
+      {!storyActive && isMobile && (
+        <div style={{ position: 'absolute', bottom: 76, left: 12, zIndex: 5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          {bearingsOpen && (
+            <div style={{
+              width: 'min(280px, 86vw)', maxHeight: '46vh', overflowY: 'auto',
+              marginBottom: 8, padding: '12px 14px', borderRadius: 8,
+              background: 'rgba(10, 8, 7, 0.92)',
+              border: `1px solid ${COLORS.border}`,
+              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            }}>
+              {bearingsInner}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setBearingsOpen((o) => !o)}
+            aria-expanded={bearingsOpen}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
+              background: 'rgba(10, 8, 7, 0.82)', color: COLORS.text,
+              border: `1px solid ${COLORS.border}`,
+              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+              fontFamily: mono, fontSize: 10, letterSpacing: '2px', textTransform: 'uppercase',
+            }}
+          >
+            <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1, color: COLORS.goldLight }}>◎</span>
+            {bearingsOpen ? 'Hide bearings' : 'Your bearings'}
+          </button>
+        </div>
+      )}
 
       <footer style={{
         position: 'absolute', bottom: 16, left: 20, zIndex: 4,
-        display: storyActive ? 'none' : 'block',
+        display: (storyActive || isMobile) ? 'none' : 'block',
         fontFamily: mono, fontSize: 9, letterSpacing: '1.5px',
         color: COLORS.textMuted, textTransform: 'uppercase',
       }}>
