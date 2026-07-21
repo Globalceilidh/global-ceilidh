@@ -254,42 +254,44 @@ function fitGlobeZoom() {
   return Math.max(-1, Math.min(z, HOME_ZOOM));
 }
 
-// The story "text player" cluster is a frosted WHITE glass overlay you can
-// see the globe through — kept black-and-white because Saoghal is still in
-// Kansas. Colour is reserved for the Sruth/Oz side of the site.
+// The story "text player" sits over the LIVE globe: bright white words on a
+// barely-there translucent panel, so the globe reads straight through it. The
+// panel hugs the bottom, and the story camera reserves the bottom third
+// (flyTo padding) so the globe action stays framed in the top 2/3. Still
+// black-and-white — Saoghal is Kansas; colour is reserved for the Sruth/Oz side.
 const playBtnStyle = {
   position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 6,
-  padding: '12px 24px', background: 'rgba(255,255,255,0.82)', color: '#14110D',
-  border: '1px solid rgba(255,255,255,0.6)', borderRadius: 999, cursor: 'pointer',
+  padding: '12px 24px', background: 'rgba(255,255,255,0.10)', color: '#FFFFFF',
+  border: '1px solid rgba(255,255,255,0.4)', borderRadius: 999, cursor: 'pointer',
   fontFamily: mono, fontSize: 11, letterSpacing: '2.5px', textTransform: 'uppercase',
-  backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-  boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
+  backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+  textShadow: '0 1px 12px rgba(0,0,0,0.7)', boxShadow: '0 6px 24px rgba(0,0,0,0.3)',
 };
 const skipBtnStyle = {
   position: 'absolute', top: 20, right: 20, zIndex: 7,
-  padding: '8px 14px', background: 'rgba(255,255,255,0.72)', color: '#2A2622',
-  border: '1px solid rgba(255,255,255,0.5)', borderRadius: 999, cursor: 'pointer',
+  padding: '8px 14px', background: 'rgba(255,255,255,0.08)', color: '#FFFFFF',
+  border: '1px solid rgba(255,255,255,0.3)', borderRadius: 999, cursor: 'pointer',
   fontFamily: mono, fontSize: 10, letterSpacing: '2px', textTransform: 'uppercase',
-  backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-  boxShadow: '0 6px 20px rgba(0,0,0,0.28)',
+  backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+  textShadow: '0 1px 10px rgba(0,0,0,0.7)',
 };
 const storyCardStyle = {
-  position: 'absolute', left: '50%', bottom: 36, transform: 'translateX(-50%)', zIndex: 6,
-  width: 'min(680px, 92vw)', textAlign: 'center', padding: '22px 26px 18px',
-  background: 'rgba(255,255,255,0.78)', border: '1px solid rgba(255,255,255,0.55)', borderRadius: 12,
-  backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-  boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+  position: 'absolute', left: '50%', bottom: 26, transform: 'translateX(-50%)', zIndex: 6,
+  width: 'min(660px, 92vw)', textAlign: 'center', padding: '16px 26px 14px',
+  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12,
+  backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
 };
-const storyEyebrowStyle = { margin: '0 0 8px', fontFamily: mono, fontSize: 10, letterSpacing: '2.5px', color: '#6B6B6B', textTransform: 'uppercase' };
-const storyTitleStyle = { margin: '0 0 10px', fontFamily: serif, fontWeight: 700, fontSize: 30, lineHeight: 1.15, color: '#14110D' };
-const storyBodyStyle = { margin: '0 auto 18px', maxWidth: 560, fontFamily: serif, fontSize: 16, lineHeight: 1.6, color: '#2A2622' };
+const storyEyebrowStyle = { margin: '0 0 7px', fontFamily: mono, fontSize: 10, letterSpacing: '2.5px', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', textShadow: '0 1px 10px rgba(0,0,0,0.8)' };
+const storyTitleStyle = { margin: '0 0 9px', fontFamily: serif, fontWeight: 700, fontSize: 28, lineHeight: 1.15, color: '#FFFFFF', textShadow: '0 2px 20px rgba(0,0,0,0.85)' };
+const storyBodyStyle = { margin: '0 auto 14px', maxWidth: 560, fontFamily: serif, fontSize: 15.5, lineHeight: 1.55, color: 'rgba(255,255,255,0.96)', textShadow: '0 1px 14px rgba(0,0,0,0.85)' };
 const storyNavStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 };
 const navBtn = (disabled) => ({
-  padding: '8px 16px', background: 'transparent',
-  color: disabled ? 'rgba(20,17,13,0.3)' : '#14110D',
-  border: `1px solid ${disabled ? 'rgba(20,17,13,0.2)' : 'rgba(20,17,13,0.55)'}`, borderRadius: 999,
+  padding: '8px 16px', background: 'rgba(255,255,255,0.04)',
+  color: disabled ? 'rgba(255,255,255,0.32)' : '#FFFFFF',
+  border: `1px solid ${disabled ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.5)'}`, borderRadius: 999,
   cursor: disabled ? 'default' : 'pointer',
   fontFamily: mono, fontSize: 10, letterSpacing: '1.5px', textTransform: 'uppercase',
+  textShadow: '0 1px 8px rgba(0,0,0,0.6)',
 });
 
 export default function SaoghalPage() {
@@ -330,9 +332,13 @@ export default function SaoghalPage() {
   useEffect(() => {
     if (!storyActive || !mapReady) return;
     const c = STORY[storyStep].camera;
+    // Reserve the bottom third of the screen for the narration panel so the
+    // globe's focal point sits in the top 2/3 and never hides behind the text.
+    const padBottom = typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.34) : 0;
     mapRef.current?.flyTo({
       center: c.center, zoom: c.zoom, pitch: c.pitch || 0, bearing: c.bearing || 0,
       duration: 2600, essential: true,
+      padding: { top: 0, right: 0, bottom: padBottom, left: 0 },
     });
   }, [storyActive, storyStep, mapReady]);
 
@@ -814,15 +820,15 @@ export default function SaoghalPage() {
                     23-dot row, which overflowed the card on narrow screens and
                     pushed the Next button out of reach. */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 1 auto', minWidth: 0 }}>
-                  <div style={{ position: 'relative', width: 'clamp(56px, 16vw, 140px)', height: 3, background: 'rgba(20,17,13,0.15)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${((storyStep + 1) / STORY.length) * 100}%`, background: '#14110D', transition: 'width 300ms ease' }} />
+                  <div style={{ position: 'relative', width: 'clamp(56px, 16vw, 140px)', height: 3, background: 'rgba(255,255,255,0.22)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${((storyStep + 1) / STORY.length) * 100}%`, background: '#FFFFFF', transition: 'width 300ms ease' }} />
                   </div>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#6B6B6B', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{storyStep + 1} / {STORY.length}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}>{storyStep + 1} / {STORY.length}</span>
                 </div>
                 {last ? (
                   <a href="/welcome" style={{
-                    ...navBtn(false), textDecoration: 'none',
-                    color: '#FFFFFF', background: '#14110D', borderColor: '#14110D', fontWeight: 700,
+                    ...navBtn(false), textDecoration: 'none', textShadow: 'none',
+                    color: '#14110D', background: '#FFFFFF', borderColor: '#FFFFFF', fontWeight: 700,
                   }}>
                     {language === 'gd' ? 'Gabh d’àite' : 'Stake your claim'} →
                   </a>
