@@ -22,7 +22,6 @@ import { HEAT_POINTS } from './heat';
 import { PLACES } from './places';
 import { SCOTLAND_GEO, IRELAND_GEO, WALES_GEO, MAN_GEO, DAL_RIATA_GEO } from './regions';
 import { useLanguage } from '../../context/LanguageContext';
-import DiasporaClock from '../../components/DiasporaClock';
 
 const BASEMAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
@@ -297,7 +296,6 @@ export default function SaoghalPage() {
   const [storyActive, setStoryActive] = useState(false);
   const [storyStep, setStoryStep] = useState(0);
   const isMobile = useIsMobile();
-  const [bearingsOpen, setBearingsOpen] = useState(false); // mobile: collapsed by default
   const { language, toggleLanguage, t } = useLanguage();
 
   const flyHome = useCallback(() => {
@@ -308,19 +306,6 @@ export default function SaoghalPage() {
       center: HOME_CENTER, zoom: fitGlobeZoom(),
       bearing: 0, pitch: 0,
       duration: 1200, essential: true,
-    });
-  }, []);
-
-  // Fly the globe to a diaspora anchor (or the user) when its clock row is
-  // clicked — makes the orientation panel an actual nav map.
-  const flyToAnchor = useCallback((a) => {
-    const map = mapRef.current;
-    if (!map || a == null || a.lng == null || a.lat == null) return;
-    setSelected(null);
-    map.flyTo({
-      center: [a.lng, a.lat],
-      zoom: Math.max(map.getZoom(), 4.5),
-      duration: 1400, essential: true,
     });
   }, []);
 
@@ -623,41 +608,6 @@ export default function SaoghalPage() {
     };
   }, []);
 
-  // The bearings panel's inner content — shared between the desktop panel and
-  // the mobile collapsible sheet so there's one source of truth.
-  const bearingsInner = (
-    <>
-      <p style={{
-        margin: '0 0 10px', fontFamily: mono, fontSize: 9, letterSpacing: '2px',
-        color: COLORS.textMuted, textTransform: 'uppercase',
-      }}>The heartlands · and how far you stand</p>
-
-      <DiasporaClock onSelect={flyToAnchor} />
-
-      {/* The reframe: the largest Gàidhlig community isn't a place — it's the
-          global online one. Join from anywhere and you're 700,001. */}
-      <div style={{ height: 1, background: COLORS.border, margin: '12px 0' }} />
-      <p style={{
-        margin: '0 0 8px', fontFamily: serif, fontStyle: 'italic',
-        fontSize: 13, lineHeight: 1.5, color: COLORS.text,
-      }}>
-        The largest Gàidhlig community in the world isn’t a place — it’s online, everywhere.
-      </p>
-      <p style={{
-        margin: '0 0 12px', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.5px',
-        lineHeight: 1.6, color: COLORS.textMuted,
-      }}>
-        <span style={{ color: COLORS.goldLight }}>700,000</span> speakers &amp; learners.
-        Join from where you stand — and you’re <span style={{ color: COLORS.goldLight }}>700,001</span>.
-      </p>
-      <a href="/welcome" style={{
-        display: 'inline-block', fontFamily: mono, fontSize: 10, letterSpacing: '2px',
-        textTransform: 'uppercase', color: COLORS.goldLight, textDecoration: 'none',
-        borderBottom: `1px solid ${COLORS.goldDeep}`, paddingBottom: 2,
-      }}>Join the Cèilidh →</a>
-    </>
-  );
-
   return (
     <main style={{
       position: 'fixed', inset: 0, background: COLORS.bg, color: COLORS.text,
@@ -665,67 +615,79 @@ export default function SaoghalPage() {
     }}>
       <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
 
+      {/* Hero — the reframe, above the globe, with the EN/GD pill. The
+          diaspora "bearings" panel was lifted out of this page (reserved for
+          the Ceilidh-page version of Saoghal). Gàidhlig copy is a draft
+          pending the Lewis/Joe stamp. */}
       <header style={{
-        position: 'absolute', top: 20, left: 20, zIndex: 5,
-        padding: '12px 18px',
-        background: 'rgba(10, 8, 7, 0.72)',
+        position: 'absolute', top: isMobile ? 58 : 22, left: '50%', transform: 'translateX(-50%)',
+        zIndex: 5, display: storyActive ? 'none' : 'block',
+        width: 'min(640px, 92vw)', textAlign: 'center',
+        padding: isMobile ? '13px 16px' : '16px 22px',
+        background: 'rgba(10, 8, 7, 0.74)',
         border: `1px solid ${COLORS.border}`,
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
-        maxWidth: 340,
+        borderRadius: 8,
       }}>
         <p style={{
           margin: 0, fontFamily: mono, fontSize: 10, letterSpacing: '2.5px',
           color: COLORS.textMuted, textTransform: 'uppercase',
         }}>Global Ceilidh · An Saoghal</p>
-        <h1 style={{
-          margin: '6px 0 4px', fontFamily: serif, fontWeight: 400, fontSize: 22,
-          color: COLORS.text, fontStyle: 'italic',
-        }}>
-          {t('saoghal.title')}
-        </h1>
+
         <p style={{
-          margin: 0, fontFamily: serif, fontSize: 13, lineHeight: 1.5,
-          color: COLORS.textMuted,
+          margin: '9px 0 8px', fontFamily: serif, fontStyle: 'italic',
+          fontSize: isMobile ? 16 : 20, lineHeight: 1.35, color: COLORS.text,
         }}>
-          {t('saoghal.intro')}
+          {language === 'gd'
+            ? 'Chan e àite as motha a th’ anns a’ choimhearsnachd Ghàidhlig san t‑saoghal — tha i air‑loidhne, anns gach àite. Agus tha thu gu bhith a’ tighinn dhan Chèilidh.'
+            : 'The largest Gàidhlig community in the world isn’t a place — it’s online, everywhere. And you’re about to join the Cèilidh.'}
+        </p>
+        <p style={{
+          margin: 0, fontFamily: serif, fontSize: isMobile ? 12.5 : 14,
+          lineHeight: 1.55, color: COLORS.textMuted,
+        }}>
+          {language === 'gd'
+            ? 'Tha barrachd dhaoine ag ionnsachadh ’s a’ bruidhinn Gàidhlig an‑diugh na aig àm sam bith eile san eachdraidh. Faigh a‑mach cò às a thàinig na Gàidheil, càit an deach iad — agus mar a chuireas tusa ris an sgeul.'
+            : 'There are more people learning and speaking Gàidhlig today than at any moment in history. Find out where the Gaels came from, where they went — and how you’ll add to the story.'}
         </p>
 
         {/* EN ⇄ GD pill toggle — mirrors the site-nav toggle but
             restyled for the dark map chrome. */}
-        <button
-          type="button"
-          onClick={toggleLanguage}
-          aria-label={language === 'en' ? t('saoghal.switch_to_gd') : t('saoghal.switch_to_en')}
-          title={language === 'en' ? t('saoghal.switch_to_gd') : t('saoghal.switch_to_en')}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            marginTop: 12,
-            padding: '5px 10px',
-            background: 'rgba(10, 8, 7, 0.5)',
-            border: `1px solid ${COLORS.border}`,
-            cursor: 'pointer',
-            fontFamily: mono, fontSize: 10, letterSpacing: '2px',
-            textTransform: 'uppercase',
-          }}
-        >
-          <span style={{ color: language === 'en' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>EN</span>
-          <span style={{
-            display: 'inline-block', position: 'relative',
-            width: 28, height: 14, borderRadius: 7,
-            background: language === 'gd' ? COLORS.goldDeep : '#3A2E1E',
-            transition: 'background 200ms ease',
-          }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            aria-label={language === 'en' ? t('saoghal.switch_to_gd') : t('saoghal.switch_to_en')}
+            title={language === 'en' ? t('saoghal.switch_to_gd') : t('saoghal.switch_to_en')}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '5px 10px',
+              background: 'rgba(10, 8, 7, 0.5)',
+              border: `1px solid ${COLORS.border}`,
+              cursor: 'pointer',
+              fontFamily: mono, fontSize: 10, letterSpacing: '2px',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span style={{ color: language === 'en' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>EN</span>
             <span style={{
-              position: 'absolute', top: 1.5,
-              width: 11, height: 11, borderRadius: '50%',
-              background: COLORS.text,
-              left: language === 'gd' ? 14 : 1.5,
-              transition: 'left 200ms ease',
-            }}/>
-          </span>
-          <span style={{ color: language === 'gd' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>GD</span>
-        </button>
+              display: 'inline-block', position: 'relative',
+              width: 28, height: 14, borderRadius: 7,
+              background: language === 'gd' ? COLORS.goldDeep : '#3A2E1E',
+              transition: 'background 200ms ease',
+            }}>
+              <span style={{
+                position: 'absolute', top: 1.5,
+                width: 11, height: 11, borderRadius: '50%',
+                background: COLORS.text,
+                left: language === 'gd' ? 14 : 1.5,
+                transition: 'left 200ms ease',
+              }}/>
+            </span>
+            <span style={{ color: language === 'gd' ? COLORS.goldLight : COLORS.textMuted, fontWeight: 600 }}>GD</span>
+          </button>
+        </div>
       </header>
 
       <button
@@ -811,56 +773,6 @@ export default function SaoghalPage() {
         </aside>
       )}
 
-      {/* Diaspora nav panel — your bearings to the cultural anchors.
-          Click a row to fly the globe there. On desktop it's an always-open
-          panel bottom-left; on mobile it would eat the whole screen (6 cards +
-          reframe ≈ 550px), so it collapses behind a "Your bearings" pill and
-          expands into a height-capped, scrollable sheet. */}
-      {!storyActive && !isMobile && (
-        <div style={{
-          position: 'absolute', bottom: 52, left: 20, zIndex: 5,
-          width: 'min(300px, 82vw)',
-          padding: '12px 14px',
-          background: 'rgba(10, 8, 7, 0.72)',
-          border: `1px solid ${COLORS.border}`,
-          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-        }}>
-          {bearingsInner}
-        </div>
-      )}
-
-      {!storyActive && isMobile && (
-        <div style={{ position: 'absolute', bottom: 76, left: 12, zIndex: 5, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          {bearingsOpen && (
-            <div style={{
-              width: 'min(280px, 86vw)', maxHeight: '46vh', overflowY: 'auto',
-              marginBottom: 8, padding: '12px 14px', borderRadius: 8,
-              background: 'rgba(10, 8, 7, 0.92)',
-              border: `1px solid ${COLORS.border}`,
-              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-            }}>
-              {bearingsInner}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setBearingsOpen((o) => !o)}
-            aria-expanded={bearingsOpen}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7,
-              padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
-              background: 'rgba(10, 8, 7, 0.82)', color: COLORS.text,
-              border: `1px solid ${COLORS.border}`,
-              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-              fontFamily: mono, fontSize: 10, letterSpacing: '2px', textTransform: 'uppercase',
-            }}
-          >
-            <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1, color: COLORS.goldLight }}>◎</span>
-            {bearingsOpen ? 'Hide bearings' : 'Your bearings'}
-          </button>
-        </div>
-      )}
-
       <footer style={{
         position: 'absolute', bottom: 16, left: 20, zIndex: 4,
         display: (storyActive || isMobile) ? 'none' : 'block',
@@ -894,10 +806,14 @@ export default function SaoghalPage() {
                 <button type="button" onClick={prevStep} disabled={storyStep === 0} style={navBtn(storyStep === 0)}>
                   ← {language === 'gd' ? 'Air ais' : 'Back'}
                 </button>
-                <div style={dotsStyle}>
-                  {STORY.map((_, i) => (
-                    <span key={i} style={{ ...dotStyle, background: i === storyStep ? '#F2D78A' : '#3A2E1E' }} />
-                  ))}
+                {/* Compact progress — a slim bar + "n / total". Replaces the
+                    23-dot row, which overflowed the card on narrow screens and
+                    pushed the Next button out of reach. */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 1 auto', minWidth: 0 }}>
+                  <div style={{ position: 'relative', width: 'clamp(56px, 16vw, 140px)', height: 3, background: '#3A2E1E', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${((storyStep + 1) / STORY.length) * 100}%`, background: '#F2D78A', transition: 'width 300ms ease' }} />
+                  </div>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: COLORS.textMuted, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{storyStep + 1} / {STORY.length}</span>
                 </div>
                 {last ? (
                   <a href="/welcome" style={{
