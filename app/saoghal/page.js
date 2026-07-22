@@ -383,6 +383,17 @@ export default function SaoghalPage() {
   const nextStep = useCallback(() => setStoryStep((s) => Math.min(s + 1, STORY.length - 1)), []);
   const prevStep = useCallback(() => setStoryStep((s) => Math.max(s - 1, 0)), []);
 
+  // ?story=<id> starts a story directly, so every story in the
+  // repository (app/saoghal/stories.js) has a shareable URL and "watch it
+  // again" from /saoghal/sgeulachdan is a link rather than a hunt. Only
+  // 'origins' is built into this page today; an unknown id is ignored
+  // rather than starting the wrong story.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const wanted = new URLSearchParams(window.location.search).get('story');
+    if (wanted === 'origins') startStory();
+  }, [startStory]);
+
   // Fly the camera as the story advances.
   useEffect(() => {
     if (!storyActive || !mapReady) return;

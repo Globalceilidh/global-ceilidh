@@ -22,6 +22,7 @@
 // assets — nudge them once it's live if anything's a hair off.
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import LanguagePill from '../components/LanguagePill';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -50,6 +51,13 @@ export default function Home() {
   const [vortexError, setVortexError] = useState(false);
   const [signError, setSignError] = useState(false);
   const { language } = useLanguage();
+
+  // Where the glowing core goes. Until Clerk has loaded we don't know, so
+  // default to the story — that's correct for every first-time visitor,
+  // and the worst case for a member is one extra click rather than a
+  // flash of the wrong destination.
+  const { isLoaded, isSignedIn } = useAuth();
+  const coreHref = isLoaded && isSignedIn ? '/duilleag' : '/saoghal';
 
   const caption = language === 'gd' ? ['TÒISICHIBH', 'AN SEO'] : ['START', 'HERE'];
   // GD is much longer than EN — size it down so it stays on the plank.
@@ -80,9 +88,12 @@ export default function Home() {
           />
         )}
 
-        {/* Core → /saoghal */}
+        {/* Core → the origins story for a stranger, your own page once
+            you've joined. The story is an introduction; meeting it again
+            every single visit would make the front door a lecture you
+            can't get past. It stays reachable from /saoghal/sgeulachdan. */}
         <a
-          href="/saoghal"
+          href={coreHref}
           aria-label={language === 'gd' ? 'Tòisichibh an seo' : 'Start here'}
           className="gc-core"
           style={{

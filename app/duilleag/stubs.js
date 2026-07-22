@@ -12,6 +12,7 @@
 export const NAV_ITEMS = [
   { href: '/duilleag', icon: '⌂', label: { en: 'Home', gd: 'Dachaigh' } },
   { href: '/saoghal', icon: '◎', label: { en: 'An Saoghal', gd: 'An Saoghal' } },
+  { href: '/saoghal/sgeulachdan', icon: '❧', label: { en: 'Stories', gd: 'Sgeulachdan' } },
   { href: '/sruth', icon: '≋', label: { en: 'Sruth', gd: 'Sruth' } },
   { href: '/AnTonn', icon: '◈', label: { en: 'An Tonn', gd: 'An Tonn' } },
   { href: '/feisean', icon: '⚑', label: { en: 'Fèisean', gd: 'Fèisean' } },
