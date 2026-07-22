@@ -44,6 +44,12 @@ const PUBLIC_PREFIXES = [
   // public profile view by design.
   "/welcome",
   "/u/",
+  // The Duilleag-cèilidh — a person's own private room. It bypasses the
+  // cookie gate for the same reason /welcome does (a new signup has no
+  // gc_access cookie), but it is the most private surface on the site:
+  // the page itself calls auth() and redirects signed-out visitors to
+  // /sign-in, and there is no visitor mode to fall through to.
+  "/duilleag",
   // Per-contributor upload links (globalceilidh.com/contribute/<token>).
   // These are personal, tokened, and noindexed — a contributor with no
   // Clerk account and no cookie key must be able to reach their link.
