@@ -176,16 +176,20 @@ const s = {
     gap: 18,
     padding: 18,
     boxSizing: 'border-box',
+    // Cap the WHOLE shell and centre it, rather than capping the feed
+    // inside a track that stays full width. Capping the feed alone put
+    // the slack between the columns; capping the shell puts it outside
+    // them, where the backdrop can use it. (left/right:0 + a max-width +
+    // auto margins is what centres an absolutely-positioned box.)
+    maxWidth: 1320,
+    margin: '0 auto',
   },
   col: { minHeight: 0, display: 'flex', flexDirection: 'column', gap: 14 },
   left: { ...glass, padding: 16, overflow: 'hidden' },
-  // Capped and centred: a feed that stretches the full width of an
-  // ultrawide monitor is unreadable, and it left the backdrop with
-  // nowhere to show through.
-  middle: {
-    overflowY: 'auto', overflowX: 'hidden', paddingRight: 4,
-    width: '100%', maxWidth: 680, justifySelf: 'center',
-  },
+  // Fills its track now that the shell itself is capped — at a 1320
+  // shell this lands the feed around 700px, which is the readable range
+  // anyway, with no gutter of its own.
+  middle: { overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 },
   right: { overflowY: 'auto', overflowX: 'hidden' },
 
   logoLink: { display: 'block', marginBottom: 4 },
