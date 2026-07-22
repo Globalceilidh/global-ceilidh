@@ -18,23 +18,28 @@ export const PANELS = [
     kind: 'duilleag',
     place: { en: 'Scotland & Ireland', gd: 'Alba is Èirinn' },
     bg: '/duilleag/bg/scotland.webp',
-    // Backdrop subject sits dead centre (the castle), which is exactly
-    // where the feed column lands. Nudged so the feed frames it rather
-    // than buries it.
-    bgPosition: '38% 50%',
+    // Calanais, Lewis. The stones stand right-of-centre with open moor
+    // and loch to the left, so the frame is pushed RIGHT: on a phone
+    // (which crops the sides hard) that keeps the stones, and the empty
+    // left of the picture is what ends up behind the nav column.
+    bgPosition: '68% 48%',
   },
   {
     slug: 'usa',
     kind: 'placeholder',
     place: { en: 'United States', gd: 'Na Stàitean Aonaichte' },
     bg: '/duilleag/bg/usa.webp',
-    bgPosition: '60% 50%',
+    // Pines on the left shore are the only hard subject; the rest is open
+    // water. Framed left so a phone crop doesn't lose them.
+    bgPosition: '38% 50%',
   },
   {
     slug: 'canada',
     kind: 'placeholder',
     place: { en: 'Canada', gd: 'Canada' },
     bg: '/duilleag/bg/canada.webp',
+    // Cabot Trail — the coastline runs corner to corner, so any crop
+    // still reads. Held centre.
     bgPosition: '50% 50%',
   },
   {
@@ -42,14 +47,18 @@ export const PANELS = [
     kind: 'placeholder',
     place: { en: 'Australia', gd: 'Astràilia' },
     bg: '/duilleag/bg/australia.webp',
-    bgPosition: '50% 50%',
+    // Rolling hill country, gums and a dirt road — no single subject to
+    // protect, so it takes any crop. Biased down to the mid-ground.
+    bgPosition: '50% 56%',
   },
   {
     slug: 'newzealand',
     kind: 'placeholder',
     place: { en: 'New Zealand', gd: 'Sealan Nuadh' },
     bg: '/duilleag/bg/newzealand.webp',
-    bgPosition: '45% 50%',
+    // Lake and snow range at golden hour, tussock foreground. The range
+    // sits high, so the frame is lifted to keep it above the fold.
+    bgPosition: '50% 44%',
   },
 ];
 
