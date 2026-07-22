@@ -37,7 +37,7 @@ async function getPosts(authorId) {
     .from('gc_posts')
     .select('id, body, visibility, created_at')
     .eq('author_id', authorId)
-    .eq('visibility', 'public')
+    .eq('visibility', 'global')
     .eq('status', 'visible')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })

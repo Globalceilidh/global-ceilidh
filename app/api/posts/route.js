@@ -4,8 +4,8 @@
 //
 // POST  { body, visibility? }
 //         → auth() → resolve the caller's gc_profiles row → insert a post
-//           authored by them. Returns { ok, post }. Only 'public' visibility
-//           is accepted from the MVP composer.
+//           authored by them. Returns { ok, post }. Only 'global'
+//           visibility is accepted from the MVP composer.
 //
 // GET   ?handle=<h>[&before=<iso>][&limit=<n>]
 //         → PUBLIC: that user's visible, non-deleted posts, newest first,
@@ -74,7 +74,7 @@ export async function GET(req) {
       .from('gc_posts')
       .select('id, body, visibility, created_at')
       .eq('author_id', authorId)
-      .eq('visibility', 'public')
+      .eq('visibility', 'global')
       .eq('status', 'visible')
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
@@ -130,7 +130,12 @@ export async function POST(req) {
       author_id: profile.id,
       author_clerk_user_id: userId,
       body,
-      visibility: 'public', // MVP: public only until the follow graph lands
+      // 'global' is the widest tier and the only one that reaches the
+      // public /u/<handle> page. Still hardcoded until the composer's
+      // audience picker lands; migration 035 renamed 'public' -> 'global'
+      // and the CHECK constraint now REJECTS the old value outright, so
+      // this is not cosmetic — writing 'public' here fails the insert.
+      visibility: 'global',
     };
 
     const { data, error } = await supabaseAdmin
