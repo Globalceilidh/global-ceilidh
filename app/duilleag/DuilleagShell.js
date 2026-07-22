@@ -36,6 +36,12 @@ const MAX_FLING = 4;           // panes a single hard flick can carry
 const AXIS_LOCK_PX = 8;        // travel before a touch commits to an axis
 const SNAP_MS = 520;
 
+// Backdrop drift, as a fraction of pane travel, and the oversize that
+// hides it. BG_SCALE must exceed 1 + 2*PARALLAX or a drifting backdrop
+// runs out of image and shows a bare edge at full drag.
+const PARALLAX = 0.12;
+const BG_SCALE = 1.30;
+
 export default function DuilleagShell({ profile, initialPosts }) {
   const { language } = useLanguage();
   const [index, setIndex] = useState(0);
@@ -183,9 +189,10 @@ export default function DuilleagShell({ profile, initialPosts }) {
                 ...styles.bg,
                 backgroundImage: `url(${panel.bg})`,
                 backgroundPosition: panel.bgPosition,
-                // Counter-shift at a fraction of the pane's travel. Same
-                // percentage basis as the pane so the two stay locked.
-                transform: `translate3d(calc(${-rest * 0.24}% + ${-drag * 0.24}px),0,0) scale(1.14)`,
+                // Counter-shift at a fraction of the pane's travel. The
+                // scale has to out-cover the shift or the drift exposes a
+                // bare edge: 0.12 shift against 0.15 of margin per side.
+                transform: `translate3d(calc(${-rest * PARALLAX}% + ${-drag * PARALLAX}px),0,0) scale(${BG_SCALE})`,
                 transition: animating ? `transform ${SNAP_MS}ms cubic-bezier(.22,.61,.36,1)` : 'none',
               }}
             />
@@ -248,6 +255,11 @@ const styles = {
   pane: {
     position: 'absolute',
     inset: 0,
+    // MUST clip. The backdrop inside is deliberately oversized and
+    // shifted for parallax; without this it slides straight out of its
+    // own pane and paints over the neighbour's content. That is what
+    // buried the globe and connections column twice.
+    overflow: 'hidden',
     willChange: 'transform',
   },
   bg: {
