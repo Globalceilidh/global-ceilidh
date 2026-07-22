@@ -147,7 +147,6 @@ export default function DuilleagShell({ profile, initialPosts }) {
 
   // ── which panes exist ───────────────────────────────────────────────
   const live = [index - 1, index, index + 1];
-  const offset = -index * width + drag;
 
   return (
     <main
@@ -160,14 +159,19 @@ export default function DuilleagShell({ profile, initialPosts }) {
     >
       {live.map((v) => {
         const panel = PANELS[wrapIndex(v)];
-        // Distance of this pane from the viewport centre, in px.
-        const local = v * width + offset;
+        // Panes are spaced by 100% of their OWN width, never by a measured
+        // pixel value. Measuring the root and multiplying is what broke
+        // this the first time: the measurement came back ~1300 while the
+        // panes were really laid out at ~2000, so every neighbour sat
+        // 700px inside its slot and painted over the live pane's right
+        // column. A percentage cannot disagree with the layout.
+        const rest = (v - index) * 100;
         return (
           <section
             key={v}
             style={{
               ...styles.pane,
-              transform: `translate3d(${local}px,0,0)`,
+              transform: `translate3d(calc(${rest}% + ${drag}px),0,0)`,
               transition: animating ? `transform ${SNAP_MS}ms cubic-bezier(.22,.61,.36,1)` : 'none',
             }}
             aria-hidden={v !== index}
@@ -179,7 +183,9 @@ export default function DuilleagShell({ profile, initialPosts }) {
                 ...styles.bg,
                 backgroundImage: `url(${panel.bg})`,
                 backgroundPosition: panel.bgPosition,
-                transform: `translate3d(${-local * 0.28}px,0,0) scale(1.14)`,
+                // Counter-shift at a fraction of the pane's travel. Same
+                // percentage basis as the pane so the two stay locked.
+                transform: `translate3d(calc(${-rest * 0.24}% + ${-drag * 0.24}px),0,0) scale(1.14)`,
                 transition: animating ? `transform ${SNAP_MS}ms cubic-bezier(.22,.61,.36,1)` : 'none',
               }}
             />
@@ -251,14 +257,16 @@ const styles = {
     backgroundRepeat: 'no-repeat',
     willChange: 'transform',
   },
-  // Darkened at the edges where the columns sit, easing off toward the
-  // middle so the photograph still reads.
+  // Just enough to hold text, no more. The first pass stacked a heavy
+  // radial on a heavy linear and the two compounded to ~0.8 across the
+  // top half — the photograph went black and the whole thing read as
+  // grey slabs on a dark page instead of glass over a place.
   veil: {
     position: 'absolute',
     inset: 0,
     background:
-      'radial-gradient(120% 90% at 50% 45%, rgba(4,10,8,0.10) 0%, rgba(4,10,8,0.42) 55%, rgba(4,10,8,0.74) 100%),' +
-      'linear-gradient(to bottom, rgba(4,10,8,0.55) 0%, rgba(4,10,8,0.12) 22%, rgba(4,10,8,0.20) 100%)',
+      'radial-gradient(130% 100% at 50% 42%, rgba(4,10,8,0.00) 0%, rgba(4,10,8,0.18) 58%, rgba(4,10,8,0.46) 100%),' +
+      'linear-gradient(to bottom, rgba(4,10,8,0.34) 0%, rgba(4,10,8,0.06) 26%, rgba(4,10,8,0.10) 100%)',
   },
   paneInner: { position: 'absolute', inset: 0, display: 'flex' },
 

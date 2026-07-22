@@ -155,12 +155,16 @@ function Composer({ gd }) {
 
 const GOLD = '#C9A047';
 const SANS = '"IBM Plex Sans", system-ui, sans-serif';
+// Lean on blur, not opacity. At 0.46 the panels stopped being glass and
+// became grey slabs sitting on the picture; the place behind them has to
+// stay legible or the whole backdrop idea is pointless.
 const glass = {
-  background: 'rgba(10,18,14,0.46)',
-  backdropFilter: 'blur(16px) saturate(120%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(120%)',
-  border: '1px solid rgba(255,255,255,0.10)',
+  background: 'rgba(12,20,16,0.30)',
+  backdropFilter: 'blur(22px) saturate(135%)',
+  WebkitBackdropFilter: 'blur(22px) saturate(135%)',
+  border: '1px solid rgba(255,255,255,0.13)',
   borderRadius: 14,
+  boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
 };
 
 const s = {
@@ -175,7 +179,13 @@ const s = {
   },
   col: { minHeight: 0, display: 'flex', flexDirection: 'column', gap: 14 },
   left: { ...glass, padding: 16, overflow: 'hidden' },
-  middle: { overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 },
+  // Capped and centred: a feed that stretches the full width of an
+  // ultrawide monitor is unreadable, and it left the backdrop with
+  // nowhere to show through.
+  middle: {
+    overflowY: 'auto', overflowX: 'hidden', paddingRight: 4,
+    width: '100%', maxWidth: 680, justifySelf: 'center',
+  },
   right: { overflowY: 'auto', overflowX: 'hidden' },
 
   logoLink: { display: 'block', marginBottom: 4 },
@@ -191,15 +201,18 @@ const s = {
   navFoot: { marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.10)' },
   navSettings: { color: 'rgba(255,255,255,0.66)' },
 
-  quickRow: { display: 'flex', gap: 10 },
+  // Jumps, not billboards. The first pass gave each one a full-height
+  // tile and they dominated the column above the feed.
+  quickRow: { display: 'flex', gap: 8, flexShrink: 0 },
   quick: {
-    ...glass, flex: 1, display: 'flex', flexDirection: 'column',
-    alignItems: 'center', gap: 5, padding: '12px 8px', textDecoration: 'none',
+    ...glass, flex: 1, display: 'flex', alignItems: 'center',
+    justifyContent: 'center', gap: 7, padding: '9px 10px',
+    textDecoration: 'none', borderRadius: 999,
   },
-  quickIcon: { fontSize: 19 },
+  quickIcon: { fontSize: 14, opacity: 0.75 },
   quickLabel: {
     fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
-    fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase',
+    fontSize: 14, letterSpacing: '0.09em', textTransform: 'uppercase',
     color: '#FFFFFF',
   },
 
