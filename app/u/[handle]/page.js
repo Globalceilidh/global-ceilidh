@@ -7,7 +7,9 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
+import { getProfileByClerkId } from '../../../lib/social';
 import Wall from './Wall';
+import ConnectButton from './ConnectButton';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -67,6 +69,22 @@ export default async function ProfilePage({ params }) {
 
   const posts = await getPosts(p.id);
 
+  // Whether the signed-in viewer has already asked. Resolved server-side
+  // so the button never flashes the wrong state on first paint.
+  let connectState = 'none';
+  if (userId && !isOwner) {
+    const me = await getProfileByClerkId(userId);
+    if (me) {
+      const { data: edge } = await supabaseAdmin
+        .from('gc_follows')
+        .select('status')
+        .eq('follower_id', me.id)
+        .eq('followee_id', p.id)
+        .maybeSingle();
+      if (edge) connectState = edge.status === 'accepted' ? 'accepted' : 'pending';
+    }
+  }
+
   const name = p.display_name || `@${p.handle}`;
   const initials = (p.display_name || p.handle || '?')
     .split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
@@ -93,6 +111,10 @@ export default async function ProfilePage({ params }) {
             <span style={metaPill}>{LEVEL_LABEL[p.gaidhlig_level]}</span>
           )}
         </div>
+
+        {userId && !isOwner && (
+          <ConnectButton handle={p.handle} initialState={connectState} />
+        )}
 
         {p.bio && <p style={bioStyle}>{p.bio}</p>}
 

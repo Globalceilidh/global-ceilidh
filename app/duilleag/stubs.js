@@ -1,20 +1,13 @@
 // app/duilleag/stubs.js
-// Placeholder data for the parts of the Duilleag-cèilidh whose schema
-// doesn't exist yet, kept in ONE file so the swap to real data is a
-// deletion rather than a hunt.
+// The left column's link tree and the quick jumps above the feed. Both
+// point at surfaces that exist.
 //
-//   PLACEHOLDER_FEED         -> needs gc_follows (034) + audience
-//                               resolution (035). The feed is other
-//                               people's posts, filtered by the tier the
-//                               author chose; none of that can run until
-//                               the graph has rows in it.
-//   PLACEHOLDER_CONNECTIONS  -> needs gc_follows for the list itself, and
-//                               presence (Supabase Realtime, unbuilt) for
-//                               the online dot. Everyone here is shown
-//                               offline except one, so the dot's two
-//                               states are both visible while designing.
-//
-// NAV_ITEMS and QUICK_JUMPS are real — they point at surfaces that exist.
+// The placeholder feed and connections that used to live here are gone —
+// migrations 034/035 are applied, so both now come from the real graph
+// via /api/feed and /api/connections. The one thing still faked is the
+// online dot in the connections list, which needs presence (Supabase
+// Realtime); it reads offline for everyone rather than inventing a
+// status, and is marked as such in Connections.js.
 
 export const NAV_ITEMS = [
   { href: '/duilleag', icon: '⌂', label: { en: 'Home', gd: 'Dachaigh' } },
@@ -31,31 +24,3 @@ export const QUICK_JUMPS = [
   { href: '/ionnsaich', icon: '✦', label: { en: 'Abair E', gd: 'Abair E' } },
 ];
 
-export const PLACEHOLDER_FEED = [
-  {
-    id: 'stub-1',
-    author: 'Lewis MacFhionghain',
-    when: '2h',
-    body: 'Chuir sinn crìoch air an t-seachdain le òran bho Ìle. Tha an samhradh a’ tighinn gu crìch ach tha an ceòl a’ dol air adhart.',
-  },
-  {
-    id: 'stub-2',
-    author: 'Ceit NicDhòmhnaill',
-    when: '5h',
-    body: 'First fèis of the season in Antigonish this weekend — three generations of one family on the same stage. That is what this is all for.',
-  },
-  {
-    id: 'stub-3',
-    author: 'Ruairidh Mac a’ Ghobhainn',
-    when: '1d',
-    body: 'Question for the fluent speakers: is there a Gàidhlig word that carries the same weight as “hiraeth”? Closest I have found is “cianalas” but it is not quite it.',
-  },
-];
-
-export const PLACEHOLDER_CONNECTIONS = [
-  { id: 'c1', initials: 'LM', name: 'Lewis MacFhionghain', online: true },
-  { id: 'c2', initials: 'CN', name: 'Ceit NicDhòmhnaill', online: false },
-  { id: 'c3', initials: 'RG', name: 'Ruairidh Mac a’ Ghobhainn', online: false },
-  { id: 'c4', initials: 'MS', name: 'Mòrag Stiùbhart', online: true },
-  { id: 'c5', initials: 'AD', name: 'Anna Dhòmhnallach', online: false },
-];

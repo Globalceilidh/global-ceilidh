@@ -18,6 +18,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
+import { VISIBILITIES, getFollowersOf } from '../../../lib/social';
 
 export const runtime = 'nodejs';
 
@@ -126,27 +127,55 @@ export async function POST(req) {
       return Response.json({ ok: false, error: 'no_profile', reason: 'Finish your profile first.' }, { status: 403 });
     }
 
-    const row = {
-      author_id: profile.id,
-      author_clerk_user_id: userId,
-      body,
-      // 'global' is the widest tier and the only one that reaches the
-      // public /u/<handle> page. Still hardcoded until the composer's
-      // audience picker lands; migration 035 renamed 'public' -> 'global'
-      // and the CHECK constraint now REJECTS the old value outright, so
-      // this is not cosmetic — writing 'public' here fails the insert.
-      visibility: 'global',
-    };
+    // The audience the author chose. Anything unrecognised falls back to
+    // 'connections' rather than 'global' — a bad or missing value must
+    // never widen the audience beyond what was asked for.
+    const visibility = VISIBILITIES.includes(payload.visibility) ? payload.visibility : 'connections';
+
+    // For a 'custom' post, the named recipients. Validated against the
+    // author's own accepted followers: you can address someone you have
+    // a ceangal with, not an arbitrary profile id posted from a console.
+    let recipientIds = [];
+    if (visibility === 'custom') {
+      const asked = Array.isArray(payload.audience) ? payload.audience.map(String) : [];
+      if (asked.length === 0) {
+        return Response.json({ ok: false, error: 'no_audience', reason: 'Choose who this is for.' }, { status: 400 });
+      }
+      const followers = await getFollowersOf(profile.id);
+      const allowed = new Set(followers.filter((f) => f.status === 'accepted').map((f) => f.follower.id));
+      recipientIds = asked.filter((pid) => allowed.has(pid));
+      if (recipientIds.length === 0) {
+        return Response.json({ ok: false, error: 'no_audience', reason: 'None of those are connections.' }, { status: 400 });
+      }
+    }
 
     const { data, error } = await supabaseAdmin
       .from('gc_posts')
-      .insert(row)
+      .insert({
+        author_id: profile.id,
+        author_clerk_user_id: userId,
+        body,
+        visibility,
+      })
       .select('id, body, visibility, created_at')
       .single();
 
     if (error) {
       console.error('Post insert failed:', error);
       return Response.json({ ok: false, error: 'db_error' }, { status: 500 });
+    }
+
+    if (recipientIds.length) {
+      const { error: audErr } = await supabaseAdmin
+        .from('gc_post_audience')
+        .insert(recipientIds.map((pid) => ({ post_id: data.id, profile_id: pid })));
+      if (audErr) {
+        // A custom post with no audience rows is a post nobody can read.
+        // Better to remove it than to leave a silent orphan.
+        console.error('Audience insert failed, removing post:', audErr);
+        await supabaseAdmin.from('gc_posts').delete().eq('id', data.id);
+        return Response.json({ ok: false, error: 'audience_failed' }, { status: 500 });
+      }
     }
 
     return Response.json({ ok: true, post: publicPost(data) });
