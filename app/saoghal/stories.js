@@ -7,18 +7,18 @@
 // will ever be narrated over the globe gets an entry here, and the index
 // at /saoghal/sgeulachdan reads from it.
 //
-// A story is reached with ?story=<id>, which /saoghal picks up on mount
-// and starts directly. That also gives every story a shareable URL and
-// makes "watch it again" a link rather than a hunt.
+// Each live story is its own page under /saoghal/archives/<slug> — the
+// origins cinematic lives at /saoghal/archives/Gael_1. `slug` is the folder
+// name; storyHref builds the URL. That gives every story a shareable URL
+// and makes "watch it again" from the Archives index a link, not a hunt.
 //
-// `beats` is the STORY array's length where the story is built into
-// page.js. When a second story arrives, the beat arrays should move into
-// their own modules alongside this one and be referenced from here — the
-// registry is deliberately shaped to allow that without a rewrite.
+// `beats` is the story's beat count. When a second story is built, add its
+// folder under /saoghal/archives and point its entry's slug at it.
 
 export const STORIES = [
   {
     id: 'origins',
+    slug: 'Gael_1',
     status: 'live',
     title: { en: 'Where did the Gaels come from?', gd: 'Cò às a tha na Gàidheil?' },
     blurb: {
@@ -54,4 +54,7 @@ export const STORIES = [
 
 export const LIVE_STORIES = STORIES.filter((s) => s.status === 'live');
 
-export const storyHref = (id) => `/saoghal?story=${id}`;
+// Live stories have a slug → their own page in the Archives. Anything
+// without one isn't built yet and has no destination.
+export const storyHref = (story) =>
+  story?.slug ? `/saoghal/archives/${story.slug}` : null;

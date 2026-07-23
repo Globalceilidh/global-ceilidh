@@ -12,6 +12,8 @@ export default function sitemap() {
     { path: '/sruth', priority: 0.9, changeFrequency: 'weekly' },
     { path: '/sruth/archive', priority: 0.7, changeFrequency: 'weekly' },
     { path: '/saoghal', priority: 0.8, changeFrequency: 'monthly' },
+    { path: '/saoghal/archives', priority: 0.7, changeFrequency: 'monthly' },
+    { path: '/saoghal/archives/Gael_1', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/feisean', priority: 0.6, changeFrequency: 'weekly' },
   ];
 

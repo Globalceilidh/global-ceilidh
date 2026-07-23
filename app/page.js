@@ -7,7 +7,7 @@
 // site's sniomh chrome whirlpool is the way through; a cartoon wooden sign
 // points into it. The caption is NOT baked into the sign art — it's overlaid
 // here so it flips EN⇄GD with the pill.
-//   • click the glowing core          → /saoghal (the orientation)
+//   • click the glowing core          → the welcome cinematic (members → /duilleag)
 //   • reidio icon, bottom-left         → /radio
 //   • sruth wordplate, bottom-right    → /sruth  (gleams on hover)
 //   • EN/GD pill, top-left
@@ -57,7 +57,11 @@ export default function Home() {
   // and the worst case for a member is one extra click rather than a
   // flash of the wrong destination.
   const { isLoaded, isSignedIn } = useAuth();
-  const coreHref = isLoaded && isSignedIn ? '/duilleag' : '/saoghal';
+  // Members drop into their own room; first-time visitors get the welcome
+  // cinematic (the origins story), which is the entry mechanism into the
+  // site. It lives in the Archives now — /saoghal itself is the hub you
+  // explore once you're in, not the front-door funnel.
+  const coreHref = isLoaded && isSignedIn ? '/duilleag' : '/saoghal/archives/Gael_1';
 
   const caption = language === 'gd' ? ['TÒISICHIBH', 'AN SEO'] : ['START', 'HERE'];
   // GD is much longer than EN — size it down so it stays on the plank.
