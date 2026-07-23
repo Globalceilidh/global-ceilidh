@@ -87,7 +87,11 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
       <div style={s.quickRow}>
         {QUICK_JUMPS.map((q) => (
           <a key={q.href} href={q.href} style={s.quick}>
-            <span style={s.quickIcon} aria-hidden="true">{q.icon}</span>
+            {q.iconImg ? (
+              <img src={q.iconImg} alt="" aria-hidden="true" style={s.quickIconImg} />
+            ) : (
+              <span style={s.quickIcon} aria-hidden="true">{q.icon}</span>
+            )}
             <span style={s.quickLabel}>{t(q.label)}</span>
           </a>
         ))}
@@ -262,6 +266,9 @@ const s = {
     textDecoration: 'none', borderRadius: 999,
   },
   quickIcon: { fontSize: 14, opacity: 0.75 },
+  // The reidio emblem reads as art, not a glyph — a hair bigger than the
+  // text icons and no dimming, so it sits as the pill's mark.
+  quickIconImg: { width: 18, height: 18, objectFit: 'contain', display: 'block' },
   quickLabel: {
     fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
     fontSize: 14, letterSpacing: '0.09em', textTransform: 'uppercase',

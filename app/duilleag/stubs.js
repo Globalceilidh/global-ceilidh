@@ -20,7 +20,7 @@ export const NAV_ITEMS = [
 ];
 
 export const QUICK_JUMPS = [
-  { href: '/radio', icon: '⏻', label: { en: 'Radio', gd: 'Rèidio' } },
+  { href: '/radio', iconImg: '/AnTonn/test/reidio-icon.png', label: { en: 'Radio', gd: 'Rèidio' } },
   { href: '/rooms/an-cidsin', icon: '⌬', label: { en: 'Rooms', gd: 'Seòmraichean' } },
   { href: '/ionnsaich', icon: '✦', label: { en: 'Abair E', gd: 'Abair E' } },
 ];
