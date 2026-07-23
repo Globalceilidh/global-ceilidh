@@ -264,19 +264,23 @@ const s = {
   navFoot: { marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.10)' },
   navSettings: { color: 'rgba(255,255,255,0.66)' },
 
-  // A row of icon links — each surface its own emblem in a dark circular
-  // chip. The emblems are white-on-black art, so the black chip gives them
-  // their native context and keeps them crisp over the light glass.
-  quickRow: { display: 'flex', gap: 12, flexShrink: 0, alignItems: 'center' },
+  // A black bar across the top of the strip, same shape as the composer
+  // ("Write something…"), with the emblems set inside it. The emblems are
+  // white-on-black art flattened onto pure black, so on a #000 bar they
+  // merge in with no seam and read as marks floating in the bar.
+  quickRow: {
+    display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0,
+    background: '#000', border: '1px solid rgba(255,255,255,0.13)',
+    borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
+    padding: '8px 16px',
+  },
   quickIconLink: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    width: 46, height: 46, borderRadius: '50%', overflow: 'hidden',
-    background: '#000', border: '1px solid rgba(255,255,255,0.18)',
-    boxShadow: '0 4px 14px rgba(0,0,0,0.3)', textDecoration: 'none',
+    textDecoration: 'none',
   },
-  quickIconImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  quickIconImg: { height: 40, width: 'auto', objectFit: 'contain', display: 'block' },
   // Fallback for any jump defined with a text glyph rather than an image.
-  quickIcon: { fontSize: 22, opacity: 0.9, color: '#FFFFFF' },
+  quickIcon: { fontSize: 24, opacity: 0.9, color: '#FFFFFF' },
 
   feed: { display: 'flex', flexDirection: 'column', gap: 12 },
   post: { ...glass, padding: '14px 16px' },
