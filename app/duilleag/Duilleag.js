@@ -86,13 +86,12 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
     <section style={{ ...s.col, ...s.middle, ...colMobile }} data-no-drag>
       <div style={s.quickRow}>
         {QUICK_JUMPS.map((q) => (
-          <a key={q.href} href={q.href} style={s.quick}>
+          <a key={q.href} href={q.href} style={s.quickIconLink} title={t(q.label)} aria-label={t(q.label)}>
             {q.iconImg ? (
-              <img src={q.iconImg} alt="" aria-hidden="true" style={s.quickIconImg} />
+              <img src={q.iconImg} alt={t(q.label)} style={s.quickIconImg} />
             ) : (
               <span style={s.quickIcon} aria-hidden="true">{q.icon}</span>
             )}
-            <span style={s.quickLabel}>{t(q.label)}</span>
           </a>
         ))}
       </div>
@@ -257,23 +256,16 @@ const s = {
   navFoot: { marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.10)' },
   navSettings: { color: 'rgba(255,255,255,0.66)' },
 
-  // Jumps, not billboards. The first pass gave each one a full-height
-  // tile and they dominated the column above the feed.
-  quickRow: { display: 'flex', gap: 8, flexShrink: 0 },
-  quick: {
-    ...glass, flex: 1, display: 'flex', alignItems: 'center',
-    justifyContent: 'center', gap: 7, padding: '9px 10px',
-    textDecoration: 'none', borderRadius: 999,
+  // A row of icon links — each surface is its own emblem, no pill, no
+  // label. Left-aligned above the feed.
+  quickRow: { display: 'flex', gap: 14, flexShrink: 0, alignItems: 'center' },
+  quickIconLink: {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    textDecoration: 'none', padding: 2, borderRadius: 10,
   },
-  quickIcon: { fontSize: 14, opacity: 0.75 },
-  // The reidio emblem reads as art, not a glyph — a hair bigger than the
-  // text icons and no dimming, so it sits as the pill's mark.
-  quickIconImg: { width: 18, height: 18, objectFit: 'contain', display: 'block' },
-  quickLabel: {
-    fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
-    fontSize: 14, letterSpacing: '0.09em', textTransform: 'uppercase',
-    color: '#FFFFFF',
-  },
+  quickIconImg: { height: 40, width: 'auto', objectFit: 'contain', display: 'block' },
+  // Fallback for any jump defined with a text glyph rather than an image.
+  quickIcon: { fontSize: 28, opacity: 0.85, color: '#FFFFFF' },
 
   feed: { display: 'flex', flexDirection: 'column', gap: 12 },
   post: { ...glass, padding: '14px 16px' },

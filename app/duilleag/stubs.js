@@ -19,9 +19,11 @@ export const NAV_ITEMS = [
   { href: '/news', icon: '❋', label: { en: 'News', gd: 'Naidheachdan' } },
 ];
 
+// A row of icon links above the feed — image marks, not text pills. Each
+// link is represented by its own icon; order is intentional. Add more by
+// dropping another { href, iconImg, label } in sequence.
 export const QUICK_JUMPS = [
-  { href: '/radio', iconImg: '/AnTonn/test/reidio-icon.png', label: { en: 'Radio', gd: 'Rèidio' } },
-  { href: '/rooms/an-cidsin', icon: '⌬', label: { en: 'Rooms', gd: 'Seòmraichean' } },
-  { href: '/ionnsaich', icon: '✦', label: { en: 'Abair E', gd: 'Abair E' } },
+  { href: '/radio',  iconImg: '/AnTonn/test/reidio-icon.png', label: { en: 'Radio',  gd: 'Rèidio' } },
+  { href: '/AnTonn', iconImg: '/AnTonn/test/AnTonn.png',      label: { en: 'An Tonn', gd: 'An Tonn' } },
 ];
 
