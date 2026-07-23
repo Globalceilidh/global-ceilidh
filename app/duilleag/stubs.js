@@ -28,5 +28,6 @@ export const QUICK_JUMPS = [
   { href: '/AnTonn',  iconImg: '/AnTonn/test/antonn-chip.png',  label: { en: 'An Tonn',    gd: 'An Tonn' } },
   { href: '/saoghal', iconImg: '/AnTonn/test/saoghal-chip.png', label: { en: 'An Saoghal', gd: 'An Saoghal' } },
   { href: '/rooms/an-cidsin', iconImg: '/AnTonn/test/rooms-chip.png', label: { en: 'Ceilidh Rooms', gd: 'Seòmraichean' } },
+  { href: '/sruth', iconImg: '/AnTonn/test/sruth-chip.png', label: { en: 'Sruth', gd: 'Sruth' } },
 ];
 
