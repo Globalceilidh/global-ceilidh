@@ -269,16 +269,16 @@ const s = {
   // white-on-black art flattened onto pure black, so on a #000 bar they
   // merge in with no seam and read as marks floating in the bar.
   quickRow: {
-    display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0,
+    display: 'flex', alignItems: 'center', gap: 22, flexShrink: 0,
     background: '#000', border: '1px solid rgba(255,255,255,0.13)',
-    borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
-    padding: '8px 16px',
+    borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
+    padding: '16px 22px',
   },
   quickIconLink: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     textDecoration: 'none',
   },
-  quickIconImg: { height: 40, width: 'auto', objectFit: 'contain', display: 'block' },
+  quickIconImg: { height: 80, width: 'auto', objectFit: 'contain', display: 'block' },
   // Fallback for any jump defined with a text glyph rather than an image.
   quickIcon: { fontSize: 24, opacity: 0.9, color: '#FFFFFF' },
 
