@@ -20,6 +20,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import PersonalGlobe from './PersonalGlobe';
 import Composer from './Composer';
 import Connections from './Connections';
+import FindPeople from './FindPeople';
 import { NAV_ITEMS, QUICK_JUMPS } from './stubs';
 
 export default function Duilleag({ profile, initialPosts, isMobile }) {
@@ -31,6 +32,7 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
   const [own, setOwn] = useState(initialPosts);
   const [connections, setConnections] = useState([]);
   const [pending, setPending] = useState([]);
+  const [outgoing, setOutgoing] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
   const loadConnections = useCallback(async () => {
@@ -40,6 +42,7 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
       if (json.ok) {
         setConnections(json.connections || []);
         setPending(json.pending || []);
+        setOutgoing(json.outgoing || []);
       }
     } catch { /* the column simply stays as it was */ }
   }, []);
@@ -130,6 +133,11 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
   const right = (
     <aside style={{ ...s.col, ...s.right, ...colMobile }} data-no-drag>
       <PersonalGlobe profile={profile} />
+      <FindPeople
+        gd={gd}
+        outgoing={outgoing}
+        onChanged={() => { loadConnections(); }}
+      />
       <Connections
         gd={gd}
         connections={connections}
