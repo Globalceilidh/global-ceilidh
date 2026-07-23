@@ -11,6 +11,7 @@
 
 export const NAV_ITEMS = [
   { href: '/duilleag', icon: '⌂', label: { en: 'Home', gd: 'Dachaigh' } },
+  { href: '/duilleag/messages', icon: '✉', label: { en: 'Messages', gd: 'Teachdaireachdan' } },
   { href: '/saoghal', icon: '◎', label: { en: 'An Saoghal', gd: 'An Saoghal' } },
   { href: '/saoghal/archives', icon: '❧', label: { en: 'Archives', gd: 'Tasglann' } },
   { href: '/sruth', icon: '≋', label: { en: 'Sruth', gd: 'Sruth' } },

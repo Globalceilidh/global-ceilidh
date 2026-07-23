@@ -110,6 +110,14 @@ export default function Connections({ gd, connections, pending, onChanged }) {
                   {c.person.displayName}
                   <span style={s.tier}>{t(CATEGORY_LABEL[c.category] || CATEGORY_LABEL.connection)}</span>
                 </span>
+                <a
+                  href={`/duilleag/messages?to=${encodeURIComponent(c.person.handle)}`}
+                  style={s.msgBtn}
+                  title={gd ? 'Cuir teachdaireachd' : 'Message'}
+                  aria-label={gd ? 'Cuir teachdaireachd' : 'Message'}
+                >
+                  ✉
+                </a>
                 {/* Presence is not built yet — Supabase Realtime lands with
                     the next step. Everyone reads offline rather than
                     faking a green dot that means nothing. */}
@@ -177,6 +185,11 @@ const s = {
     fontFamily: SANS, fontSize: 13.5, color: 'rgba(255,255,255,0.86)',
   },
   tier: { fontSize: 10.5, color: 'rgba(255,255,255,0.38)' },
+  msgBtn: {
+    flexShrink: 0, textDecoration: 'none', fontSize: 13, lineHeight: 1,
+    color: 'rgba(255,255,255,0.5)', padding: '4px 6px', borderRadius: 7,
+    border: '1px solid rgba(255,255,255,0.12)',
+  },
   dot: { width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: 'rgba(255,255,255,0.22)' },
   empty: { margin: 0, fontFamily: SANS, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(255,255,255,0.45)' },
 };
