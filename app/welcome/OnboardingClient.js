@@ -157,7 +157,8 @@ export default function OnboardingClient({ defaults }) {
       if (!res.ok || !data.ok) {
         throw new Error(data.reason || L('Something went wrong. Please try again.', 'Chaidh rudeigin ceàrr. Feuch a-rithist.'));
       }
-      window.location.assign(`/u/${data.handle}`);
+      // Land in their own private room, not the public identity card.
+      window.location.assign('/duilleag');
     } catch (err) {
       setError(err.message);
       setBusy(false);

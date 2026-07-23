@@ -35,9 +35,10 @@ export default async function WelcomePage() {
     .eq('clerk_user_id', userId)
     .maybeSingle();
 
-  // Already onboarded → straight to their page.
+  // Already onboarded → straight to their private room (not the public
+  // /u/<handle> identity card, which is what other people see).
   if (profile?.onboarded_at && profile?.handle) {
-    redirect(`/u/${profile.handle}`);
+    redirect('/duilleag');
   }
 
   const user = await currentUser();
