@@ -304,9 +304,25 @@ export default function CeilidhStage({ slug }) {
     bump((n) => n + 1);
   };
 
+  // Guaranteed way out. Kill the camera and mic first so the light goes off
+  // even if the disconnect is slow, then disconnect and leave the page.
+  const leaveRoom = async () => {
+    try { await localParticipant?.setCameraEnabled(false); } catch {}
+    try { await localParticipant?.setMicrophoneEnabled(false); } catch {}
+    try { await room?.disconnect(); } catch {}
+    window.location.href = '/home';
+  };
+
+  const ExitButton = () => (
+    <button className="cr-exit" onClick={leaveRoom} title="Leave the room and turn your camera off">
+      Leave ✕
+    </button>
+  );
+
   if (isMobile) {
     return (
       <div className="cr-wrap cr-mobile" style={{ backgroundImage: `url("${config.background}")` }}>
+        <ExitButton />
         <div className="cr-scrim" />
         <div className="cr-carousel">
           {occupants.map((o) => (
@@ -321,6 +337,7 @@ export default function CeilidhStage({ slug }) {
 
   return (
     <div className="cr-wrap">
+      <ExitButton />
       <div className="cr-stage" style={{ backgroundImage: `url("${config.background}")` }}>
         {config.seats.map((seat, i) => {
           const o = occupants[i];
@@ -356,6 +373,12 @@ export default function CeilidhStage({ slug }) {
 const CSS = `
 .cr-wrap { position: absolute; inset: 0; background: #0B0805; display: flex;
   align-items: center; justify-content: center; overflow: hidden; }
+.cr-exit { position: fixed; top: 14px; right: 14px; z-index: 1000;
+  font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 14px; font-weight: 600;
+  color: #fff; background: rgba(200, 40, 40, 0.92); border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 999px; padding: 9px 18px; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.5); backdrop-filter: blur(6px); }
+.cr-exit:hover { background: rgba(220, 50, 50, 1); }
 .cr-stage { position: relative; aspect-ratio: 16 / 9;
   width: min(100vw, calc(100vh * 16 / 9)); max-height: 100vh;
   background-size: cover; background-position: center;
