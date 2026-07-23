@@ -154,6 +154,11 @@ export default function DuilleagShell({ profile, initialPosts }) {
   // ── which panes exist ───────────────────────────────────────────────
   const live = [index - 1, index, index + 1];
 
+  // Phone vs the three-column grid. width is 0 until the first measure on
+  // mount, so we default to the desktop grid and correct immediately — no
+  // point flashing a mobile layout onto a laptop.
+  const isMobile = width > 0 && width < 760;
+
   return (
     <main
       ref={rootRef}
@@ -200,7 +205,7 @@ export default function DuilleagShell({ profile, initialPosts }) {
 
             <div style={styles.paneInner}>
               {panel.kind === 'duilleag' ? (
-                <Duilleag profile={profile} initialPosts={initialPosts} />
+                <Duilleag profile={profile} initialPosts={initialPosts} isMobile={isMobile} />
               ) : (
                 <Placeholder panel={panel} language={language} />
               )}

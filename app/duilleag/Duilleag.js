@@ -22,7 +22,7 @@ import Composer from './Composer';
 import Connections from './Connections';
 import { NAV_ITEMS, QUICK_JUMPS } from './stubs';
 
-export default function Duilleag({ profile, initialPosts }) {
+export default function Duilleag({ profile, initialPosts, isMobile }) {
   const { language } = useLanguage();
   const gd = language === 'gd';
   const t = (o) => (gd ? o.gd : o.en);
@@ -56,79 +56,98 @@ export default function Duilleag({ profile, initialPosts }) {
 
   useEffect(() => { loadConnections(); loadFeed(); }, [loadConnections, loadFeed]);
 
-  return (
-    <div style={s.grid}>
-      <aside style={{ ...s.col, ...s.left }} data-no-drag>
-        <a href="/" style={s.logoLink}>
-          <img src="/duilleag/gc-logo.webp" alt="Global Ceilidh" style={s.logo} />
-        </a>
+  const colMobile = isMobile ? s.colMobile : null;
 
-        <nav style={s.nav}>
-          {NAV_ITEMS.map((item) => (
-            <a key={item.href} href={item.href} style={s.navItem}>
-              <span style={s.navIcon} aria-hidden="true">{item.icon}</span>
-              <span>{t(item.label)}</span>
-            </a>
-          ))}
-        </nav>
+  const left = (
+    <aside style={{ ...s.col, ...s.left, ...colMobile }} data-no-drag>
+      <a href="/" style={s.logoLink}>
+        <img src="/duilleag/gc-logo.webp" alt="Global Ceilidh" style={s.logo} />
+      </a>
 
-        <div style={s.navFoot}>
-          <a href="/duilleag/settings" style={{ ...s.navItem, ...s.navSettings }}>
-            <span style={s.navIcon} aria-hidden="true">⚙</span>
-            <span>{gd ? 'Roghainnean' : 'Settings'}</span>
+      <nav style={s.nav}>
+        {NAV_ITEMS.map((item) => (
+          <a key={item.href} href={item.href} style={s.navItem}>
+            <span style={s.navIcon} aria-hidden="true">{item.icon}</span>
+            <span>{t(item.label)}</span>
           </a>
-        </div>
-      </aside>
+        ))}
+      </nav>
 
-      <section style={{ ...s.col, ...s.middle }} data-no-drag>
-        <div style={s.quickRow}>
-          {QUICK_JUMPS.map((q) => (
-            <a key={q.href} href={q.href} style={s.quick}>
-              <span style={s.quickIcon} aria-hidden="true">{q.icon}</span>
-              <span style={s.quickLabel}>{t(q.label)}</span>
-            </a>
-          ))}
-        </div>
+      <div style={s.navFoot}>
+        <a href="/duilleag/settings" style={{ ...s.navItem, ...s.navSettings }}>
+          <span style={s.navIcon} aria-hidden="true">⚙</span>
+          <span>{gd ? 'Roghainnean' : 'Settings'}</span>
+        </a>
+      </div>
+    </aside>
+  );
 
-        <Composer
-          gd={gd}
-          connections={connections}
-          onPosted={(post) => setOwn((o) => [post, ...o])}
-        />
+  const middle = (
+    <section style={{ ...s.col, ...s.middle, ...colMobile }} data-no-drag>
+      <div style={s.quickRow}>
+        {QUICK_JUMPS.map((q) => (
+          <a key={q.href} href={q.href} style={s.quick}>
+            <span style={s.quickIcon} aria-hidden="true">{q.icon}</span>
+            <span style={s.quickLabel}>{t(q.label)}</span>
+          </a>
+        ))}
+      </div>
 
-        <div style={s.feed}>
-          {feed.map((p) => (
-            <Post key={p.id} author={p.author.displayName} body={p.body} meta={when(p.created_at, gd)} />
-          ))}
+      <Composer
+        gd={gd}
+        connections={connections}
+        onPosted={(post) => setOwn((o) => [post, ...o])}
+      />
 
-          {loaded && feed.length === 0 && (
-            <p style={s.quiet}>
-              {gd
-                ? 'Tha e sàmhach an seo. Nuair a bhios ceanglaichean agad, nochdaidh na tha iad ag ràdh an seo.'
-                : 'It’s quiet here. Once you have connections, what they post will appear in this column.'}
-            </p>
-          )}
+      <div style={s.feed}>
+        {feed.map((p) => (
+          <Post key={p.id} author={p.author.displayName} body={p.body} meta={when(p.created_at, gd)} />
+        ))}
 
-          {own.length > 0 && (
-            <>
-              <p style={s.divider}>{gd ? 'Na phostaich thu fhèin' : 'Your own posts'}</p>
-              {own.map((p) => (
-                <Post key={p.id} author={profile.displayName} body={p.body} meta={p.visibility} />
-              ))}
-            </>
-          )}
-        </div>
-      </section>
+        {loaded && feed.length === 0 && (
+          <p style={s.quiet}>
+            {gd
+              ? 'Tha e sàmhach an seo. Nuair a bhios ceanglaichean agad, nochdaidh na tha iad ag ràdh an seo.'
+              : 'It’s quiet here. Once you have connections, what they post will appear in this column.'}
+          </p>
+        )}
 
-      <aside style={{ ...s.col, ...s.right }} data-no-drag>
-        <PersonalGlobe profile={profile} />
-        <Connections
-          gd={gd}
-          connections={connections}
-          pending={pending}
-          onChanged={() => { loadConnections(); loadFeed(); }}
-        />
-      </aside>
+        {own.length > 0 && (
+          <>
+            <p style={s.divider}>{gd ? 'Na phostaich thu fhèin' : 'Your own posts'}</p>
+            {own.map((p) => (
+              <Post key={p.id} author={profile.displayName} body={p.body} meta={p.visibility} />
+            ))}
+          </>
+        )}
+      </div>
+    </section>
+  );
+
+  const right = (
+    <aside style={{ ...s.col, ...s.right, ...colMobile }} data-no-drag>
+      <PersonalGlobe profile={profile} />
+      <Connections
+        gd={gd}
+        connections={connections}
+        pending={pending}
+        onChanged={() => { loadConnections(); loadFeed(); }}
+      />
+    </aside>
+  );
+
+  // On a phone the three-column grid can't fit — its hard min-widths add up
+  // to more than the viewport, so the two glass columns blanket the whole
+  // screen and the backdrop photo disappears behind 22px of blur. Stack to
+  // one scrolling column instead, feed first, with room at the top for the
+  // place to read behind the glass. Desktop keeps the revolving-door grid.
+  return (
+    <div style={isMobile ? s.gridMobile : s.grid}>
+      {isMobile ? (
+        <>{middle}{right}{left}</>
+      ) : (
+        <>{left}{middle}{right}</>
+      )}
     </div>
   );
 }
@@ -191,7 +210,26 @@ const s = {
     maxWidth: 1320,
     margin: '0 auto',
   },
+  // One scrolling column. The big top pad is deliberate: it lets the
+  // backdrop photo show above the fold before any glass covers it, which
+  // is the whole point of the surface and exactly what the desktop grid
+  // was stealing on a phone.
+  gridMobile: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+    padding: 14,
+    paddingTop: '20vh',
+    boxSizing: 'border-box',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+  },
+
   col: { minHeight: 0, display: 'flex', flexDirection: 'column', gap: 14 },
+  // Full-width, natural height, no inner scroll — the page scrolls as one.
+  colMobile: { width: '100%', minHeight: 'auto', overflow: 'visible', flex: '0 0 auto' },
   left: { ...glass, padding: 16, overflow: 'hidden' },
   middle: { overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 },
   right: { overflowY: 'auto', overflowX: 'hidden' },
