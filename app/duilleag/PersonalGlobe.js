@@ -61,11 +61,15 @@ export default function PersonalGlobe({ profile }) {
         center: FALLBACK_CENTER,
         zoom: FALLBACK_ZOOM,
         attributionControl: false,
-        // A card, not a map surface: no zooming, no pitch. Drag still
-        // spins the globe, which is the one interaction worth having.
+        // Zoom via the on-card buttons, double-tap and pinch — but NOT the
+        // wheel. Wheel-zoom would trap the mouse over the map and stop the
+        // connections column scrolling past it, which is the more common
+        // thing you want to do here. Pitch stays off; this is a globe, not
+        // a terrain view.
         scrollZoom: false,
-        doubleClickZoom: false,
-        touchZoomRotate: false,
+        doubleClickZoom: true,
+        touchZoomRotate: true,
+        touchPitch: false,
         keyboard: false,
       });
     } catch (e) {
@@ -111,6 +115,21 @@ export default function PersonalGlobe({ profile }) {
     else map.once('load', place);
   }, [hasLocation, loc.lat, loc.lng, gd]);
 
+  // Snap back to your pin. This is the whole point of a *personal* globe:
+  // after spinning or zooming off somewhere, one tap returns you to where
+  // you said you are, at the zoom the card was born at.
+  function recenter() {
+    const map = mapRef.current;
+    if (!map || !hasLocation) return;
+    map.flyTo({ center: [loc.lng, loc.lat], zoom: LOCATED_ZOOM, duration: 900 });
+  }
+
+  const zoomBy = (delta) => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.easeTo({ zoom: map.getZoom() + delta, duration: 260 });
+  };
+
   async function save() {
     if (!query.trim() || busy) return;
     setBusy(true); setError(null);
@@ -153,7 +172,18 @@ export default function PersonalGlobe({ profile }) {
     <div style={s.wrap}>
       {failed
         ? <div style={s.fallback}>{gd ? 'Chan urrainn an cruinne a shealltainn' : 'Globe unavailable'}</div>
-        : <div ref={container} style={s.map} />}
+        : (
+          <div style={s.mapWrap}>
+            <div ref={container} style={s.map} />
+            <div style={s.controls} data-no-drag>
+              <button style={s.ctrl} onClick={() => zoomBy(1)} aria-label={gd ? 'Sùm a-steach' : 'Zoom in'} title={gd ? 'Sùm a-steach' : 'Zoom in'}>+</button>
+              <button style={s.ctrl} onClick={() => zoomBy(-1)} aria-label={gd ? 'Sùm a-mach' : 'Zoom out'} title={gd ? 'Sùm a-mach' : 'Zoom out'}>−</button>
+              {hasLocation && (
+                <button style={{ ...s.ctrl, ...s.ctrlReset }} onClick={recenter} aria-label={gd ? 'Air ais thugad fhèin' : 'Recentre on you'} title={gd ? 'Air ais thugad fhèin' : 'Recentre on you'}>⌖</button>
+              )}
+            </div>
+          </div>
+        )}
 
       <div style={s.caption}>
         {editing || !hasLocation ? (
@@ -208,10 +238,25 @@ const s = {
     overflow: 'hidden',
     flexShrink: 0,
   },
+  mapWrap: { position: 'relative' },
   // Was a full square — at column width that made the globe the biggest
   // thing on the page. A 3:2 letterbox keeps the sphere legible while
   // giving the connections list the room it actually needs.
   map: { width: '100%', aspectRatio: '3 / 2', maxHeight: 190, background: '#050B08' },
+  controls: {
+    position: 'absolute', top: 7, right: 7, zIndex: 2,
+    display: 'flex', flexDirection: 'column', gap: 5,
+  },
+  ctrl: {
+    width: 24, height: 24, padding: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    borderRadius: 6, cursor: 'pointer',
+    background: 'rgba(8,16,12,0.62)', border: '1px solid rgba(255,255,255,0.16)',
+    backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+    color: 'rgba(255,255,255,0.9)', fontSize: 15, lineHeight: 1,
+    fontFamily: SANS,
+  },
+  ctrlReset: { color: '#E9C879', fontSize: 14, marginTop: 2 },
   fallback: {
     width: '100%', aspectRatio: '3 / 2', display: 'flex',
     alignItems: 'center', justifyContent: 'center', textAlign: 'center',

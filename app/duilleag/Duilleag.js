@@ -199,6 +199,12 @@ const s = {
     inset: 0,
     display: 'grid',
     gridTemplateColumns: 'minmax(190px, 232px) minmax(0, 1fr) minmax(240px, 320px)',
+    // Bind the row to the pane's own height. Without this the single
+    // implicit row grows to its tallest content and overflows the pane,
+    // so the columns' overflowY:auto has no fixed height to scroll inside
+    // and the whole feed just runs off the bottom. minmax(0,·) lets the
+    // children actually shrink so their inner scroll can take over.
+    gridTemplateRows: 'minmax(0, 1fr)',
     gap: 18,
     padding: 18,
     boxSizing: 'border-box',
