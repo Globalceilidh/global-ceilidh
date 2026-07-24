@@ -34,6 +34,7 @@ export default function PersonalGlobe({ profile }) {
   const container = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
+  const memberMarkersRef = useRef([]);
 
   const [loc, setLoc] = useState({
     region: profile.region,
@@ -41,6 +42,7 @@ export default function PersonalGlobe({ profile }) {
     lng: profile.lng,
     locationPublic: profile.locationPublic,
   });
+  const [members, setMembers] = useState([]);
   const [editing, setEditing] = useState(false);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
@@ -114,6 +116,46 @@ export default function PersonalGlobe({ profile }) {
     if (map.isStyleLoaded()) place();
     else map.once('load', place);
   }, [hasLocation, loc.lat, loc.lng, gd]);
+
+  // Other members who chose to be on the map. This is the other half of
+  // `location_public`: your dot shows on their globe, theirs on yours.
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/map/members')
+      .then((r) => r.json())
+      .then((j) => { if (alive && j.ok) setMembers(j.members || []); })
+      .catch(() => {}); // a globe with only your own pin is a fine failure mode
+    return () => { alive = false; };
+  }, []);
+
+  // Draw the member dots — smaller and gold, so they read as "other people"
+  // next to your red "you are here". Title shows on hover.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const draw = () => {
+      memberMarkersRef.current.forEach((mk) => mk.remove());
+      memberMarkersRef.current = [];
+      for (const m of members) {
+        if (!Number.isFinite(m.lat) || !Number.isFinite(m.lng)) continue;
+        const el = document.createElement('div');
+        el.setAttribute('title', m.region ? `${m.displayName} · ${m.region}` : m.displayName);
+        el.style.cssText =
+          'width:9px;height:9px;border-radius:50%;background:#E9C879;' +
+          'border:1.5px solid rgba(255,255,255,0.85);cursor:pointer;' +
+          'box-shadow:0 0 8px 2px rgba(233,200,121,0.45);';
+        memberMarkersRef.current.push(
+          new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map)
+        );
+      }
+    };
+    if (map.isStyleLoaded()) draw();
+    else map.once('load', draw);
+    return () => {
+      memberMarkersRef.current.forEach((mk) => mk.remove());
+      memberMarkersRef.current = [];
+    };
+  }, [members]);
 
   // Snap back to your pin. This is the whole point of a *personal* globe:
   // after spinning or zooming off somewhere, one tap returns you to where
