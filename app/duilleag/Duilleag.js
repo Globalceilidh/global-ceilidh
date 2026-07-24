@@ -34,6 +34,10 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
   const [pending, setPending] = useState([]);
   const [outgoing, setOutgoing] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  // The globe lives at the head of the right column, but its expand tab
+  // opens it big in the centre column (below the quick-jump icons). On a
+  // phone the columns are stacked, so it just grows in place.
+  const [globeExpanded, setGlobeExpanded] = useState(false);
 
   const loadConnections = useCallback(async () => {
     try {
@@ -60,6 +64,18 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
   useEffect(() => { loadConnections(); loadFeed(); }, [loadConnections, loadFeed]);
 
   const colMobile = isMobile ? s.colMobile : null;
+
+  // One globe instance. On desktop it sits in the centre column when expanded
+  // and the right column otherwise; on mobile it stays in the right fragment
+  // and just grows.
+  const globeInMiddle = globeExpanded && !isMobile;
+  const globe = (
+    <PersonalGlobe
+      profile={profile}
+      expanded={globeExpanded}
+      onToggleExpanded={() => setGlobeExpanded((v) => !v)}
+    />
+  );
 
   const left = (
     <aside style={{ ...s.col, ...s.left, ...colMobile }} data-no-drag>
@@ -99,6 +115,8 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
         ))}
       </div>
 
+      {globeInMiddle && globe}
+
       <Composer
         gd={gd}
         connections={connections}
@@ -132,7 +150,7 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
 
   const right = (
     <aside style={{ ...s.col, ...s.right, ...colMobile }} data-no-drag>
-      <PersonalGlobe profile={profile} />
+      {!globeInMiddle && globe}
       <FindPeople
         gd={gd}
         outgoing={outgoing}

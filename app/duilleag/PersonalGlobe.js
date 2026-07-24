@@ -28,7 +28,7 @@ const FALLBACK_CENTER = [-30, 50];
 const FALLBACK_ZOOM = 0.35;
 const LOCATED_ZOOM = 2.2;
 
-export default function PersonalGlobe({ profile }) {
+export default function PersonalGlobe({ profile, expanded = false, onToggleExpanded = null }) {
   const { language } = useLanguage();
   const gd = language === 'gd';
   const container = useRef(null);
@@ -96,6 +96,16 @@ export default function PersonalGlobe({ profile }) {
 
     return () => { map.remove(); mapRef.current = null; markerRef.current = null; };
   }, []);
+
+  // Expanding/collapsing changes the map container's height. MapLibre only
+  // re-measures on window resize, so nudge it after the layout settles or the
+  // globe renders into the old (small) box and clips.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const id = setTimeout(() => { try { map.resize(); } catch {} }, 60);
+    return () => clearTimeout(id);
+  }, [expanded]);
 
   // Centre and pin follow the location, so setting one updates in place
   // rather than needing the map torn down and rebuilt.
@@ -326,7 +336,7 @@ export default function PersonalGlobe({ profile }) {
         ? <div style={s.fallback}>{gd ? 'Chan urrainn an cruinne a shealltainn' : 'Globe unavailable'}</div>
         : (
           <div style={s.mapWrap}>
-            <div ref={container} style={s.map} />
+            <div ref={container} style={{ ...s.map, ...(expanded ? s.mapExpanded : null) }} />
             <div style={s.controls} data-no-drag>
               <button style={s.ctrl} onClick={() => zoomBy(1)} aria-label={gd ? 'Sùm a-steach' : 'Zoom in'} title={gd ? 'Sùm a-steach' : 'Zoom in'}>+</button>
               <button style={s.ctrl} onClick={() => zoomBy(-1)} aria-label={gd ? 'Sùm a-mach' : 'Zoom out'} title={gd ? 'Sùm a-mach' : 'Zoom out'}>−</button>
@@ -338,40 +348,70 @@ export default function PersonalGlobe({ profile }) {
         )}
 
       <div style={s.caption}>
-        {editing || !hasLocation ? (
-          <>
-            <input
-              autoFocus={editing}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') save(); }}
-              placeholder={gd ? 'Càit a bheil thu?' : 'Where are you?'}
-              style={s.input}
-            />
-            <div style={s.editRow}>
-              <button style={s.save} onClick={save} disabled={!query.trim() || busy}>
-                {busy ? '…' : (gd ? 'Cuir ann' : 'Set')}
-              </button>
-              {hasLocation && (
-                <button style={s.cancel} onClick={() => { setEditing(false); setError(null); }}>
-                  {gd ? 'Sguir dheth' : 'Cancel'}
-                </button>
-              )}
+        <div style={s.captionRow}>
+          {/* The ubiquitous social headshot. Circular, bordered, sat in the
+              bar under the map. Clerk gives everyone a default avatar, so
+              avatarUrl is almost always present; fall back to an initial. */}
+          {profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt={profile.displayName || 'You'} style={s.avatar} />
+          ) : (
+            <div style={s.avatarFallback} aria-hidden="true">
+              {(profile.displayName || '?').trim().charAt(0).toUpperCase()}
             </div>
-            {error && <span style={s.error}>{error}</span>}
-          </>
-        ) : (
-          <>
-            <button style={s.place} onClick={() => setEditing(true)} title={gd ? 'Atharraich' : 'Change'}>
-              {loc.region || (gd ? 'An t-àite agad' : 'Your location')}
+          )}
+
+          <div style={s.captionMain}>
+            {editing || !hasLocation ? (
+              <>
+                <input
+                  autoFocus={editing}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') save(); }}
+                  placeholder={gd ? 'Càit a bheil thu?' : 'Where are you?'}
+                  style={s.input}
+                />
+                <div style={s.editRow}>
+                  <button style={s.save} onClick={save} disabled={!query.trim() || busy}>
+                    {busy ? '…' : (gd ? 'Cuir ann' : 'Set')}
+                  </button>
+                  {hasLocation && (
+                    <button style={s.cancel} onClick={() => { setEditing(false); setError(null); }}>
+                      {gd ? 'Sguir dheth' : 'Cancel'}
+                    </button>
+                  )}
+                </div>
+                {error && <span style={s.error}>{error}</span>}
+              </>
+            ) : (
+              <>
+                <button style={s.place} onClick={() => setEditing(true)} title={gd ? 'Atharraich' : 'Change'}>
+                  {loc.region || (gd ? 'An t-àite agad' : 'Your location')}
+                </button>
+                <button style={s.privacy} onClick={toggleVisibility}>
+                  {loc.locationPublic
+                    ? (gd ? 'Ri fhaicinn le càch' : 'Visible to others')
+                    : (gd ? 'Falaichte bho chàch' : 'Hidden from others')}
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Expansion tab — opens the globe large in the centre column. */}
+          {onToggleExpanded && (
+            <button
+              type="button"
+              data-no-drag
+              onClick={onToggleExpanded}
+              style={s.expandBtn}
+              aria-expanded={expanded}
+              aria-label={expanded ? (gd ? 'Lùghdaich an cruinne' : 'Collapse globe') : (gd ? 'Leudaich an cruinne' : 'Expand globe')}
+              title={expanded ? (gd ? 'Lùghdaich' : 'Collapse') : (gd ? 'Leudaich' : 'Expand')}
+            >
+              {expanded ? '⤡' : '⤢'}
             </button>
-            <button style={s.privacy} onClick={toggleVisibility}>
-              {loc.locationPublic
-                ? (gd ? 'Ri fhaicinn le càch' : 'Visible to others')
-                : (gd ? 'Falaichte bho chàch' : 'Hidden from others')}
-            </button>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -395,6 +435,9 @@ const s = {
   // thing on the page. A 3:2 letterbox keeps the sphere legible while
   // giving the connections list the room it actually needs.
   map: { width: '100%', aspectRatio: '3 / 2', maxHeight: 190, background: '#050B08' },
+  // Expanded: drop the letterbox cap and fill the centre column with a big
+  // globe. aspectRatio off so the fixed height wins.
+  mapExpanded: { aspectRatio: 'auto', height: 'min(62vh, 620px)', maxHeight: 'none' },
   controls: {
     position: 'absolute', top: 7, right: 7, zIndex: 2,
     display: 'flex', flexDirection: 'column', gap: 5,
@@ -415,8 +458,32 @@ const s = {
     padding: 16, fontFamily: SANS, fontSize: 12, color: 'rgba(255,255,255,0.45)',
   },
   caption: {
-    display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start',
     padding: '10px 13px 12px', borderTop: '1px solid rgba(255,255,255,0.08)',
+  },
+  captionRow: { display: 'flex', alignItems: 'center', gap: 11 },
+  captionMain: {
+    flex: 1, minWidth: 0,
+    display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start',
+  },
+  avatar: {
+    width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+    objectFit: 'cover', display: 'block',
+    border: '2px solid rgba(255,255,255,0.85)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+  },
+  avatarFallback: {
+    width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(201,160,71,0.9)', color: '#1A1206',
+    border: '2px solid rgba(255,255,255,0.85)', boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+    fontFamily: SANS, fontWeight: 700, fontSize: 16,
+  },
+  expandBtn: {
+    flexShrink: 0, width: 28, height: 28, padding: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    borderRadius: 7, cursor: 'pointer',
+    background: 'rgba(8,16,12,0.55)', border: '1px solid rgba(255,255,255,0.16)',
+    color: 'rgba(255,255,255,0.85)', fontSize: 15, lineHeight: 1, fontFamily: SANS,
   },
   place: {
     background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left',
