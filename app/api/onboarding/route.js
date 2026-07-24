@@ -18,6 +18,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
+import { geocodePlace } from '../../../lib/geocode';
 
 export const runtime = 'nodejs';
 
@@ -145,6 +146,20 @@ export async function POST(req) {
       return Response.json({ ok: false, error: 'handle_taken', reason: 'That handle is taken.' }, { status: 409 });
     }
 
+    // Geocode the place name to a coarse coordinate at sign-up, so the
+    // personal globe has something to centre on and — if they ticked "Show
+    // on the map" — they can actually be plotted. Onboarding never did this,
+    // so every early member stored a region with no lat/lng and opting in
+    // did nothing. Best-effort: a geocode miss or Nominatim outage must
+    // never block the write, so on null we save region alone and the pin can
+    // be set later from the personal globe or /duilleag/settings.
+    let lat = null;
+    let lng = null;
+    if (region) {
+      const geo = await geocodePlace(region);
+      if (geo) { lat = geo.lat; lng = geo.lng; }
+    }
+
     const row = {
       clerk_user_id: userId,
       handle,
@@ -152,6 +167,8 @@ export async function POST(req) {
       email,
       avatar_url: avatarUrl,
       region,
+      lat,
+      lng,
       location_public: locationPublic,
       ancestral_places: ancestralPlaces,
       gaidhlig_level: level,
