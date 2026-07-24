@@ -25,13 +25,13 @@ export const PANELS = [
     bgPosition: '68% 48%',
   },
   {
-    slug: 'usa',
-    kind: 'placeholder',
-    place: { en: 'United States', gd: 'Na Stàitean Aonaichte' },
-    bg: '/duilleag/bg/usa.webp',
-    // Pines on the left shore are the only hard subject; the rest is open
-    // water. Framed left so a phone crop doesn't lose them.
-    bgPosition: '38% 50%',
+    slug: 'rooms',
+    kind: 'rooms',
+    place: { en: 'Ceilidh Rooms', gd: 'Teanta-cèilidh' },
+    // An Cidsin — the kitchen scene. Warm room; held centre and lifted a
+    // touch so the faces stay above the fold behind the glass card.
+    bg: '/cidsin-parents-cooking.png',
+    bgPosition: '50% 42%',
   },
   {
     slug: 'canada',

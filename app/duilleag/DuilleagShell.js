@@ -28,6 +28,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PANELS, wrapIndex } from './panels';
 import { useLanguage } from '../../context/LanguageContext';
 import Duilleag from './Duilleag';
+import Rooms from './Rooms';
 
 // Release thresholds.
 const FLICK_VELOCITY = 0.45;   // px/ms — above this, commit regardless of distance
@@ -206,6 +207,8 @@ export default function DuilleagShell({ profile, initialPosts }) {
             <div style={styles.paneInner}>
               {panel.kind === 'duilleag' ? (
                 <Duilleag profile={profile} initialPosts={initialPosts} isMobile={isMobile} />
+              ) : panel.kind === 'rooms' ? (
+                <Rooms language={language} />
               ) : (
                 <Placeholder panel={panel} language={language} />
               )}
