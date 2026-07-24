@@ -35,6 +35,7 @@ export default function PersonalGlobe({ profile }) {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const memberMarkersRef = useRef([]);
+  const feisMarkersRef = useRef([]);
 
   const [loc, setLoc] = useState({
     region: profile.region,
@@ -43,6 +44,7 @@ export default function PersonalGlobe({ profile }) {
     locationPublic: profile.locationPublic,
   });
   const [members, setMembers] = useState([]);
+  const [feisean, setFeisean] = useState([]);
   const [editing, setEditing] = useState(false);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
@@ -156,6 +158,50 @@ export default function PersonalGlobe({ profile }) {
       memberMarkersRef.current = [];
     };
   }, [members]);
+
+  // Fèisean & Highland Games — the same public list as /feisean, geocoded.
+  // These show on everyone's globe (not gated on location_public — they're
+  // public events, not people).
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/map/feisean')
+      .then((r) => r.json())
+      .then((j) => { if (alive && j.ok) setFeisean(j.feisean || []); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  // Draw the fèis pins in blue — distinct from the red "you are here" and the
+  // gold member dots. Title on hover shows the game, place and dates.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const draw = () => {
+      feisMarkersRef.current.forEach((mk) => mk.remove());
+      feisMarkersRef.current = [];
+      for (const f of feisean) {
+        if (!Number.isFinite(f.lat) || !Number.isFinite(f.lng)) continue;
+        const where = [f.city, f.state].filter(Boolean).join(', ');
+        const title = [f.name, where, f.dateDisplay].filter(Boolean).join(' · ');
+        const el = document.createElement('div');
+        el.setAttribute('title', title);
+        el.style.cssText =
+          'width:10px;height:10px;border-radius:50%;background:#3B82F6;' +
+          'border:1.5px solid rgba(255,255,255,0.9);cursor:pointer;' +
+          'box-shadow:0 0 9px 2px rgba(59,130,246,0.5);';
+        if (f.website) el.addEventListener('click', () => window.open(f.website, '_blank', 'noopener'));
+        feisMarkersRef.current.push(
+          new maplibregl.Marker({ element: el }).setLngLat([f.lng, f.lat]).addTo(map)
+        );
+      }
+    };
+    if (map.isStyleLoaded()) draw();
+    else map.once('load', draw);
+    return () => {
+      feisMarkersRef.current.forEach((mk) => mk.remove());
+      feisMarkersRef.current = [];
+    };
+  }, [feisean]);
 
   // Snap back to your pin. This is the whole point of a *personal* globe:
   // after spinning or zooming off somewhere, one tap returns you to where
