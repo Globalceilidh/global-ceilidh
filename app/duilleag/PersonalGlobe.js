@@ -36,6 +36,7 @@ export default function PersonalGlobe({ profile }) {
   const markerRef = useRef(null);
   const memberMarkersRef = useRef([]);
   const feisMarkersRef = useRef([]);
+  const featuredMarkersRef = useRef([]);
 
   const [loc, setLoc] = useState({
     region: profile.region,
@@ -45,6 +46,7 @@ export default function PersonalGlobe({ profile }) {
   });
   const [members, setMembers] = useState([]);
   const [feisean, setFeisean] = useState([]);
+  const [featured, setFeatured] = useState([]);
   const [editing, setEditing] = useState(false);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
@@ -168,6 +170,10 @@ export default function PersonalGlobe({ profile }) {
       .then((r) => r.json())
       .then((j) => { if (alive && j.ok) setFeisean(j.feisean || []); })
       .catch(() => {});
+    fetch('/api/map/featured')
+      .then((r) => r.json())
+      .then((j) => { if (alive && j.ok) setFeatured(j.featured || []); })
+      .catch(() => {});
     return () => { alive = false; };
   }, []);
 
@@ -176,10 +182,14 @@ export default function PersonalGlobe({ profile }) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+    // Games that are also Featured are drawn as neon pins instead, so skip
+    // them here to avoid a plain pin sitting under the neon one.
+    const featuredFeisIds = new Set(featured.map((f) => f.feisId).filter(Boolean));
     const draw = () => {
       feisMarkersRef.current.forEach((mk) => mk.remove());
       feisMarkersRef.current = [];
       for (const f of feisean) {
+        if (featuredFeisIds.has(f.id)) continue;
         if (!Number.isFinite(f.lat) || !Number.isFinite(f.lng)) continue;
         const where = [f.city, f.state].filter(Boolean).join(', ');
         const title = [f.name, where, f.dateDisplay].filter(Boolean).join(' · ');
@@ -208,7 +218,40 @@ export default function PersonalGlobe({ profile }) {
       feisMarkersRef.current.forEach((mk) => mk.remove());
       feisMarkersRef.current = [];
     };
-  }, [feisean]);
+  }, [feisean, featured]);
+
+  // Featured events — neon pins, brighter and pulsing, so the handful of
+  // marquee games stand out from the plain-blue fèisean. Anchors too, so a
+  // click opens the event's site.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const draw = () => {
+      featuredMarkersRef.current.forEach((mk) => mk.remove());
+      featuredMarkersRef.current = [];
+      for (const f of featured) {
+        if (!Number.isFinite(f.lat) || !Number.isFinite(f.lng)) continue;
+        const title = [f.name, f.location, f.dateDisplay].filter(Boolean).join(' · ');
+        const el = document.createElement(f.website ? 'a' : 'div');
+        el.className = 'gc-neon-pin';
+        el.setAttribute('title', title);
+        if (f.website) {
+          el.href = f.website;
+          el.target = '_blank';
+          el.rel = 'noopener noreferrer';
+        }
+        featuredMarkersRef.current.push(
+          new maplibregl.Marker({ element: el }).setLngLat([f.lng, f.lat]).addTo(map)
+        );
+      }
+    };
+    if (map.isStyleLoaded()) draw();
+    else map.once('load', draw);
+    return () => {
+      featuredMarkersRef.current.forEach((mk) => mk.remove());
+      featuredMarkersRef.current = [];
+    };
+  }, [featured]);
 
   // Snap back to your pin. This is the whole point of a *personal* globe:
   // after spinning or zooming off somewhere, one tap returns you to where
@@ -265,6 +308,20 @@ export default function PersonalGlobe({ profile }) {
 
   return (
     <div style={s.wrap}>
+      {/* Neon pin styling for Featured events. Animates box-shadow only —
+          never transform, which MapLibre owns for marker positioning. */}
+      <style>{`
+        .gc-neon-pin {
+          display:block; width:14px; height:14px; border-radius:50%;
+          background:#2FE0FF; border:2px solid #ffffff; cursor:pointer;
+          box-shadow:0 0 6px 2px rgba(47,224,255,0.9), 0 0 16px 5px rgba(47,224,255,0.55);
+          animation:gcNeonPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes gcNeonPulse {
+          0%,100% { box-shadow:0 0 5px 2px rgba(47,224,255,0.85), 0 0 12px 3px rgba(47,224,255,0.4); }
+          50%     { box-shadow:0 0 9px 3px rgba(47,224,255,1),    0 0 24px 8px rgba(47,224,255,0.7); }
+        }
+      `}</style>
       {failed
         ? <div style={s.fallback}>{gd ? 'Chan urrainn an cruinne a shealltainn' : 'Globe unavailable'}</div>
         : (
