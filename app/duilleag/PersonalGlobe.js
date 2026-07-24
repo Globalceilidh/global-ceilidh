@@ -183,13 +183,20 @@ export default function PersonalGlobe({ profile }) {
         if (!Number.isFinite(f.lat) || !Number.isFinite(f.lng)) continue;
         const where = [f.city, f.state].filter(Boolean).join(', ');
         const title = [f.name, where, f.dateDisplay].filter(Boolean).join(' · ');
-        const el = document.createElement('div');
+        // A real anchor, exactly like the /feisean card: clicking opens the
+        // game's own website in a new tab. More reliable than window.open
+        // (no popup-blocker) and it's the same semantics as the card.
+        const el = document.createElement(f.website ? 'a' : 'div');
         el.setAttribute('title', title);
+        if (f.website) {
+          el.href = f.website;
+          el.target = '_blank';
+          el.rel = 'noopener noreferrer';
+        }
         el.style.cssText =
-          'width:10px;height:10px;border-radius:50%;background:#3B82F6;' +
+          'display:block;width:10px;height:10px;border-radius:50%;background:#3B82F6;' +
           'border:1.5px solid rgba(255,255,255,0.9);cursor:pointer;' +
           'box-shadow:0 0 9px 2px rgba(59,130,246,0.5);';
-        if (f.website) el.addEventListener('click', () => window.open(f.website, '_blank', 'noopener'));
         feisMarkersRef.current.push(
           new maplibregl.Marker({ element: el }).setLngLat([f.lng, f.lat]).addTo(map)
         );
