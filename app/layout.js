@@ -5,6 +5,7 @@ import { RadioProvider } from '../context/RadioContext';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import PresenceBeat from '../components/PresenceBeat';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const cinzel = Cinzel({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-cinzel' });
@@ -61,6 +62,7 @@ export default function RootLayout({ children }) {
           </LanguageProvider>
           <Analytics />
           <SpeedInsights />
+          <PresenceBeat />
         </body>
       </html>
     </ClerkProvider>
