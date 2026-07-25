@@ -34,7 +34,9 @@ export async function GET() {
   // --- active sessions on the site (last 60s) ---
   let activeUsers = null;
   try {
-    const cutoff = new Date(Date.now() - 60_000).toISOString();
+    // 90s window vs the 60s heartbeat — one grace beat, so an active session
+    // whose beat is slightly late still counts.
+    const cutoff = new Date(Date.now() - 90_000).toISOString();
     const { count, error } = await supabaseAdmin
       .from('gc_presence')
       .select('session_id', { count: 'exact', head: true })

@@ -2,10 +2,13 @@
 
 // components/PresenceBeat.js
 // Site-wide presence heartbeat. Mounted once in the root layout, it POSTs a
-// tiny beat to /api/presence/beat on load and every 30s while the tab is
+// tiny beat to /api/presence/beat on load and every 60s while the tab is
 // visible (and again the moment it becomes visible). That's what powers the
 // "N on site" number in the admin. Renders nothing; failures are ignored so
 // it can never affect the page.
+//
+// 60s (paired with a 90s "active" window in /api/metrics/live) keeps Vercel
+// invocations low — it's the main cost dial if traffic ever grows.
 
 import { useEffect } from 'react';
 
@@ -33,7 +36,7 @@ export default function PresenceBeat() {
     };
 
     beat();
-    const id = setInterval(beat, 30_000);
+    const id = setInterval(beat, 60_000);
     const onVis = () => { if (document.visibilityState === 'visible') beat(); };
     document.addEventListener('visibilitychange', onVis);
 
