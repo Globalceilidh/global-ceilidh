@@ -21,7 +21,7 @@
 // the signpost, and the caption over the art. They're eyeballed from the
 // assets — nudge them once it's live if anything's a hair off.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import LanguagePill from '../components/LanguagePill';
 import { useLanguage } from '../context/LanguageContext';
@@ -75,7 +75,7 @@ const CAP = { top: '46%', left: '58%', width: 'auto', rotate: '-25deg' };
 // HEAD — hidden easter-egg hotspot over the wee figure's head (the cluster of
 // spheres at the base-right of the post). Silent: default cursor, no glow,
 // nothing hints it's there. Clicking it reveals the Jabberwocky verse up top.
-const HEAD = { top: '34%', left: '90%', size: '8%' };
+const HEAD = { top: '44%', left: '94%', size: '9%' };
 
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
@@ -92,6 +92,17 @@ export default function Home() {
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);
+
+  // Mobile browsers block <video autoPlay> unless `muted` is set as a DOM
+  // PROPERTY — React's muted attribute alone is unreliable, so the video never
+  // starts on phones. Set it on the element and explicitly kick play().
+  const videoRef = useRef(null);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || reduceMotion) return;
+    v.muted = true;
+    v.play?.().catch(() => {});
+  }, [reduceMotion]);
 
   // Where the glowing core goes. Until Clerk has loaded we don't know, so
   // default to the story — that's correct for every first-time visitor,
@@ -133,9 +144,10 @@ export default function Home() {
           />
         ) : (
           <video
+            ref={videoRef}
             src={VORTEX_VIDEO}
             poster={VORTEX_STILL}
-            autoPlay loop muted playsInline
+            autoPlay loop muted playsInline preload="auto"
             aria-label="A silver chrome whirlpool spiralling into a white-hot centre"
             onError={() => setVortexError(true)}
             // cover (not contain): the video is wider than the square stage, so
@@ -177,15 +189,17 @@ export default function Home() {
           }}
         />
 
-        {/* Signpost block (art + caption) — upper-left, pointing in */}
+        {/* Signpost block (art + caption). Also a click target for the verse —
+            no glow, default cursor, so it stays a quiet easter egg. */}
         <div
           className="gc-sign"
+          onClick={() => setPoemOpen((v) => !v)}
           style={{
             position: 'absolute', top: SIGN.top, left: SIGN.left,
             width: SIGN.width, aspectRatio: '1 / 1',
             transform: `rotate(${SIGN.rotate})`,
             transformOrigin: 'center center',
-            zIndex: 6, pointerEvents: 'none',
+            zIndex: 6, pointerEvents: 'auto', cursor: 'default',
           }}
         >
           {!signError && (
