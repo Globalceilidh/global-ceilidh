@@ -30,30 +30,31 @@ const VORTEX_VIDEO = '/gc-vortex-mercury.mp4'; // rotating mercury whirlpool (8s
 const VORTEX_STILL = '/gc-vortex-center.png';  // still fallback: reduced-motion, video poster, load error
 const SIGN_SRC   = '/gc-vortex-sign-2.png';   // cartoon arrow, transparent PNG
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
+const ANTONN_ICON = '/AnTonn/test/AnTonn.png';   // wave-heart emblem (An Tonn wing)
 
 const SRUTH = { ready: true, src: '/gc-sruth-logo.png' };
 
 // The Jabberwocky verse — the hidden-head easter egg. Toggles EN/GD with the
 // pill. (Public Gàidhlig still needs Lewis/Joe sign-off before it's "final".)
 const POEM_EN = [
-  "’Twas a slate-bright, glowing morning,",
-  "The old tracks were utterly lost,",
-  "I took a wild-bound through the ferocious woods,",
-  "While the road twisted off to the unknown.",
-  "“Keep going!” said the old fairy-man,",
-  "“Over the streams and the peaks with speed!”",
-  "The path tangled up, made a sudden pivot,",
-  "And I came to an end in an entirely different ocean!",
+  `’Twas a slate-bright, glowing morning,`,
+  `The old tracks were utterly lost,`,
+  `I took a wild-bound through the ferocious woods,`,
+  `While the road twisted off into the dark unknown.`,
+  `“Keep on, for your own sake!” said the urisk,`,
+  `“Over the streams and the peaks with speed!”`,
+  `The path tangled up, made a sudden pivot,`,
+  `And I came to an end in an entirely different ocean!`,
 ];
 const POEM_GD = [
-  "’S e madainn sglèatach, shoilleir a bh’ ann,",
-  "Chaidh na seann-cheuman air chall,",
-  "Thug mi spionn-leum tro na borb-choilltean,",
-  "’S an rathad a’ casadh don ghall.",
-  "“Cùm air do shon!” ars am bodach-sìthe,",
-  "“Thar nan sruthan ’s nan sgùrr gu luath!”",
-  "Chaidhnich am slighe, rinn e iom-chasadh,",
-  "’S thàinig mi gu crìoch anns an ath-chuan!",
+  `’S e madainn sglèatach, shoilleir a bh’ ann,`,
+  `Chaidh na seann-cheuman gu tur air chall,`,
+  `Thug mi spionn-leum tro na borb-choilltean,`,
+  `’S an rathad a’ casadh don dall.`,
+  `“Cùm ort, air do shon!” ars an ùruisg,`,
+  `“Thar nan sruthan ’s nan sgùrran gu luath!”`,
+  `Shnaidhmich an t-slighe, rinn i iom-chasadh,`,
+  `’S thàinig mi gu crìoch anns an ath-chuan!`,
 ];
 
 // All positions are % of the centred square "stage" (which tracks the vortex
@@ -237,9 +238,19 @@ export default function Home() {
           style={{ width: 'clamp(64px, 9.5vw, 112px)', height: 'auto', display: 'block' }} />
       </a>
 
+      {/* ── Bottom-centre: An Tonn → /AnTonn (between reidio and sruth) ── */}
+      <a
+        href="/AnTonn" aria-label="An Tonn — the entertainment wing" title="An Tonn"
+        className="gc-antonn"
+        style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', left: '50%', transform: 'translate(-50%, 50%)', zIndex: 10, display: 'block', lineHeight: 0 }}
+      >
+        <img src={ANTONN_ICON} alt="An Tonn"
+          style={{ width: 'clamp(64px, 9.5vw, 112px)', height: 'auto', display: 'block' }} />
+      </a>
+
       {/* ── Bottom-right: sruth wordplate → /sruth ──────────────────── */}
       <a
-        href="/sruth" aria-label="sruth. — sign up and read the archive" title="sruth."
+        href="/sruth/archive" aria-label="sruth. — read the archive" title="sruth."
         className="gc-sruth"
         style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', right: 'clamp(20px, 4vw, 44px)', transform: 'translateY(50%)', zIndex: 10, display: 'block' }}
       >
@@ -336,8 +347,8 @@ const STYLES = `
   .gc-plank-line { white-space: nowrap; font-size: clamp(13px, 3.6vmin, 44px); color: #2a2622;
     text-shadow: 0 1px 0 rgba(255,255,255,0.30), 0 -1px 1px rgba(0,0,0,0.55); }
   /* Corner icon hovers. */
-  .gc-reidio img, .gc-sruth-plate { transition: transform 220ms ease, filter 220ms ease; }
-  .gc-reidio:hover img { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(255,255,255,0.35)); }
+  .gc-reidio img, .gc-antonn img, .gc-sruth-plate { transition: transform 220ms ease, filter 220ms ease; }
+  .gc-reidio:hover img, .gc-antonn:hover img { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(255,255,255,0.35)); }
   .gc-sruth-plate { position: relative; display: inline-block; overflow: hidden; }
   .gc-sruth-plate::after { content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%;
     background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 65%, transparent 100%);
