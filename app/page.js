@@ -81,8 +81,20 @@ export default function Home() {
   const [vortexError, setVortexError] = useState(false);
   const [signError, setSignError] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [poemOpen, setPoemOpen] = useState(false);
   const { language } = useLanguage();
+
+  // On a narrow screen the wide tilted swirl gets cropped to its bright centre
+  // under objectFit:cover — reads as a glow. Track mobile and switch to
+  // objectFit:contain there so the whole swirl is visible.
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    setIsMobile(mq.matches);
+    const on = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
 
   // Honour reduced-motion: show the still swirl instead of the looping video.
   useEffect(() => {
@@ -133,14 +145,13 @@ export default function Home() {
           width: 'min(100vw, 100vh)', height: 'min(100vw, 100vh)',
         }}
       >
-        {vortexError ? (
-          <VortexPlaceholder />
-        ) : reduceMotion ? (
+        {(vortexError || reduceMotion) ? (
+          // Fallback = the still swirl (never the glow gradient), so a video
+          // failure or reduced-motion degrades to a swirl, not a glow.
           <img
             src={VORTEX_STILL}
             alt="A silver chrome whirlpool spiralling into a white-hot centre"
-            onError={() => setVortexError(true)}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: isMobile ? 'contain' : 'cover', display: 'block' }}
           />
         ) : (
           <video
@@ -150,10 +161,10 @@ export default function Home() {
             autoPlay loop muted playsInline preload="auto"
             aria-label="A silver chrome whirlpool spiralling into a white-hot centre"
             onError={() => setVortexError(true)}
-            // cover (not contain): the video is wider than the square stage, so
-            // contain shrank it — cover scales it up to fill, cropping only the
-            // black side margins so the swirl reads at full size like the original.
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            // cover fills the stage on desktop; contain on mobile so the whole
+            // tilted swirl shows instead of being cropped to its bright centre
+            // (which read as a large glow on phones).
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: isMobile ? 'contain' : 'cover', display: 'block' }}
           />
         )}
 
@@ -259,7 +270,7 @@ export default function Home() {
         style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', left: '50%', transform: 'translate(-50%, 50%)', zIndex: 10, display: 'block', lineHeight: 0 }}
       >
         <img src={ANTONN_ICON} alt="An Tonn"
-          style={{ width: 'clamp(64px, 9.5vw, 112px)', height: 'auto', display: 'block' }} />
+          style={{ width: 'clamp(84px, 12vw, 150px)', height: 'auto', display: 'block', mixBlendMode: 'screen' }} />
       </a>
 
       {/* ── Bottom-right: sruth wordplate → /sruth ──────────────────── */}
@@ -362,7 +373,9 @@ const STYLES = `
     text-shadow: 0 1px 0 rgba(255,255,255,0.30), 0 -1px 1px rgba(0,0,0,0.55); }
   /* Corner icon hovers. */
   .gc-reidio img, .gc-antonn img, .gc-sruth-plate { transition: transform 220ms ease, filter 220ms ease; }
-  .gc-reidio:hover img, .gc-antonn:hover img { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(255,255,255,0.35)); }
+  .gc-reidio:hover img { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(255,255,255,0.35)); }
+  /* An Tonn logo: screen-blended onto black, so no drop-shadow glow on hover. */
+  .gc-antonn:hover img { transform: scale(1.08); }
   .gc-sruth-plate { position: relative; display: inline-block; overflow: hidden; }
   .gc-sruth-plate::after { content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%;
     background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 65%, transparent 100%);
