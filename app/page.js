@@ -26,7 +26,8 @@ import { useAuth } from '@clerk/nextjs';
 import LanguagePill from '../components/LanguagePill';
 import { useLanguage } from '../context/LanguageContext';
 
-const VORTEX_SRC = '/gc-vortex-center.png';   // square, fades to black
+const VORTEX_VIDEO = '/gc-vortex-mercury.mp4'; // rotating mercury whirlpool (8s loop, fades to black)
+const VORTEX_STILL = '/gc-vortex-center.png';  // still fallback: reduced-motion, video poster, load error
 const SIGN_SRC   = '/gc-vortex-sign-2.png';   // cartoon arrow, transparent PNG
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 
@@ -50,7 +51,17 @@ const CAP = { top: '46%', left: '58%', width: 'auto', rotate: '-25deg' };
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
   const [signError, setSignError] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
   const { language } = useLanguage();
+
+  // Honour reduced-motion: show the still swirl instead of the looping video.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduceMotion(mq.matches);
+    const on = (e) => setReduceMotion(e.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
 
   // Where the glowing core goes. Until Clerk has loaded we don't know, so
   // default to the story — that's correct for every first-time visitor,
@@ -83,10 +94,19 @@ export default function Home() {
       >
         {vortexError ? (
           <VortexPlaceholder />
-        ) : (
+        ) : reduceMotion ? (
           <img
-            src={VORTEX_SRC}
+            src={VORTEX_STILL}
             alt="A silver chrome whirlpool spiralling into a white-hot centre"
+            onError={() => setVortexError(true)}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+          />
+        ) : (
+          <video
+            src={VORTEX_VIDEO}
+            poster={VORTEX_STILL}
+            autoPlay loop muted playsInline
+            aria-label="A silver chrome whirlpool spiralling into a white-hot centre"
             onError={() => setVortexError(true)}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           />
