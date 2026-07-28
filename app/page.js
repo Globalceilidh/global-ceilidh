@@ -33,6 +33,29 @@ const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 
 const SRUTH = { ready: true, src: '/gc-sruth-logo.png' };
 
+// The Jabberwocky verse — the hidden-head easter egg. Toggles EN/GD with the
+// pill. (Public Gàidhlig still needs Lewis/Joe sign-off before it's "final".)
+const POEM_EN = [
+  "’Twas a slate-bright, glowing morning,",
+  "The old tracks were utterly lost,",
+  "I took a wild-bound through the ferocious woods,",
+  "While the road twisted off to the unknown.",
+  "“Keep going!” said the old fairy-man,",
+  "“Over the streams and the peaks with speed!”",
+  "The path tangled up, made a sudden pivot,",
+  "And I came to an end in an entirely different ocean!",
+];
+const POEM_GD = [
+  "’S e madainn sglèatach, shoilleir a bh’ ann,",
+  "Chaidh na seann-cheuman air chall,",
+  "Thug mi spionn-leum tro na borb-choilltean,",
+  "’S an rathad a’ casadh don ghall.",
+  "“Cùm air do shon!” ars am bodach-sìthe,",
+  "“Thar nan sruthan ’s nan sgùrr gu luath!”",
+  "Chaidhnich am slighe, rinn e iom-chasadh,",
+  "’S thàinig mi gu crìoch anns an ath-chuan!",
+];
+
 // All positions are % of the centred square "stage" (which tracks the vortex
 // art exactly), so overlays stay glued at any viewport size.
 
@@ -48,10 +71,16 @@ const SIGN = { top: '15%', left: '68%', width: '33%', rotate: '0deg', flip: fals
 // (tilts + tracks with the sign). Plank rises to the right → negative rotate.
 const CAP = { top: '46%', left: '58%', width: 'auto', rotate: '-25deg' };
 
+// HEAD — hidden easter-egg hotspot over the wee figure's head (the cluster of
+// spheres at the base-right of the post). Silent: default cursor, no glow,
+// nothing hints it's there. Clicking it reveals the Jabberwocky verse up top.
+const HEAD = { top: '34%', left: '90%', size: '8%' };
+
 export default function Home() {
   const [vortexError, setVortexError] = useState(false);
   const [signError, setSignError] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [poemOpen, setPoemOpen] = useState(false);
   const { language } = useLanguage();
 
   // Honour reduced-motion: show the still swirl instead of the looping video.
@@ -131,6 +160,22 @@ export default function Home() {
           }}
         />
 
+        {/* Hidden easter egg: the wee figure's head → the Jabberwocky verse.
+            No glow, default cursor — nothing signals it; you find it by chance. */}
+        <button
+          type="button"
+          aria-hidden="true"
+          tabIndex={-1}
+          onClick={() => setPoemOpen((v) => !v)}
+          className="gc-head"
+          style={{
+            position: 'absolute', top: HEAD.top, left: HEAD.left,
+            transform: 'translate(-50%, -50%)',
+            width: HEAD.size, aspectRatio: '1 / 1', borderRadius: '50%',
+            zIndex: 7,
+          }}
+        />
+
         {/* Signpost block (art + caption) — upper-left, pointing in */}
         <div
           className="gc-sign"
@@ -169,6 +214,17 @@ export default function Home() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* ── The Jabberwocky verse — revealed by the hidden head hotspot ── */}
+      <div
+        className={`gc-poem${poemOpen ? ' gc-poem-open' : ''}`}
+        aria-hidden={!poemOpen}
+        onClick={() => setPoemOpen(false)}
+      >
+        {(language === 'gd' ? POEM_GD : POEM_EN).map((line, i) => (
+          <p key={i} className="gc-poem-line">{line}</p>
+        ))}
       </div>
 
       {/* ── Bottom-left: reidio → /radio ────────────────────────────── */}
@@ -252,6 +308,21 @@ const ORG_JSONLD = {
 
 const STYLES = `
   .gc-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  /* Hidden head hotspot — deliberately invisible + no pointer cursor, so the
+     cursor never "does its thing" as you pass over it. Findable only by chance. */
+  .gc-head { background: transparent; border: 0; padding: 0; margin: 0; outline: none;
+    cursor: default; -webkit-appearance: none; appearance: none; }
+  /* The Jabberwocky verse: white lettering across the top, fades in on reveal. */
+  .gc-poem { position: fixed; top: clamp(14px, 3.5vh, 44px); left: 50%; z-index: 20;
+    width: min(92vw, 720px); text-align: center;
+    transform: translateX(-50%) translateY(-6px);
+    opacity: 0; pointer-events: none; transition: opacity 750ms ease, transform 750ms ease;
+    font-family: var(--font-fraunces), Georgia, "Times New Roman", serif; color: #ffffff; }
+  .gc-poem-open { opacity: 1; pointer-events: auto; cursor: pointer;
+    transform: translateX(-50%) translateY(0); }
+  .gc-poem-line { margin: 0.16em 0; font-style: italic; font-weight: 500;
+    font-size: clamp(11px, 1.9vmin, 20px); line-height: 1.5; letter-spacing: 0.01em;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.9); }
   .gc-core { transition: box-shadow 240ms ease; animation: gc-core-pulse 3.4s ease-in-out infinite; }
   .gc-core:hover { box-shadow: 0 0 70px 10px rgba(255,255,255,0.30); }
   @keyframes gc-core-pulse {
@@ -303,5 +374,6 @@ const STYLES = `
   @media (prefers-reduced-motion: reduce) {
     .gc-core { animation: none; }
     .gc-sruth:hover .gc-sruth-plate::after { animation: none; }
+    .gc-poem { transition: opacity 200ms ease; transform: translateX(-50%); }
   }
 `;
