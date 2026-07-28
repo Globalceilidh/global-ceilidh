@@ -108,7 +108,10 @@ export default function Home() {
             autoPlay loop muted playsInline
             aria-label="A silver chrome whirlpool spiralling into a white-hot centre"
             onError={() => setVortexError(true)}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+            // cover (not contain): the video is wider than the square stage, so
+            // contain shrank it — cover scales it up to fill, cropping only the
+            // black side margins so the swirl reads at full size like the original.
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         )}
 
