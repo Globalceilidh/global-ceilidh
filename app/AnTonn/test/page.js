@@ -54,13 +54,13 @@ export default function AnTonnTest() {
         <span className="sniomh-glint" aria-hidden="true" />
       </Link>
 
-      {/* An Tonn wordmark — page header. Cropped visible area via
-          overflow:hidden + negative margin so we show only the letter
-          band, not the source PNG's black padding above and below. */}
+      {/* An Tonn masthead — the heart-wave icon (replaces the letter wordmark).
+          Square glow-on-black PNG; screen-blended so its backing melts into the
+          page and no halo box shows. */}
       <div className="antonn-title-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/AnTonn/test/antonn-wordmark.png"
+          src="/AnTonn/test/AnTonn.png"
           alt="An Tonn"
           className="antonn-title-img"
           draggable={false}
@@ -172,17 +172,15 @@ export default function AnTonnTest() {
           to   { transform: rotate(360deg); }
         }
 
-        /* An Tonn wordmark — page header. The source PNG is a square-ish
-           canvas with the wordmark centred; the surrounding black padding
-           matches the page bg, so we just shift the whole image up with a
-           negative top. Letters land near the top of the viewport; the
-           invisible black padding sits above the viewport line. */
+        /* An Tonn masthead — the heart-wave icon (square glow-on-black PNG).
+           mix-blend-mode:screen blends its black backing into the page so no
+           halo shows; sized as a masthead sitting near the top. */
         .antonn-title-wrap {
           position: absolute;
-          top: -140px;
+          top: 16px;
           left: 50%;
           transform: translateX(-50%);
-          width: min(56vw, 520px);
+          width: min(34vw, 260px);
           z-index: 20;
           line-height: 0;
         }
@@ -191,6 +189,7 @@ export default function AnTonnTest() {
           height: auto;
           display: block;
           user-select: none;
+          mix-blend-mode: screen;
         }
 
         /* Four category columns across the middle. Row is vertically
