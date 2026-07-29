@@ -113,8 +113,24 @@ export default function Home() {
     const v = videoRef.current;
     if (!v || reduceMotion) return;
     v.muted = true;
-    v.play?.().catch(() => {});
-  }, [reduceMotion]);
+    const tryPlay = () => { v.play?.().catch(() => {}); };
+    tryPlay();
+    v.addEventListener('canplay', tryPlay, { once: true });
+    v.addEventListener('loadeddata', tryPlay, { once: true });
+    // Autoplay-blocked phones: start on the first touch/tap anywhere.
+    const onGesture = () => { tryPlay(); done(); };
+    const done = () => {
+      document.removeEventListener('touchstart', onGesture);
+      document.removeEventListener('click', onGesture);
+    };
+    document.addEventListener('touchstart', onGesture, { once: true, passive: true });
+    document.addEventListener('click', onGesture, { once: true });
+    return () => {
+      v.removeEventListener('canplay', tryPlay);
+      v.removeEventListener('loadeddata', tryPlay);
+      done();
+    };
+  }, [reduceMotion, isMobile]);
 
   // Where the glowing core goes. Until Clerk has loaded we don't know, so
   // default to the story — that's correct for every first-time visitor,
@@ -257,7 +273,10 @@ export default function Home() {
       <a
         href="/radio" aria-label="Global Ceilidh Radio" title="Global Ceilidh Radio"
         className="gc-reidio"
-        style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', left: 'clamp(28px, 5vw, 80px)', transform: 'translateY(50%)', zIndex: 10, display: 'block', lineHeight: 0 }}
+        style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)',
+          left: isMobile ? '16%' : 'clamp(28px, 5vw, 80px)',
+          transform: isMobile ? 'translate(-50%, 50%)' : 'translateY(50%)',
+          zIndex: 10, display: 'block', lineHeight: 0 }}
       >
         <img src={REIDIO_ICON} alt="Global Ceilidh Radio"
           style={{ width: 'clamp(64px, 9.5vw, 112px)', height: 'auto', display: 'block' }} />
@@ -277,7 +296,11 @@ export default function Home() {
       <a
         href="/sruth/archive" aria-label="sruth. — read the archive" title="sruth."
         className="gc-sruth"
-        style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', right: 'clamp(20px, 4vw, 44px)', transform: 'translateY(50%)', zIndex: 10, display: 'block' }}
+        style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)',
+          left: isMobile ? '84%' : 'auto',
+          right: isMobile ? 'auto' : 'clamp(20px, 4vw, 44px)',
+          transform: isMobile ? 'translate(-50%, 50%)' : 'translateY(50%)',
+          zIndex: 10, display: 'block' }}
       >
         {SRUTH.ready ? (
           <span className="gc-sruth-logo" role="img" aria-label="sruth."
@@ -290,7 +313,7 @@ export default function Home() {
       </a>
 
       {/* ── EN / GD pill, top-left (pure white on black) ────────────── */}
-      <LanguagePill position="top-left" variant="white" />
+      <LanguagePill position="top-left" variant="white" className="gc-langpill" />
 
       {/* ── SEO: real, crawlable content (visually hidden) ──────────── */}
       <div className="gc-sr-only">
@@ -409,6 +432,14 @@ const STYLES = `
     background: linear-gradient(160deg, #2b2b2b 0%, #050505 45%, #1c1c1c 100%); border: 1px solid #333; color: #eaeaea;
     font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-weight: 700; font-size: clamp(24px, 4vw, 44px); line-height: 1;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.5); }
+  @media (max-width: 768px) {
+    /* Trim the EN/GD pill (its size is inline, so scale the whole thing). */
+    .gc-langpill { transform: scale(0.8); transform-origin: top left; }
+    /* Shrink the wide Sruth wordmark so the three bottom icons read evenly spaced. */
+    .gc-sruth-logo { width: clamp(88px, 24vw, 140px); }
+    /* Drop the Jabberwocky verse below the pill. */
+    .gc-poem { top: clamp(64px, 13vh, 96px); }
+  }
   @media (prefers-reduced-motion: reduce) {
     .gc-core { animation: none; }
     .gc-sruth:hover .gc-sruth-plate::after { animation: none; }
