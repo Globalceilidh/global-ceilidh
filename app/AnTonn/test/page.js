@@ -189,7 +189,27 @@ export default function AnTonnTest() {
           height: auto;
           display: block;
           user-select: none;
+          /* screen blend = the black backing reads as see-through over the page. */
           mix-blend-mode: screen;
+          transition: filter 500ms ease;
+        }
+        /* Hover: colour-wave the heart — a shimmer unique to this icon, distinct
+           from the rest of the page. Cycles ocean-teal → blue → violet → magenta. */
+        .antonn-title-wrap { cursor: pointer; }
+        .antonn-title-wrap:hover .antonn-title-img {
+          animation: antonn-colourwave 5s linear infinite;
+        }
+        @keyframes antonn-colourwave {
+          0%   { filter: sepia(0.7) saturate(3)   hue-rotate(150deg); }
+          25%  { filter: sepia(0.7) saturate(3)   hue-rotate(210deg); }
+          50%  { filter: sepia(0.7) saturate(3.5) hue-rotate(270deg); }
+          75%  { filter: sepia(0.7) saturate(3)   hue-rotate(330deg); }
+          100% { filter: sepia(0.7) saturate(3)   hue-rotate(150deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .antonn-title-wrap:hover .antonn-title-img {
+            animation: none; filter: sepia(0.7) saturate(3) hue-rotate(210deg);
+          }
         }
 
         /* Four category columns across the middle. Row is vertically
@@ -199,7 +219,9 @@ export default function AnTonnTest() {
           position: absolute;
           top: 50%;
           left: 50%;
-          transform: translate(-50%, -50%);
+          /* Nudged left so the heart masthead centres over the Bhidio–
+             Leabhraichean gap. */
+          transform: translate(calc(-50% - 3vw), -50%);
           display: flex;
           gap: 32px;
           align-items: flex-start;
