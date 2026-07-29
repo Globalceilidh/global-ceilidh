@@ -434,9 +434,9 @@ const STYLES = `
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.5); }
   @media (max-width: 768px) {
     /* Trim the EN/GD pill (its size is inline, so scale the whole thing). */
-    .gc-langpill { transform: scale(0.8); transform-origin: top left; }
-    /* Shrink the wide Sruth wordmark so the three bottom icons read evenly spaced. */
-    .gc-sruth-logo { width: clamp(88px, 24vw, 140px); }
+    .gc-langpill { transform: scale(0.66); transform-origin: top left; }
+    /* Sruth wordmark — a touch bigger, still balanced against the two icons. */
+    .gc-sruth-logo { width: clamp(108px, 30vw, 168px); }
     /* Drop the Jabberwocky verse below the pill. */
     .gc-poem { top: clamp(64px, 13vh, 96px); }
   }
