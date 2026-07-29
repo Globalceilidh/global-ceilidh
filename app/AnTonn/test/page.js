@@ -218,9 +218,8 @@ export default function AnTonnTest() {
           position: absolute;
           top: 50%;
           left: 50%;
-          /* Nudged right so the heart masthead centres over the Bhidio–
-             Leabhraichean gap. */
-          transform: translate(calc(-50% + 3vw), -50%);
+          /* Nudged left of centre and dropped down a touch. */
+          transform: translate(calc(-50% - 2vw), calc(-50% + 5vh));
           display: flex;
           gap: 32px;
           align-items: flex-start;
