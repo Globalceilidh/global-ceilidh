@@ -28,6 +28,11 @@ const PUBLIC_PREFIXES = [
   "/radio",
   "/AnTonn/radio",
   "/AnTonn/bhidio",
+  // The live An Tonn verticals (flipped 2026-07-28) — public wing so the
+  // constellation's tiles work without the editor cookie.
+  "/AnTonn/ceol",
+  "/AnTonn/leabhraichean",
+  "/AnTonn/podcraoladh",
   // An Saoghal — the map of the Gaelic world. Public + crawlable: it's a
   // door on the new / homepage and the destination of the vortex centre.
   "/saoghal",
@@ -66,6 +71,10 @@ const PUBLIC_EXTENSIONS = /\.(png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|css|js)$/
 
 function isPublic(pathname) {
   if (pathname === "/") return true;
+  // The An Tonn wing hub (the constellation, flipped in 2026-07-28) is public —
+  // the home-page An Tonn icon points here. Exact match only, so the parked
+  // magazine (/AnTonn/cover, /AnTonn/this-week, …) stays gated.
+  if (pathname === "/AnTonn") return true;
   if (PUBLIC_EXTENSIONS.test(pathname)) return true;
   return PUBLIC_PREFIXES.some(p => pathname.startsWith(p));
 }
