@@ -60,7 +60,7 @@ export default function AnTonnTest() {
       <div className="antonn-title-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/AnTonn/test/AnTonn.png"
+          src="/AnTonn/test/AnTonn-alpha.png"
           alt="An Tonn"
           className="antonn-title-img"
           draggable={false}
@@ -189,8 +189,7 @@ export default function AnTonnTest() {
           height: auto;
           display: block;
           user-select: none;
-          /* screen blend = the black backing reads as see-through over the page. */
-          mix-blend-mode: screen;
+          /* true alpha PNG (luminance-keyed) — transparent backing on any bg. */
           transition: filter 500ms ease;
         }
         /* Hover: colour-wave the heart — a shimmer unique to this icon, distinct
@@ -219,9 +218,9 @@ export default function AnTonnTest() {
           position: absolute;
           top: 50%;
           left: 50%;
-          /* Nudged left so the heart masthead centres over the Bhidio–
+          /* Nudged right so the heart masthead centres over the Bhidio–
              Leabhraichean gap. */
-          transform: translate(calc(-50% - 3vw), -50%);
+          transform: translate(calc(-50% + 3vw), -50%);
           display: flex;
           gap: 32px;
           align-items: flex-start;
