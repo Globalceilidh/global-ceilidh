@@ -54,6 +54,9 @@ const PUBLIC_PREFIXES = [
   // These are personal, tokened, and noindexed — a contributor with no
   // Clerk account and no cookie key must be able to reach their link.
   "/contribute",
+  // The "Let's Talk" contact/about page — the pill on Radio/An Tonn/marble
+  // points here; must be reachable without the pre-launch cookie key.
+  "/contact",
   "/ads.txt",
   "/api/",
   "/_next/",
