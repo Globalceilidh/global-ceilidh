@@ -180,7 +180,7 @@ export default function AnTonnTest() {
           top: 16px;
           left: 50%;
           transform: translateX(-50%);
-          width: min(34vw, 260px);
+          width: min(40vw, 310px);
           z-index: 20;
           line-height: 0;
         }
@@ -210,7 +210,7 @@ export default function AnTonnTest() {
         .tile-column {
           flex: 1 1 0;
           min-width: 0;
-          max-width: 340px;
+          max-width: 300px;
           display: flex;
           flex-direction: column;
           align-items: center;
