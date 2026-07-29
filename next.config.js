@@ -24,6 +24,14 @@ const nextConfig = {
         destination: '/radio',
         permanent: true,
       },
+      // The An Tonn "flip" (2026-07-28): the constellation was promoted from
+      // /AnTonn/test to /AnTonn, and each vertical sandbox to its live route.
+      // Old /test URLs redirect so nothing shared breaks.
+      { source: '/AnTonn/test', destination: '/AnTonn', permanent: true },
+      { source: '/AnTonn/ceol/test', destination: '/AnTonn/ceol', permanent: true },
+      { source: '/AnTonn/bhidio/test', destination: '/AnTonn/bhidio', permanent: true },
+      { source: '/AnTonn/leabhraichean/test', destination: '/AnTonn/leabhraichean', permanent: true },
+      { source: '/AnTonn/podcraoladh/test', destination: '/AnTonn/podcraoladh', permanent: true },
     ];
   },
 }

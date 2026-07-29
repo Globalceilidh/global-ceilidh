@@ -77,25 +77,25 @@ export default function AnTonnTest() {
           src="/AnTonn/test/music-ceol.png"
           alt="Ceòl — Music"
           ringSrc="/AnTonn/test/ring-ceol.png"
-          href="/AnTonn/ceol/test"
+          href="/AnTonn/ceol"
         />
         <TileWithPlinth
           src="/AnTonn/test/film-bhidio.png"
           alt="Bhidio — Film"
           ringSrc="/AnTonn/test/ring-bhidio.png"
-          href="/AnTonn/bhidio/test"
+          href="/AnTonn/bhidio"
         />
         <TileWithPlinth
           src="/AnTonn/test/books-leabhraichean.png"
           alt="Leabhraichean — Books"
           ringSrc="/AnTonn/test/ring-leabhraichean.png"
-          href="/AnTonn/leabhraichean/test"
+          href="/AnTonn/leabhraichean"
         />
         <TileWithPlinth
           src="/AnTonn/test/podcast.png"
           alt="Pod-chraoladh — Podcasts"
           ringSrc="/AnTonn/test/ring-podcraoladh.png"
-          href="/AnTonn/podcraoladh/test"
+          href="/AnTonn/podcraoladh"
         />
       </div>
 
