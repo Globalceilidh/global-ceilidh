@@ -100,7 +100,7 @@ export default function AnTonnTest() {
       </div>
 
       {/* Let's Talk pill — same treatment as /AnTonn/radio + /AnTonn/marble. */}
-      <a href="/contact" style={letsTalkStyle}>{t('common.lets_talk')}</a>
+      <a href="/contact" className="lets-talk-pill">{t('common.lets_talk')}</a>
 
       {/* EN ⇄ GD slider — bottom-right, mirroring the top-right pill. */}
       <LanguagePill
@@ -109,6 +109,7 @@ export default function AnTonnTest() {
         variant="white"
         offsetBottom={56}
         offsetRight={30}
+        className="antonn-langpill"
       />
 
       {/* Reidio bot — persistent radio control, bottom-left. Reads
@@ -117,6 +118,26 @@ export default function AnTonnTest() {
       <RadioBot />
 
       <style>{`
+        /* White "Let's Talk" pill — top-right. Class-based so a media query
+           can shrink it on phones (was an inline style, un-shrinkable). */
+        .lets-talk-pill {
+          position: absolute;
+          top: 56px;
+          right: 30px;
+          padding: 11px 26px;
+          border-radius: 999px;
+          background: #FFFFFF;
+          color: #0A0D14;
+          font-family: var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif;
+          font-weight: 400;
+          font-size: 18px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-decoration: none;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+          z-index: 30;
+          transition: transform 220ms ease, box-shadow 220ms ease;
+        }
         .sniomh-wrap {
           position: absolute;
           top: 30px;
@@ -312,6 +333,47 @@ export default function AnTonnTest() {
         @media (prefers-reduced-motion: reduce) {
           .sniomh-glint { animation: none; }
         }
+
+        /* ── Mobile / phone widths ─────────────────────────────────────
+           Desktop chrome is sized for a big canvas; on a phone the
+           sniomh, both pills and the 4-across tile row are all wrong.
+           Shrink the chrome and re-flow the tiles into a 2x2 grid
+           (Music · Bhidio / Books · Podcasts), larger, with each icon
+           sitting ABOVE its name-ring (the desktop -140px ring pull
+           dwarfs a small tile and floats the ring over it). */
+        @media (max-width: 680px) {
+          .sniomh-wrap { top: 14px; left: 14px; width: 62px; height: 62px; }
+
+          .lets-talk-pill {
+            top: 14px; right: 14px;
+            padding: 6px 15px;
+            font-size: 12px;
+            letter-spacing: 0.06em;
+          }
+
+          /* Scale the EN/GD slider down from its anchored bottom-right corner. */
+          .antonn-langpill {
+            transform: scale(0.72);
+            transform-origin: bottom right;
+          }
+
+          /* Masthead a touch smaller so it clears the shrunken chrome. */
+          .antonn-title-wrap { top: 12px; width: min(52vw, 210px); }
+
+          /* 4 columns -> 2x2 grid, centred and dropped clear of the masthead. */
+          .tiles-row {
+            top: 50%;
+            transform: translate(-50%, calc(-50% + 3vh));
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5vw 6vw;
+            width: min(90vw, 420px);
+            align-items: start;
+          }
+          .tile-column { max-width: none; }
+          /* Icon above ring: pull the ring up far less than the desktop 140px. */
+          .ring-link { width: 84%; margin-top: -15vw; }
+        }
       `}</style>
     </div>
   )
@@ -353,23 +415,4 @@ const pageStyle = {
   inset: 0,
   background: '#000000',
   overflow: 'hidden',
-}
-
-// White pill matching /AnTonn/radio + /AnTonn/marble.
-const letsTalkStyle = {
-  position: 'absolute',
-  top: 56, right: 30,
-  padding: '11px 26px',
-  borderRadius: 999,
-  background: '#FFFFFF',
-  color: '#0A0D14',
-  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
-  fontWeight: 400,
-  fontSize: 18,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  textDecoration: 'none',
-  boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-  zIndex: 30,
-  transition: 'transform 220ms ease, box-shadow 220ms ease',
 }
