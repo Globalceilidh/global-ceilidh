@@ -367,11 +367,15 @@ export default function AnTonnTest() {
             transform: translate(-50%, calc(-50% + 3vh));
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5vw 6vw;
+            gap: 0 6vw;
             width: min(90vw, 420px);
             align-items: start;
           }
           .tile-column { max-width: none; }
+          /* Bring the two rows toward the vertical centre — top row down, bottom
+             row up (~3% of height each). Dial the 3vh up to ~5vh for more. */
+          .tiles-row .tile-column:nth-child(-n + 2) { transform: translateY(3vh); }
+          .tiles-row .tile-column:nth-child(n + 3)  { transform: translateY(-3vh); }
           /* Icon above ring: pull the ring up under the tile. -15vw left too
              big a gap; -21vw matches the desktop ~47%-of-tile overlap. */
           .ring-link { width: 84%; margin-top: -21vw; }
