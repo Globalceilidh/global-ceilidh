@@ -345,15 +345,16 @@ export default function AnTonnTest() {
           .sniomh-wrap { top: 14px; left: 14px; width: 62px; height: 62px; }
 
           .lets-talk-pill {
-            top: 14px; right: 14px;
+            top: 26px; right: 14px;
             padding: 6px 15px;
             font-size: 12px;
             letter-spacing: 0.06em;
           }
 
-          /* Scale the EN/GD slider down from its anchored bottom-right corner. */
+          /* Scale the EN/GD slider down from its anchored bottom-right corner,
+             and nudge it down toward the edge (was sitting too high). */
           .antonn-langpill {
-            transform: scale(0.72);
+            transform: translateY(20px) scale(0.72);
             transform-origin: bottom right;
           }
 
@@ -371,8 +372,9 @@ export default function AnTonnTest() {
             align-items: start;
           }
           .tile-column { max-width: none; }
-          /* Icon above ring: pull the ring up far less than the desktop 140px. */
-          .ring-link { width: 84%; margin-top: -15vw; }
+          /* Icon above ring: pull the ring up under the tile. -15vw left too
+             big a gap; -21vw matches the desktop ~47%-of-tile overlap. */
+          .ring-link { width: 84%; margin-top: -21vw; }
         }
       `}</style>
     </div>
