@@ -35,8 +35,8 @@ const CATEGORIES = [
 // is what the player walks through; users clicking a top-10 card
 // start the queue at that video and the player continues down the
 // full list until interrupted or the session cap is reached.
-const TOP_N = 10
-const MIN_CARDS = 10
+const TOP_N = 100      // Music fills up to 100 by views (Top 20 + 80 more); others show what they have
+const MIN_CARDS = 10   // placeholder floor so sparse columns keep visual weight
 
 function getCards(catalog, slug) {
   const real = (catalog?.[slug] || []).slice(0, TOP_N)

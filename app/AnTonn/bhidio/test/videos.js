@@ -33,23 +33,44 @@ const RAILWAY_URL =
 // normalised { category: [videos] } catalog. Falls back to an empty
 // catalog on any error so a Railway blip doesn't blank the wall.
 export async function loadCatalog() {
+  const out = Object.fromEntries(CATEGORIES.map((c) => [c, []]))
+
+  // Curated gc_videos for every category (editors add via sruth-admin).
   try {
     const res = await fetch(`${RAILWAY_URL}/videos?vertical=bhidio`, {
-      // ISR — the fetch result is cached at the edge for 5 min.
+      next: { revalidate: 300 }, // ISR — cached at the edge for 5 min.
+    })
+    if (res.ok) {
+      const raw = await res.json()
+      for (const cat of CATEGORIES) out[cat] = (raw?.[cat] || []).map(normaliseRow)
+    }
+  } catch (err) {
+    console.error('[bhidio] gc_videos loadCatalog failed:', err)
+  }
+
+  // Music column = the An Tonn YouTube ranking — top 100 music videos by views
+  // (Top 20 + 80 more), sourced from the same snapshots that feed the chart.
+  // Replaces the curated music picks with the live view ranking.
+  try {
+    const r = await fetch(`${RAILWAY_URL}/antonn/ceol/top-videos?limit=100`, {
       next: { revalidate: 300 },
     })
-    if (!res.ok) throw new Error(`videos api ${res.status}`)
-    const raw = await res.json()
-    const out = {}
-    for (const cat of CATEGORIES) {
-      const rows = raw?.[cat] || []
-      out[cat] = rows.map(normaliseRow)
+    if (r.ok) {
+      const d = await r.json()
+      const vids = (d?.videos || [])
+        .filter((v) => v.youtube_id)
+        .map((v) => ({
+          id: v.youtube_id, title: v.title, artist: v.artist || undefined,
+          duration: '', source: 'youtube', poster: v.poster_url || undefined,
+          views: v.views,
+        }))
+      if (vids.length) out.music = vids
     }
-    return out
   } catch (err) {
-    console.error('[bhidio/test] loadCatalog failed:', err)
-    return Object.fromEntries(CATEGORIES.map((c) => [c, []]))
+    console.error('[bhidio] ceol top-videos failed:', err)
   }
+
+  return out
 }
 
 function normaliseRow(row) {
