@@ -50,33 +50,31 @@ export async function loadCatalog() {
 
   // Music column = the An Tonn YouTube ranking — top 100 music videos by views
   // (Top 20 + 80 more), sourced from the same snapshots that feed the chart.
+  // Replaces the curated music picks with the live view ranking.
   //
-  // DISABLED 2026-07-29: the registry's YouTube channels were auto-resolved by
-  // loose name-matching (antonn_youtube.resolve_registry_channels), which
-  // mis-matched short/common band names to unrelated channels — "Fara" -> a
-  // K-pop cover account, "Danú" -> a Minecraft channel, "The Lost Boys" -> a
-  // food vlog, etc. Until the channels are verified server-side, the music
-  // column falls back to the 16 curated gc_videos picks above (correct, hand-
-  // picked). Re-enable by un-commenting once the verification pass has run.
-  //
-  // try {
-  //   const r = await fetch(`${RAILWAY_URL}/antonn/ceol/top-videos?limit=100`, {
-  //     next: { revalidate: 300 },
-  //   })
-  //   if (r.ok) {
-  //     const d = await r.json()
-  //     const vids = (d?.videos || [])
-  //       .filter((v) => v.youtube_id)
-  //       .map((v) => ({
-  //         id: v.youtube_id, title: v.title, artist: v.artist || undefined,
-  //         duration: '', source: 'youtube', poster: v.poster_url || undefined,
-  //         views: v.views,
-  //       }))
-  //     if (vids.length) out.music = vids
-  //   }
-  // } catch (err) {
-  //   console.error('[bhidio] ceol top-videos failed:', err)
-  // }
+  // The channels feeding this are Council-verified server-side (see
+  // antonn_youtube.resolve_registry_channels — every candidate is checked
+  // against its real uploads before being attached), so short/common band
+  // names no longer collide with unrelated channels. If Railway is down we
+  // fall through to the curated gc_videos music picks above.
+  try {
+    const r = await fetch(`${RAILWAY_URL}/antonn/ceol/top-videos?limit=100`, {
+      next: { revalidate: 300 },
+    })
+    if (r.ok) {
+      const d = await r.json()
+      const vids = (d?.videos || [])
+        .filter((v) => v.youtube_id)
+        .map((v) => ({
+          id: v.youtube_id, title: v.title, artist: v.artist || undefined,
+          duration: '', source: 'youtube', poster: v.poster_url || undefined,
+          views: v.views,
+        }))
+      if (vids.length) out.music = vids
+    }
+  } catch (err) {
+    console.error('[bhidio] ceol top-videos failed:', err)
+  }
 
   return out
 }
