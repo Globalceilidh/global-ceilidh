@@ -19,7 +19,7 @@
 //
 // Respects prefers-reduced-motion: pauses emission entirely.
 
-import { useRef, useMemo, useEffect } from 'react'
+import { useRef, useMemo, useEffect, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -27,6 +27,11 @@ const MAX_RIPPLES = 16
 const RIPPLE_LIFETIME_SEC = 4.0
 const EMIT_THROTTLE_SEC = 0.06
 const EMIT_MIN_PX = 6
+// Ambient self-motion: emit a ripple from a slowly-drifting virtual source
+// every AMBIENT_INTERVAL_SEC even when nobody is touching the screen. This is
+// what keeps the surface alive on touch devices (no hovering cursor) and gives
+// the page its own gentle motion on desktop too.
+const AMBIENT_INTERVAL_SEC = 0.55
 
 // Convert a #RRGGBB hex string to a THREE.Vector3 of normalised
 // 0..1 floats. Uses Vector3 (not THREE.Color) to bypass THREE's
@@ -103,7 +108,14 @@ function WavePlane({ mouseRef, reduceMotionRef, baseColor, modColor, intensitySc
     lastEmit: 0,
     lastMouse: { x: -Infinity, y: -Infinity },
     idx: 0,
+    lastAmbient: 0,
   })
+
+  // Write one ripple into the ring buffer at UV (ux, uy) with the given age 0.
+  const emit = (ux, uy, t) => {
+    state.current.ripples[state.current.idx] = { x: ux, y: uy, emitTime: t }
+    state.current.idx = (state.current.idx + 1) % MAX_RIPPLES
+  }
 
   // Uniforms — allocate once. Vector2/Vector3 are mutated in place each
   // frame (THREE picks up the new values automatically).
@@ -128,25 +140,29 @@ function WavePlane({ mouseRef, reduceMotionRef, baseColor, modColor, intensitySc
     if (!materialRef.current) return
     const t = clock.getElapsedTime()
 
-    // Emit a new ripple if the cursor has moved enough since last emit
-    // (unless the user has requested reduced motion).
     if (!reduceMotionRef.current) {
+      // Cursor-driven emission — a ripple trails the mouse as it moves.
       const m = mouseRef.current
       if (m.x >= 0 && m.y >= 0) {
         const dx = m.x - state.current.lastMouse.x
         const dy = m.y - state.current.lastMouse.y
         const dist = Math.hypot(dx, dy)
         if (t - state.current.lastEmit > EMIT_THROTTLE_SEC && dist > EMIT_MIN_PX) {
-          state.current.ripples[state.current.idx] = {
-            x: m.x / window.innerWidth,
-            // Flip Y for WebGL UV (0 at bottom vs. 0 at top in DOM)
-            y: 1.0 - m.y / window.innerHeight,
-            emitTime: t,
-          }
-          state.current.idx = (state.current.idx + 1) % MAX_RIPPLES
+          // Flip Y for WebGL UV (0 at bottom vs. 0 at top in DOM)
+          emit(m.x / window.innerWidth, 1.0 - m.y / window.innerHeight, t)
           state.current.lastEmit = t
           state.current.lastMouse = { x: m.x, y: m.y }
         }
+      }
+
+      // Ambient emission — a virtual source wanders the surface on a slow
+      // Lissajous path and emits on a fixed cadence, so the wave moves on its
+      // own with no pointer. Coordinates are already in UV (no Y flip needed).
+      if (t - state.current.lastAmbient > AMBIENT_INTERVAL_SEC) {
+        const ax = 0.5 + 0.34 * Math.sin(t * 0.11) + 0.12 * Math.sin(t * 0.37)
+        const ay = 0.5 + 0.30 * Math.cos(t * 0.09) + 0.10 * Math.cos(t * 0.31)
+        emit(ax, ay, t)
+        state.current.lastAmbient = t
       }
     }
 
@@ -187,6 +203,13 @@ function WavePlane({ mouseRef, reduceMotionRef, baseColor, modColor, intensitySc
   )
 }
 
+// Brighten a #RRGGBB toward white by `factor` (channels scaled, clamped).
+function brightenHex(hex, factor) {
+  const h = String(hex).replace('#', '').padStart(6, '0')
+  const c = [0, 2, 4].map((i) => Math.min(255, Math.round(parseInt(h.substring(i, i + 2), 16) * factor)))
+  return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('')
+}
+
 export default function WaveBackground({
   mouseRef,
   baseColor = '#020409',
@@ -194,6 +217,10 @@ export default function WaveBackground({
   intensityScale = 1.0,
 }) {
   const reduceMotionRef = useRef(false)
+  // Touch devices (coarse pointer) can't hover, and their glossy screens wash
+  // the subtle dark wave out entirely — so on touch we boost the intensity and
+  // brighten the ripple colour. Desktop is left exactly as it was.
+  const [coarse, setCoarse] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -201,8 +228,20 @@ export default function WaveBackground({
     reduceMotionRef.current = mq.matches
     const handler = () => { reduceMotionRef.current = mq.matches }
     mq.addEventListener?.('change', handler)
-    return () => mq.removeEventListener?.('change', handler)
+
+    const cmq = window.matchMedia('(pointer: coarse)')
+    setCoarse(cmq.matches)
+    const chandler = () => setCoarse(cmq.matches)
+    cmq.addEventListener?.('change', chandler)
+
+    return () => {
+      mq.removeEventListener?.('change', handler)
+      cmq.removeEventListener?.('change', chandler)
+    }
   }, [])
+
+  const effIntensity = coarse ? intensityScale * 2.2 : intensityScale
+  const effMod = coarse ? brightenHex(modColor, 2.6) : modColor
 
   return (
     <Canvas
@@ -220,8 +259,8 @@ export default function WaveBackground({
         mouseRef={mouseRef}
         reduceMotionRef={reduceMotionRef}
         baseColor={baseColor}
-        modColor={modColor}
-        intensityScale={intensityScale}
+        modColor={effMod}
+        intensityScale={effIntensity}
       />
     </Canvas>
   )

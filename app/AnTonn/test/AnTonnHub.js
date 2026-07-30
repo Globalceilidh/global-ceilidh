@@ -6,18 +6,23 @@
 // background that trails ripples from the cursor.
 
 import Link from 'next/link'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import LanguagePill from '../../../components/LanguagePill'
 import RadioBot from '../../../components/RadioBot'
 import { useLanguage } from '../../../context/LanguageContext'
+
+// Easter-egg creed revealed by tapping the heart-wave icon. Bilingual.
+const CREED_EN = 'An end will come upon the world, but love and music will endure.'
+const CREED_GD = 'Thig crìoch air an t-saoghal, ach mairidh gaol is ceòl.'
 
 // SSR-off — the canvas uses WebGL which needs `window`. Also lazy-loads
 // the R3F bundle so it doesn't block first paint.
 const WaveBackground = dynamic(() => import('./WaveBackground'), { ssr: false })
 
 export default function AnTonnTest() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const [showCreed, setShowCreed] = useState(false)
 
   // Cursor position ref, mutated on every pointermove. The WaveBackground
   // reads this each frame; no React state = no re-renders while the mouse
@@ -57,7 +62,20 @@ export default function AnTonnTest() {
       {/* An Tonn masthead — the heart-wave icon (replaces the letter wordmark).
           Square glow-on-black PNG; screen-blended so its backing melts into the
           page and no halo box shows. */}
-      <div className="antonn-title-wrap">
+      <div
+        className="antonn-title-wrap"
+        role="button"
+        tabIndex={0}
+        aria-label="An Tonn"
+        aria-pressed={showCreed}
+        onClick={() => setShowCreed((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setShowCreed((v) => !v)
+          }
+        }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/AnTonn/test/AnTonn-alpha.png"
@@ -65,6 +83,10 @@ export default function AnTonnTest() {
           className="antonn-title-img"
           draggable={false}
         />
+        {/* Easter egg — tap the heart to reveal the creed just beneath it. */}
+        <p className={`antonn-creed${showCreed ? ' show' : ''}`} aria-hidden={!showCreed}>
+          {language === 'gd' ? CREED_GD : CREED_EN}
+        </p>
       </div>
 
       {/* Four category columns across the middle. Each column is
@@ -231,6 +253,31 @@ export default function AnTonnTest() {
             animation: none; filter: sepia(0.7) saturate(3) hue-rotate(210deg);
           }
         }
+
+        /* Easter-egg creed — fades in just below the heart-wave icon on tap.
+           top:100% anchors it to the bottom of the (positioned) title-wrap so
+           it always sits directly under the icon whatever the icon's size. */
+        .antonn-creed {
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          margin-top: 14px;
+          width: max(220px, 120%);
+          max-width: 92vw;
+          text-align: center;
+          line-height: 1.5;
+          font-family: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+          font-style: italic;
+          font-size: clamp(15px, 2.4vw, 20px);
+          color: #FFFFFF;
+          text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 700ms ease;
+          z-index: 25;
+        }
+        .antonn-creed.show { opacity: 0.94; }
 
         /* Four category columns across the middle. Row is vertically
            centred in the viewport; each column takes equal flex share.
