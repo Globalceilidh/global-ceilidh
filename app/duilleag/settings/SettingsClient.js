@@ -13,11 +13,50 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 import { useLanguage } from '../../../context/LanguageContext';
 
 export default function SettingsClient({ profile }) {
   const { language } = useLanguage();
   const L = (en, gd) => (language === 'gd' ? gd : en);
+  const { user } = useUser();
+
+  // Change-password state. Lets an invited member who was given a temporary
+  // password (created in the Clerk dashboard) set their own during or after a
+  // meeting, via Clerk's client-side updatePassword — no password ever touches
+  // our server. Gàidhlig copy provisional — flag for Lewis/Joe.
+  const [curPw, setCurPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwError, setPwError] = useState(null);
+  const [pwSaved, setPwSaved] = useState(false);
+
+  async function changePassword() {
+    setPwError(null); setPwSaved(false);
+    if (!user) { setPwError(L('You’re not signed in.', 'Chan eil thu air do chlàradh a-steach.')); return; }
+    if (!newPw || newPw.length < 8) {
+      setPwError(L('New password must be at least 8 characters.', 'Feumaidh am facal-faire ùr a bhith co-dhiù 8 caractaran.'));
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwError(L('New passwords don’t match.', 'Chan eil na faclan-faire ùra a’ freagairt.'));
+      return;
+    }
+    setPwBusy(true);
+    try {
+      await user.updatePassword({ currentPassword: curPw, newPassword: newPw });
+      setPwSaved(true);
+      setCurPw(''); setNewPw(''); setConfirmPw('');
+    } catch (err) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message
+        || L('Couldn’t change your password — check your current password and try again.',
+              'Cha b’ urrainn am facal-faire atharrachadh — dearbhaich am facal-faire làithreach agus feuch a-rithist.');
+      setPwError(msg);
+    } finally {
+      setPwBusy(false);
+    }
+  }
 
   const [region, setRegion] = useState(profile.region || '');
   const [hasCoords, setHasCoords] = useState(
@@ -132,6 +171,57 @@ export default function SettingsClient({ profile }) {
 
           {error && <p style={s.error}>{error}</p>}
           {saved && !error && <p style={s.savedMsg}>{L('Saved.', 'Air a shàbhaladh.')}</p>}
+        </section>
+
+        {/* Password — for members who were given a temporary password to set
+            their own. Uses Clerk client-side; nothing hits our server. */}
+        <section style={{ ...s.card, marginTop: 20 }}>
+          <h2 style={s.cardTitle}>{L('Password', 'Facal-faire')}</h2>
+          <p style={s.cardNote}>
+            {L('Set your own password. If you were given a temporary one, enter it as your current password below.',
+               'Suidhich am facal-faire agad fhèin. Ma fhuair thu fear sealach, cuir a-steach e mar am facal-faire làithreach gu h-ìosal.')}
+          </p>
+
+          <div style={s.field}>
+            <label style={s.label}>{L('Current password', 'Facal-faire làithreach')}</label>
+            <input
+              type="password" autoComplete="current-password"
+              value={curPw} onChange={(e) => setCurPw(e.target.value)}
+              style={s.input}
+            />
+          </div>
+
+          <div style={s.field}>
+            <label style={s.label}>{L('New password', 'Facal-faire ùr')}</label>
+            <input
+              type="password" autoComplete="new-password"
+              value={newPw} onChange={(e) => setNewPw(e.target.value)}
+              style={s.input}
+            />
+            <p style={s.hint}>{L('At least 8 characters.', 'Co-dhiù 8 caractaran.')}</p>
+          </div>
+
+          <div style={s.field}>
+            <label style={s.label}>{L('Confirm new password', 'Dearbhaich am facal-faire ùr')}</label>
+            <div style={s.row}>
+              <input
+                type="password" autoComplete="new-password"
+                value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') changePassword(); }}
+                style={s.input}
+              />
+              <button
+                onClick={changePassword}
+                disabled={pwBusy || !curPw || !newPw || !confirmPw}
+                style={s.save}
+              >
+                {pwBusy ? '…' : L('Change', 'Atharraich')}
+              </button>
+            </div>
+          </div>
+
+          {pwError && <p style={s.error}>{pwError}</p>}
+          {pwSaved && !pwError && <p style={s.savedMsg}>{L('Password changed.', 'Chaidh am facal-faire atharrachadh.')}</p>}
         </section>
       </div>
     </main>
