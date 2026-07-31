@@ -10,7 +10,7 @@
 // the portrait into the room's perspective. Tune these by eye against the art.
 
 const BOARDROOM = {
-  background: '/rooms/boardroom-north.png',
+  background: '/rooms/boardroom.png',
   // Three seats per side, mirrored across the room's centre line. Order
   // interleaves sides so people fill in facing each other: you front-left,
   // then the seat across from you, then working back down each bench.
@@ -23,20 +23,6 @@ const BOARDROOM = {
     { x: 38, y: 47, width: 10, rotation: 2 },   // 5 — back-left
     { x: 62, y: 47, width: 10, rotation: -2 },  // 6 — back-right
   ],
-  // The whiteboard on the wall in the art — overlay position (% of image)
-  // + the agenda written on it. Tune the box to sit on the real board.
-  whiteboard: { x: 73, y: 32, width: 15, rotation: 8 },
-  agenda: {
-    title: 'Clàr-gnothaich · Agenda',
-    items: [
-      'Fàilte · Welcome',
-      'Mion-chunntas · Minutes',
-      'Rèidio + Bhidio',
-      'An sreath shòisealta · Social layer',
-      'Teanta-cèilidh · Rooms',
-      'Gnothach sam bith eile · AOB',
-    ],
-  },
 };
 
 const STAGES = {
