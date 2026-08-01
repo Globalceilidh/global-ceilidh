@@ -526,8 +526,8 @@ const s = {
     display: 'inline-flex', alignItems: 'center', gap: 3,
     fontFamily: SANS, fontSize: 12, color: 'rgba(255,255,255,0.6)',
   },
-  reactIcon: { width: 20, height: 20, display: 'block', objectFit: 'contain' },
-  reactIconSm: { width: 15, height: 15, display: 'block', objectFit: 'contain' },
+  reactIcon: { width: 28, height: 28, display: 'block', objectFit: 'contain' },
+  reactIconSm: { width: 20, height: 20, display: 'block', objectFit: 'contain' },
 
   palette: {
     position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 40,
