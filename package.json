@@ -22,6 +22,7 @@
     "livekit-server-sdk": "^2.15.5",
     "maplibre-gl": "^5.24.0",
     "next": "^16.2.3",
+    "pixi.js": "^8.19.0",
     "react": "^19",
     "react-dom": "^19",
     "resend": "^6.12.2",
