@@ -290,6 +290,9 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
           )}
         </div>
 
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/people/rx-curam.png" alt="Care" width={22} height={22} style={{ width: 22, height: 22, display: 'block', objectFit: 'contain' }} />
+
         {reactions.total > 0 && (
           <span style={s.count}>
             {summaryReactions.map((r) => (
