@@ -10,10 +10,12 @@
 // Coming (need icons before they go in): Like → light blue (#7EC8E3),
 // Dislike → dark blue (#1B3A8B), Disapproval → dark storm blue (#2B3A55).
 
+// Icons are PNGs converted from the source .ico (browsers render .ico in
+// <img> poorly — as a tiny dot).
 export const REACTIONS = [
-  { kind: 'curam', label: { en: 'Care',     gd: 'Cùram' }, icon: '/people/Curam-32x32-transparent.ico', color: '#2E86DE' }, // blue
-  { kind: 'solas', label: { en: 'Approval', gd: 'Sòlas' }, icon: '/people/Solas-32x32-transparent.ico', color: '#F4C430' }, // sunny yellow
-  { kind: 'gradh', label: { en: 'Love',     gd: 'Gràdh' }, icon: '/people/Gradh-32x32-transparent.ico', color: '#E5484D' }, // red
+  { kind: 'curam', label: { en: 'Care',     gd: 'Cùram' }, icon: '/people/Curam-32.png', color: '#2E86DE' }, // blue
+  { kind: 'solas', label: { en: 'Approval', gd: 'Sòlas' }, icon: '/people/Solas-32.png', color: '#F4C430' }, // sunny yellow
+  { kind: 'gradh', label: { en: 'Love',     gd: 'Gràdh' }, icon: '/people/Gradh-32.png', color: '#E5484D' }, // red
 ];
 
 export const REACTION = Object.fromEntries(REACTIONS.map((r) => [r.kind, r]));
