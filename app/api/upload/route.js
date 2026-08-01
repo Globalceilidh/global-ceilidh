@@ -13,6 +13,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { randomUUID } from 'crypto';
 import { supabaseAdmin } from '../../../lib/supabase';
+import { r2Configured, putObject } from '../../../lib/r2';
 
 export const runtime = 'nodejs';
 
@@ -50,6 +51,13 @@ export async function POST(req) {
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const path = `posts/${userId}/${randomUUID()}.${ext}`;
+
+    // Cloudflare R2 is the media store; Supabase Storage is the fallback if
+    // the R2 env isn't present on this deploy.
+    if (r2Configured()) {
+      const url = await putObject(path, buffer, type);
+      return Response.json({ ok: true, url });
+    }
 
     const { error: upErr } = await supabaseAdmin.storage
       .from(BUCKET)

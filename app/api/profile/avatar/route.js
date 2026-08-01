@@ -15,6 +15,7 @@ import { auth } from '@clerk/nextjs/server';
 import { randomUUID } from 'crypto';
 import { supabaseAdmin } from '../../../../lib/supabase';
 import { getProfileByClerkId } from '../../../../lib/social';
+import { r2Configured, putObject } from '../../../../lib/r2';
 
 export const runtime = 'nodejs';
 
@@ -47,13 +48,17 @@ export async function POST(req) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const path = `avatars/${userId}/${randomUUID()}.${ext}`;
 
-    const { error: upErr } = await supabaseAdmin.storage
-      .from(BUCKET)
-      .upload(path, buffer, { contentType: file.type, upsert: false });
-    if (upErr) throw upErr;
-
-    const { data: pub } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
-    const url = pub.publicUrl;
+    // R2 first, Supabase Storage as fallback (see /api/upload).
+    let url;
+    if (r2Configured()) {
+      url = await putObject(path, buffer, file.type);
+    } else {
+      const { error: upErr } = await supabaseAdmin.storage
+        .from(BUCKET)
+        .upload(path, buffer, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      url = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    }
 
     const { error: updErr } = await supabaseAdmin
       .from('gc_profiles')
