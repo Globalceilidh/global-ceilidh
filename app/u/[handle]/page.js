@@ -98,7 +98,12 @@ export default async function ProfilePage({ params }) {
 
         <div style={avatarWrap}>
           {p.avatar_url
-            ? <img src={p.avatar_url} alt={name} style={avatarImg} />
+            ? (
+              <a href={p.avatar_url} target="_blank" rel="noopener noreferrer"
+                 title="Seall nas motha · View larger" style={{ display: 'block', lineHeight: 0, cursor: 'pointer' }}>
+                <img src={p.avatar_url} alt={name} style={avatarImg} />
+              </a>
+            )
             : <div style={avatarFallback}>{initials}</div>}
         </div>
 
