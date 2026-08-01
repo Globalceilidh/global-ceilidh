@@ -164,7 +164,13 @@ const PEOPLE = [
   {
     name: 'Scott Lewis White', img: '/people/scott-white.png',
     role: 'Founder · Creator · Executive Director',
-    epithet: 'Fear an Taighe', gloss: 'The Host', bio: null,
+    epithet: 'Fear an Taighe', gloss: 'The Host',
+    bio: [
+      'Scott Lewis White is a self-described imagineologist — chronically sleep-deprived, and the person who asked the question the rest of Global Ceilidh is an answer to: what if the whole Gaelic world had one home you could walk into from anywhere?',
+      'He is the founder, creator and executive director of Global Ceilidh — the one who imagined it, built it, and stayed up far too late making it real. Nearly every room, wing and stray idea that became a feature began as something he simply couldn’t stop thinking about.',
+      'As Founder, Creator and Executive Director, Scott brings the conviction that a living culture needs a gathering more than a museum — and the stubbornness to build the place where the gathering can happen.',
+      'Fear an Taighe — the man of the house. He didn’t come to keep the tradition behind glass. He came to open the door, put the kettle on, and make sure everyone who arrives feels like they were expected.',
+    ],
   },
 ];
 
