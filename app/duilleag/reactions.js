@@ -13,9 +13,9 @@
 // Icons are PNGs converted from the source .ico (browsers render .ico in
 // <img> poorly — as a tiny dot).
 export const REACTIONS = [
-  { kind: 'curam', label: { en: 'Care',     gd: 'Cùram' }, icon: '/people/Curam-32.png', color: '#2E86DE' }, // blue
-  { kind: 'solas', label: { en: 'Approval', gd: 'Sòlas' }, icon: '/people/Solas-32.png', color: '#F4C430' }, // sunny yellow
-  { kind: 'gradh', label: { en: 'Love',     gd: 'Gràdh' }, icon: '/people/Gradh-32.png', color: '#E5484D' }, // red
+  { kind: 'curam', label: { en: 'Care',     gd: 'Cùram' }, icon: '/people/react-curam.png', color: '#2E86DE' }, // blue
+  { kind: 'solas', label: { en: 'Approval', gd: 'Sòlas' }, icon: '/people/react-solas.png', color: '#F4C430' }, // sunny yellow
+  { kind: 'gradh', label: { en: 'Love',     gd: 'Gràdh' }, icon: '/people/react-gradh.png', color: '#E5484D' }, // red
 ];
 
 export const REACTION = Object.fromEntries(REACTIONS.map((r) => [r.kind, r]));
