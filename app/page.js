@@ -25,6 +25,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import LanguagePill from '../components/LanguagePill';
 import { useLanguage } from '../context/LanguageContext';
+import { useSiteContent, pickContent } from '../lib/siteContent';
 
 const VORTEX_VIDEO = '/gc-vortex-mercury.mp4'; // rotating mercury whirlpool (8s loop, fades to black)
 const VORTEX_STILL = '/gc-vortex-center.png';  // still fallback: reduced-motion, video poster, load error
@@ -84,6 +85,9 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [poemOpen, setPoemOpen] = useState(false);
   const { language } = useLanguage();
+  // The easter-egg verse is editor-editable (home.easter_egg); falls back to
+  // the in-code POEM_* when no edit has been published.
+  const site = useSiteContent();
 
   // On a narrow screen the wide tilted swirl gets cropped to its bright centre
   // under objectFit:cover — reads as a glow. Track mobile and switch to
@@ -264,9 +268,11 @@ export default function Home() {
         aria-hidden={!poemOpen}
         onClick={() => setPoemOpen(false)}
       >
-        {(language === 'gd' ? POEM_GD : POEM_EN).map((line, i) => (
-          <p key={i} className="gc-poem-line">{line}</p>
-        ))}
+        {pickContent(site, 'home.easter_egg', { en: POEM_EN.join('\n'), gd: POEM_GD.join('\n') }, language)
+          .split('\n').filter((l) => l.trim().length)
+          .map((line, i) => (
+            <p key={i} className="gc-poem-line">{line}</p>
+          ))}
       </div>
 
       {/* ── Bottom-left: reidio → /radio ────────────────────────────── */}
