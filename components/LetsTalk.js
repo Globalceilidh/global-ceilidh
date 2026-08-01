@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
+import ImageZoom from './ImageZoom';
 
 const CONTACT_EMAIL = 'sruth_editors@globalceilidh.com';
 
@@ -202,8 +203,10 @@ function About({ t, show }) {
         {PEOPLE.map((p) => (
           <div key={p.name} style={S.personRow}>
             <div style={S.personFigure}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.img} alt={p.name} style={S.personImg} loading="lazy" />
+              <ImageZoom src={p.img} alt={p.name} title={p.name} imgStyle={{ mixBlendMode: 'screen', boxShadow: 'none' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.img} alt={p.name} style={S.personImg} loading="lazy" />
+              </ImageZoom>
             </div>
             <div style={S.personInfo}>
               <span style={S.personName}>{p.name}</span>

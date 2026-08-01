@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function ImageZoom({ src, alt = '', title, children }) {
+export default function ImageZoom({ src, alt = '', title, children, imgStyle }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -36,7 +36,7 @@ export default function ImageZoom({ src, alt = '', title, children }) {
         <div style={scrim} onClick={() => setOpen(false)}>
           <button style={close} onClick={() => setOpen(false)} aria-label="Close">×</button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt={alt} style={img} />
+          <img src={src} alt={alt} style={{ ...img, ...imgStyle }} />
         </div>,
         document.body,
       )}
