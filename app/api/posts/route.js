@@ -33,7 +33,25 @@ function publicPost(row) {
     body: row.body,
     visibility: row.visibility,
     created_at: row.created_at,
+    media: row.media || null,
   };
+}
+
+// Sanitise the media array a composer sends. Only http(s) urls survive
+// (the client uploads via /api/upload and gets back such a url); at most
+// four images; width/height are kept if given but never required.
+function cleanMedia(raw) {
+  if (!Array.isArray(raw)) return null;
+  const out = [];
+  for (const m of raw.slice(0, 4)) {
+    if (m && typeof m.url === 'string' && /^https?:\/\//i.test(m.url)) {
+      const item = { url: m.url };
+      if (Number.isFinite(m.w)) item.w = Math.round(m.w);
+      if (Number.isFinite(m.h)) item.h = Math.round(m.h);
+      out.push(item);
+    }
+  }
+  return out.length ? out : null;
 }
 
 async function getProfileByClerkId(clerkUserId) {
@@ -73,7 +91,7 @@ export async function GET(req) {
 
     let q = supabaseAdmin
       .from('gc_posts')
-      .select('id, body, visibility, created_at')
+      .select('id, body, visibility, created_at, media')
       .eq('author_id', authorId)
       .eq('visibility', 'global')
       .eq('status', 'visible')
@@ -110,8 +128,9 @@ export async function POST(req) {
   }
 
   const body = String(payload.body || '').trim();
-  if (!body) {
-    return Response.json({ ok: false, error: 'empty_body', reason: 'Write something first.' }, { status: 400 });
+  const media = cleanMedia(payload.media);
+  if (!body && !media) {
+    return Response.json({ ok: false, error: 'empty_body', reason: 'Write something or add an image.' }, { status: 400 });
   }
   if (body.length > BODY_MAX) {
     return Response.json(
@@ -156,8 +175,9 @@ export async function POST(req) {
         author_clerk_user_id: userId,
         body,
         visibility,
+        media,
       })
-      .select('id, body, visibility, created_at')
+      .select('id, body, visibility, created_at, media')
       .single();
 
     if (error) {

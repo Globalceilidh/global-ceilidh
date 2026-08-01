@@ -20,7 +20,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
-import { getProfileByClerkId, getAuthorsFor, tiersVisibleTo, publicProfile } from '../../../lib/social';
+import { getProfileByClerkId, getAuthorsFor, tiersVisibleTo, publicProfile, attachEngagement } from '../../../lib/social';
 
 export const runtime = 'nodejs';
 
@@ -53,7 +53,7 @@ export async function GET(req) {
       }
     }
 
-    const select = 'id, body, visibility, created_at, author:gc_profiles!gc_posts_author_id_fkey(id, handle, display_name, avatar_url)';
+    const select = 'id, body, visibility, created_at, media, author:gc_profiles!gc_posts_author_id_fkey(id, handle, display_name, avatar_url)';
 
     const queries = [];
     for (const [tier, ids] of byTier) {
@@ -111,14 +111,19 @@ export async function GET(req) {
     const page = merged.slice(0, limit);
     const nextBefore = merged.length > limit ? page[page.length - 1].created_at : null;
 
+    const enriched = await attachEngagement(page, me.id);
+
     return Response.json({
       ok: true,
-      posts: page.map((row) => ({
+      posts: enriched.map((row) => ({
         id: row.id,
         body: row.body,
         visibility: row.visibility,
         created_at: row.created_at,
+        media: row.media || null,
         author: publicProfile(row.author),
+        reactions: row.reactions,
+        commentCount: row.commentCount,
       })),
       nextBefore,
     });

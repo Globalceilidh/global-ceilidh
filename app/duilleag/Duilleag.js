@@ -21,6 +21,7 @@ import PersonalGlobe from './PersonalGlobe';
 import Composer from './Composer';
 import Connections from './Connections';
 import FindPeople from './FindPeople';
+import PostCard from './PostCard';
 import { NAV_ITEMS, QUICK_JUMPS } from './stubs';
 
 export default function Duilleag({ profile, initialPosts, isMobile }) {
@@ -84,6 +85,17 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
       </a>
 
       <nav style={s.nav}>
+        {pending.length > 0 && (
+          <button
+            style={{ ...s.navItem, ...s.navReq }}
+            onClick={() => document.getElementById('gc-requests')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            data-no-drag
+          >
+            <span style={s.navIcon} aria-hidden="true">☍</span>
+            <span>{gd ? 'Iarrtasan' : 'Requests'}</span>
+            <span style={s.navBadge}>{pending.length}</span>
+          </button>
+        )}
         {NAV_ITEMS.map((item) => (
           <a key={item.href} href={item.href} style={s.navItem}>
             <span style={s.navIcon} aria-hidden="true">{item.icon}</span>
@@ -125,7 +137,13 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
 
       <div style={s.feed}>
         {feed.map((p) => (
-          <Post key={p.id} author={p.author.displayName} body={p.body} meta={when(p.created_at, gd)} />
+          <PostCard
+            key={p.id}
+            post={p}
+            gd={gd}
+            isOwner={p.author?.handle === profile.handle}
+            onDeleted={(id) => setFeed((f) => f.filter((x) => x.id !== id))}
+          />
         ))}
 
         {loaded && feed.length === 0 && (
@@ -140,7 +158,13 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
           <>
             <p style={s.divider}>{gd ? 'Na phostaich thu fhèin' : 'Your own posts'}</p>
             {own.map((p) => (
-              <Post key={p.id} author={profile.displayName} body={p.body} meta={p.visibility} />
+              <PostCard
+                key={p.id}
+                post={{ ...p, author: { handle: profile.handle, displayName: profile.displayName } }}
+                gd={gd}
+                isOwner
+                onDeleted={(id) => setOwn((o) => o.filter((x) => x.id !== id))}
+              />
             ))}
           </>
         )}
@@ -179,32 +203,6 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
       )}
     </div>
   );
-}
-
-function Post({ author, body, meta }) {
-  return (
-    <article style={s.post}>
-      <header style={s.postHead}>
-        <span style={s.postAuthor}>{author}</span>
-        <span style={s.postMeta}>{meta}</span>
-      </header>
-      <p style={s.postBody}>{body}</p>
-    </article>
-  );
-}
-
-// Coarse relative time — minutes, hours, days. Anything older reads as a
-// date, because "47d" is not information anyone wants.
-function when(iso, gd) {
-  const then = new Date(iso).getTime();
-  const mins = Math.max(0, Math.floor((Date.now() - then) / 60000));
-  if (mins < 1) return gd ? 'an-dràsta' : 'now';
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  const days = Math.floor(hrs / 24);
-  if (days < 14) return `${days}d`;
-  return new Date(iso).toLocaleDateString(gd ? 'gd-GB' : 'en-GB', { day: 'numeric', month: 'short' });
 }
 
 // ── styles ────────────────────────────────────────────────────────────
@@ -281,6 +279,17 @@ const s = {
   navIcon: { width: 18, textAlign: 'center', opacity: 0.8, fontSize: 15 },
   navFoot: { marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.10)' },
   navSettings: { color: 'rgba(255,255,255,0.66)' },
+  // The requests badge sits above the ordinary link tree, only when there
+  // is something waiting. A button, not a link — it scrolls the pending
+  // card into view rather than navigating away.
+  navReq: {
+    width: '100%', background: 'rgba(201,160,71,0.10)', border: `1px solid #C9A04755`,
+    cursor: 'pointer', color: '#FFFFFF', marginBottom: 4,
+  },
+  navBadge: {
+    marginLeft: 'auto', background: '#C9A047', color: '#1A1206', borderRadius: 999,
+    padding: '1px 8px', fontSize: 11, fontWeight: 700,
+  },
 
   // A black bar across the top of the strip, same shape as the composer
   // ("Write something…"), with the emblems set inside it. The emblems are
@@ -301,17 +310,7 @@ const s = {
   quickIcon: { fontSize: 24, opacity: 0.9, color: '#FFFFFF' },
 
   feed: { display: 'flex', flexDirection: 'column', gap: 12 },
-  post: { ...glass, padding: '14px 16px' },
-  postHead: { display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 6 },
-  postAuthor: {
-    fontFamily: '"Fraunces", "EB Garamond", Georgia, serif', fontStyle: 'italic',
-    fontWeight: 700, fontSize: 15, color: '#FFFFFF',
-  },
-  postMeta: { fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'rgba(255,255,255,0.42)' },
-  postBody: {
-    margin: 0, fontFamily: SANS, fontSize: 14, lineHeight: 1.6,
-    color: 'rgba(255,255,255,0.88)', whiteSpace: 'pre-wrap',
-  },
+  // Post rendering now lives in PostCard.js.
   divider: {
     fontFamily: SANS, fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.40)', margin: '10px 0 0',

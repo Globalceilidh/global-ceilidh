@@ -21,8 +21,16 @@ const CATEGORY_LABEL = {
   family: { en: 'Family', gd: 'Teaghlach' },
 };
 
+const REPORT_REASONS = [
+  { value: 'spam',  label: { en: 'Spam',          gd: 'Spama' } },
+  { value: 'abuse', label: { en: 'Abuse or hate', gd: 'Ana-cainnt' } },
+  { value: 'other', label: { en: 'Something else', gd: 'Rud eile' } },
+];
+
 export default function Connections({ gd, connections, pending, onChanged }) {
   const [busyId, setBusyId] = useState(null);
+  const [menuId, setMenuId] = useState(null);
+  const [reportId, setReportId] = useState(null); // connection whose report reasons are showing
   const t = (o) => (gd ? o.gd : o.en);
 
   async function respond(id, category) {
@@ -53,10 +61,36 @@ export default function Connections({ gd, connections, pending, onChanged }) {
     }
   }
 
+  // End an existing ceangal. Valid from either side; the edge is deleted
+  // outright, so the same person could ask again later.
+  async function removeConnection(id) {
+    if (!window.confirm(gd ? 'Thoir am ceangal seo air falbh?' : 'Remove this connection?')) return;
+    setBusyId(id); setMenuId(null);
+    try {
+      await fetch(`/api/connections/${id}`, { method: 'DELETE' });
+      onChanged?.();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  // File a report against a person (their profile id). Nothing acts
+  // automatically — it lands in the moderation queue.
+  async function reportPerson(profileId, reason) {
+    setMenuId(null); setReportId(null);
+    try {
+      await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetType: 'profile', targetId: profileId, reason }),
+      });
+    } catch { /* a failed report shouldn't nag */ }
+  }
+
   return (
     <>
       {pending.length > 0 && (
-        <div style={s.wrap}>
+        <div style={s.wrap} id="gc-requests">
           <h2 style={s.label}>
             {gd ? 'Iarrtasan' : 'Requests'} <span style={s.count}>{pending.length}</span>
           </h2>
@@ -118,6 +152,34 @@ export default function Connections({ gd, connections, pending, onChanged }) {
                 >
                   ✉
                 </a>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    style={s.menuBtn}
+                    disabled={busyId === c.id}
+                    onClick={() => { setMenuId(menuId === c.id ? null : c.id); setReportId(null); }}
+                    aria-label={gd ? 'Barrachd' : 'More'}
+                  >⋯</button>
+                  {menuId === c.id && (
+                    <div style={s.menu}>
+                      {reportId === c.id ? (
+                        REPORT_REASONS.map((r) => (
+                          <button key={r.value} style={s.menuItem} onClick={() => reportPerson(c.person.id, r.value)}>
+                            {t(r.label)}
+                          </button>
+                        ))
+                      ) : (
+                        <>
+                          <button style={s.menuItem} onClick={() => removeConnection(c.id)}>
+                            {gd ? 'Thoir air falbh' : 'Remove'}
+                          </button>
+                          <button style={s.menuItem} onClick={() => setReportId(c.id)}>
+                            {gd ? 'Dèan aithris' : 'Report'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
                 {/* Presence is not built yet — Supabase Realtime lands with
                     the next step. Everyone reads offline rather than
                     faking a green dot that means nothing. */}
@@ -189,6 +251,21 @@ const s = {
     flexShrink: 0, textDecoration: 'none', fontSize: 13, lineHeight: 1,
     color: 'rgba(255,255,255,0.5)', padding: '4px 6px', borderRadius: 7,
     border: '1px solid rgba(255,255,255,0.12)',
+  },
+  menuBtn: {
+    flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
+    color: 'rgba(255,255,255,0.5)', fontSize: 16, lineHeight: 1, padding: '2px 4px',
+  },
+  menu: {
+    position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 40,
+    minWidth: 140, padding: 4, borderRadius: 10,
+    background: 'rgba(10,16,13,0.96)', border: '1px solid rgba(255,255,255,0.14)',
+    backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+    boxShadow: '0 12px 36px rgba(0,0,0,0.45)', display: 'flex', flexDirection: 'column',
+  },
+  menuItem: {
+    textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
+    fontFamily: SANS, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '7px 9px', borderRadius: 7,
   },
   dot: { width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: 'rgba(255,255,255,0.22)' },
   empty: { margin: 0, fontFamily: SANS, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(255,255,255,0.45)' },

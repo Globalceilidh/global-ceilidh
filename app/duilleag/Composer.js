@@ -13,7 +13,7 @@
 // symmetric: posting too narrowly is a small disappointment, posting too
 // widely can't be taken back.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export const AUDIENCES = [
   { value: 'global', label: { en: 'Global Ceilidh', gd: 'An Cèilidh Cruinneil' }, note: { en: 'Anyone on Global Ceilidh', gd: 'Duine sam bith' } },
@@ -31,20 +31,44 @@ export default function Composer({ gd, connections, onPosted }) {
   const [chosen, setChosen] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [media, setMedia] = useState([]);        // [{ url }]
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
 
   const t = (o) => (gd ? o.gd : o.en);
   const current = AUDIENCES.find((a) => a.value === visibility) || AUDIENCES[1];
+  const canSend = (body.trim() || media.length > 0) && !busy && !uploading;
 
   const reset = () => {
     setOpen(false); setBody(''); setVisibility('connections');
     setChosen([]); setPicking(false); setError(null);
+    setMedia([]); setUploading(false);
   };
 
   const toggle = (id) =>
     setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
 
+  async function onPickFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // let the same file be re-picked after a remove
+    if (!file) return;
+    setUploading(true); setError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const json = await res.json();
+      if (json.ok) setMedia((m) => [...m, { url: json.url }]);
+      else setError(json.reason || (gd ? 'Cha b’ urrainn an dealbh a luchdadh.' : 'Could not upload that image.'));
+    } catch {
+      setError(gd ? 'Cha b’ urrainn an dealbh a luchdadh.' : 'Could not upload that image.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function submit() {
-    if (!body.trim() || busy) return;
+    if (!canSend) return;
     setBusy(true); setError(null);
     try {
       const res = await fetch('/api/posts', {
@@ -54,6 +78,7 @@ export default function Composer({ gd, connections, onPosted }) {
           body: body.trim(),
           visibility,
           audience: visibility === 'custom' ? chosen : undefined,
+          media: media.length ? media : undefined,
         }),
       });
       const json = await res.json();
@@ -88,7 +113,39 @@ export default function Composer({ gd, connections, onPosted }) {
         style={s.input}
       />
 
+      {(media.length > 0 || uploading) && (
+        <div style={s.thumbs}>
+          {media.map((m, i) => (
+            <div key={i} style={s.thumb}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={m.url} alt="" style={s.thumbImg} />
+              <button
+                style={s.thumbX}
+                onClick={() => setMedia((arr) => arr.filter((_, j) => j !== i))}
+                aria-label={gd ? 'Thoir air falbh' : 'Remove'}
+              >×</button>
+            </div>
+          ))}
+          {uploading && <div style={s.thumbLoad}>{gd ? '…' : '…'}</div>}
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+        onChange={onPickFile}
+        style={{ display: 'none' }}
+      />
+
       <div style={s.bar}>
+        <button
+          style={s.attach}
+          onClick={() => fileRef.current?.click()}
+          disabled={media.length >= 4 || uploading}
+          title={gd ? 'Cuir dealbh ris' : 'Add an image'}
+          aria-label={gd ? 'Cuir dealbh ris' : 'Add an image'}
+        >🖼</button>
         <div style={{ position: 'relative' }}>
           <button style={s.audience} onClick={() => setPicking((p) => !p)}>
             {t(current.label)} ▾
@@ -114,9 +171,9 @@ export default function Composer({ gd, connections, onPosted }) {
         <div style={{ flex: 1 }} />
         <button style={s.cancel} onClick={reset}>{gd ? 'Sguir dheth' : 'Cancel'}</button>
         <button
-          style={{ ...s.post, opacity: body.trim() && !busy ? 1 : 0.45 }}
+          style={{ ...s.post, opacity: canSend ? 1 : 0.45 }}
           onClick={submit}
-          disabled={!body.trim() || busy}
+          disabled={!canSend}
         >
           {busy ? (gd ? 'A’ postadh…' : 'Posting…') : (gd ? 'Postaich' : 'Post')}
         </button>
@@ -168,6 +225,24 @@ const s = {
     borderRadius: 9, padding: 11, color: '#FFFFFF', fontFamily: SANS, fontSize: 14,
   },
   bar: { display: 'flex', alignItems: 'center', gap: 9 },
+  attach: {
+    flexShrink: 0, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 999, width: 30, height: 28, cursor: 'pointer', fontSize: 15, lineHeight: 1,
+    color: 'rgba(255,255,255,0.75)', padding: 0,
+  },
+  thumbs: { display: 'flex', flexWrap: 'wrap', gap: 6 },
+  thumb: { position: 'relative', width: 66, height: 66, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.14)' },
+  thumbImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  thumbX: {
+    position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%',
+    background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer',
+    fontSize: 12, lineHeight: 1, padding: 0,
+  },
+  thumbLoad: {
+    width: 66, height: 66, borderRadius: 8, border: '1px dashed rgba(255,255,255,0.2)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: 'rgba(255,255,255,0.5)', fontSize: 20,
+  },
   audience: {
     fontFamily: SANS, fontSize: 12, color: GOLD, cursor: 'pointer',
     background: 'rgba(201,160,71,0.10)', border: `1px solid ${GOLD}55`,
