@@ -31,6 +31,25 @@ function renderBody(text) {
   });
 }
 
+// Cloudflare Stream player — a responsive 16:9 iframe keyed by the video
+// UID. The customer subdomain is public (it's in every embed URL), so it
+// rides in a NEXT_PUBLIC env var.
+const STREAM_SUBDOMAIN = process.env.NEXT_PUBLIC_CLOUDFLARE_STREAM_SUBDOMAIN;
+function StreamVideo({ uid }) {
+  if (!STREAM_SUBDOMAIN) return null;
+  return (
+    <div style={s.videoWrap}>
+      <iframe
+        src={`https://${STREAM_SUBDOMAIN}/${uid}/iframe`}
+        style={s.videoFrame}
+        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+        allowFullScreen
+        title="Video"
+      />
+    </div>
+  );
+}
+
 const REPORT_REASONS = [
   { value: 'spam',    label: { en: 'Spam',            gd: 'Spama' } },
   { value: 'abuse',   label: { en: 'Abuse or hate',   gd: 'Ana-cainnt' } },
@@ -216,6 +235,8 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
         </div>
       )}
 
+      {post.video?.uid && <StreamVideo uid={post.video.uid} />}
+
       {post.reshareOf && (
         post.reshareOf.removed ? (
           <div style={s.quoteRemoved}>{gd ? 'Chaidh am post seo a thoirt air falbh.' : 'This post is no longer available.'}</div>
@@ -227,6 +248,7 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={post.reshareOf.media[0].url} alt="" style={s.quoteImg} loading="lazy" />
             )}
+            {post.reshareOf.video?.uid && <StreamVideo uid={post.reshareOf.video.uid} />}
           </a>
         )
       )}
@@ -431,6 +453,12 @@ const s = {
     border: '1px solid rgba(255,255,255,0.10)', display: 'block',
   },
   tag: { color: GOLD, textDecoration: 'none', fontWeight: 600 },
+  videoWrap: {
+    position: 'relative', width: '100%', paddingTop: '56.25%', marginBottom: 10,
+    borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.10)',
+    background: '#000',
+  },
+  videoFrame: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' },
 
   // The embedded original inside a reshare.
   quote: {

@@ -19,6 +19,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { VISIBILITIES, getFollowersOf, attachReshares } from '../../../lib/social';
+import { isValidUid } from '../../../lib/stream';
 
 export const runtime = 'nodejs';
 
@@ -34,8 +35,16 @@ function publicPost(row) {
     visibility: row.visibility,
     created_at: row.created_at,
     media: row.media || null,
+    video: row.video || null,
     reshareOf: row.reshareOf !== undefined ? row.reshareOf : null,
   };
+}
+
+// A post's video is just the Cloudflare Stream UID. Reject anything that
+// isn't a well-formed uid so a post can't carry junk in the column.
+function cleanVideo(raw) {
+  if (raw && isValidUid(raw.uid)) return { uid: raw.uid };
+  return null;
 }
 
 // Sanitise the media array a composer sends. Only http(s) urls survive
@@ -92,7 +101,7 @@ export async function GET(req) {
 
     let q = supabaseAdmin
       .from('gc_posts')
-      .select('id, body, visibility, created_at, media')
+      .select('id, body, visibility, created_at, media, video')
       .eq('author_id', authorId)
       .eq('visibility', 'global')
       .eq('status', 'visible')
@@ -130,9 +139,10 @@ export async function POST(req) {
 
   const body = String(payload.body || '').trim();
   const media = cleanMedia(payload.media);
+  const video = cleanVideo(payload.video);
   const reshareOf = payload.reshareOf ? String(payload.reshareOf) : null;
-  if (!body && !media && !reshareOf) {
-    return Response.json({ ok: false, error: 'empty_body', reason: 'Write something or add an image.' }, { status: 400 });
+  if (!body && !media && !video && !reshareOf) {
+    return Response.json({ ok: false, error: 'empty_body', reason: 'Write something or add an image or video.' }, { status: 400 });
   }
   if (body.length > BODY_MAX) {
     return Response.json(
@@ -196,9 +206,10 @@ export async function POST(req) {
         body,
         visibility,
         media,
+        video,
         reshare_of: reshareOf,
       })
-      .select('id, body, visibility, created_at, media, reshare_of')
+      .select('id, body, visibility, created_at, media, video, reshare_of')
       .single();
 
     if (error) {

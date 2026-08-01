@@ -53,7 +53,7 @@ export async function GET(req) {
       }
     }
 
-    const select = 'id, body, visibility, created_at, media, reshare_of, author:gc_profiles!gc_posts_author_id_fkey(id, handle, display_name, avatar_url)';
+    const select = 'id, body, visibility, created_at, media, video, reshare_of, author:gc_profiles!gc_posts_author_id_fkey(id, handle, display_name, avatar_url)';
 
     const queries = [];
     for (const [tier, ids] of byTier) {
@@ -122,6 +122,7 @@ export async function GET(req) {
         visibility: row.visibility,
         created_at: row.created_at,
         media: row.media || null,
+        video: row.video || null,
         reshareOf: row.reshareOf || null,
         author: publicProfile(row.author),
         reactions: row.reactions,

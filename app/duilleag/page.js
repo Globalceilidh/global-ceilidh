@@ -41,7 +41,7 @@ async function getProfile(clerkUserId) {
 async function getOwnPosts(authorId) {
   const { data } = await supabaseAdmin
     .from('gc_posts')
-    .select('id, body, visibility, created_at, media, reshare_of')
+    .select('id, body, visibility, created_at, media, video, reshare_of')
     .eq('author_id', authorId)
     .eq('status', 'visible')
     .is('deleted_at', null)
