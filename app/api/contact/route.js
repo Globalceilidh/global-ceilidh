@@ -36,6 +36,9 @@ export async function POST(request) {
     const name = (body.name || '').trim().slice(0, 120);
     const email = (body.email || '').toLowerCase().trim().slice(0, 160);
     const message = (body.message || '').trim().slice(0, 5000);
+    // Which Let's Talk panel it came from (Getting involved / Contact), for the
+    // subject line. Whitelisted + length-capped so it can't inject anything.
+    const intent = (body.intent || '').replace(/[^\w \-]/g, '').trim().slice(0, 40);
     // Honeypot — real humans leave this blank; ACK success but drop.
     if ((body.website || '').trim()) return NextResponse.json({ success: true });
 
@@ -52,7 +55,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Messaging is temporarily unavailable.' }, { status: 503 });
     }
 
-    const subject = `Let's Talk — ${name || 'someone'} via GlobalCeilidh.com`;
+    const subject = `Let's Talk${intent ? ` (${intent})` : ''} — ${name || 'someone'} via GlobalCeilidh.com`;
     const html = `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.6;color:#111">
       <p><strong>From:</strong> ${esc(name) || '(no name)'} &lt;${esc(email)}&gt;</p>
       <p><strong>Message:</strong></p>
