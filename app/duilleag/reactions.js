@@ -12,9 +12,9 @@
 
 // The full-resolution transparent PNGs (the wee-figure reaction art).
 export const REACTIONS = [
-  { kind: 'curam', label: { en: 'Care',     gd: 'Cùram' }, icon: '/people/Curam-transparent.png', color: '#2E86DE' }, // blue
-  { kind: 'solas', label: { en: 'Approval', gd: 'Sòlas' }, icon: '/people/Solas-transparent.png', color: '#F4C430' }, // sunny yellow
-  { kind: 'gradh', label: { en: 'Love',     gd: 'Gràdh' }, icon: '/people/Gradh-transparent.png', color: '#E5484D' }, // red
+  { kind: 'curam', label: { en: 'Care',     gd: 'Cùram' }, icon: '/people/rx-curam.png', color: '#2E86DE' }, // blue
+  { kind: 'solas', label: { en: 'Approval', gd: 'Sòlas' }, icon: '/people/rx-solas.png', color: '#F4C430' }, // sunny yellow
+  { kind: 'gradh', label: { en: 'Love',     gd: 'Gràdh' }, icon: '/people/rx-gradh.png', color: '#E5484D' }, // red
 ];
 
 export const REACTION = Object.fromEntries(REACTIONS.map((r) => [r.kind, r]));
