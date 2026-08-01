@@ -353,7 +353,16 @@ export default function PersonalGlobe({ profile, expanded = false, onToggleExpan
               bar under the map. Clerk gives everyone a default avatar, so
               avatarUrl is almost always present; fall back to an initial. */}
           {profile.avatarUrl ? (
-            <img src={profile.avatarUrl} alt={profile.displayName || 'You'} style={s.avatar} />
+            <a
+              href={profile.avatarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-no-drag
+              style={s.avatarLink}
+              title={gd ? 'Seall nas motha' : 'View larger'}
+            >
+              <img src={profile.avatarUrl} alt={profile.displayName || 'You'} style={s.avatar} />
+            </a>
           ) : (
             <div style={s.avatarFallback} aria-hidden="true">
               {(profile.displayName || '?').trim().charAt(0).toUpperCase()}
@@ -465,6 +474,7 @@ const s = {
     flex: 1, minWidth: 0,
     display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start',
   },
+  avatarLink: { display: 'block', flexShrink: 0, lineHeight: 0, cursor: 'pointer' },
   avatar: {
     width: 96, height: 96, borderRadius: '50%', flexShrink: 0,
     objectFit: 'cover', display: 'block',
