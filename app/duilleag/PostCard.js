@@ -13,7 +13,7 @@
 // only steps back if the server refuses.
 
 import { useState } from 'react';
-import { REACTIONS, GLYPH } from './reactions';
+import { REACTIONS, REACTION, NEUTRAL_BORDER } from './reactions';
 import { AUDIENCES } from './Composer';
 
 // Split a body into text and #hashtag links. Tags are letters/numbers/
@@ -192,10 +192,18 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
     } catch { /* swallow — a failed report shouldn't nag */ }
   }
 
-  const summaryGlyphs = REACTIONS.filter((r) => reactions.counts[r.kind]).map((r) => r.glyph).slice(0, 3);
+  // The reaction with the most votes tints the whole post's border.
+  let predominant = null;
+  let topN = 0;
+  for (const r of REACTIONS) {
+    const n = reactions.counts[r.kind] || 0;
+    if (n > topN) { topN = n; predominant = r; }
+  }
+  const borderColor = predominant ? predominant.color : NEUTRAL_BORDER;
+  const summaryReactions = REACTIONS.filter((r) => reactions.counts[r.kind]).slice(0, 3);
 
   return (
-    <article style={s.post}>
+    <article style={{ ...s.post, border: `3px solid ${borderColor}`, transition: 'border-color 350ms ease' }}>
       <header style={s.head}>
         {author.handle ? (
           <a href={`/u/${author.handle}`} style={s.author}>{authorName}</a>
@@ -256,22 +264,26 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
       <div style={s.bar}>
         <div style={{ position: 'relative' }}>
           <button
-            style={{ ...s.act, ...(reactions.mine ? s.actOn : null) }}
+            style={{ ...s.act, ...(reactions.mine && REACTION[reactions.mine] ? { ...s.actOn, borderColor: `${REACTION[reactions.mine].color}88` } : null) }}
             onClick={() => setPalette((p) => !p)}
           >
-            {reactions.mine ? GLYPH[reactions.mine] : '☺'}{' '}
-            <span style={s.actLabel}>{reactions.mine ? t(labelFor(reactions.mine)) : (gd ? 'Freagair' : 'React')}</span>
+            {reactions.mine && REACTION[reactions.mine]
+              ? <img src={REACTION[reactions.mine].icon} alt="" style={s.reactIcon} />
+              : <span aria-hidden="true">☺</span>}
+            <span style={s.actLabel}>
+              {reactions.mine && REACTION[reactions.mine] ? t(REACTION[reactions.mine].label) : (gd ? 'Freagair' : 'React')}
+            </span>
           </button>
           {palette && (
             <div style={s.palette}>
               {REACTIONS.map((r) => (
                 <button
                   key={r.kind}
-                  style={{ ...s.pGlyph, ...(reactions.mine === r.kind ? s.pGlyphOn : null) }}
+                  style={{ ...s.pGlyph, ...(reactions.mine === r.kind ? { ...s.pGlyphOn, boxShadow: `inset 0 0 0 2px ${r.color}` } : null) }}
                   title={t(r.label)}
                   onClick={() => pick(r.kind)}
                 >
-                  {r.glyph}
+                  <img src={r.icon} alt={t(r.label)} style={s.reactIcon} />
                 </button>
               ))}
             </div>
@@ -279,7 +291,12 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
         </div>
 
         {reactions.total > 0 && (
-          <span style={s.count}>{summaryGlyphs.join('')} {reactions.total}</span>
+          <span style={s.count}>
+            {summaryReactions.map((r) => (
+              <img key={r.kind} src={r.icon} alt="" style={s.reactIconSm} />
+            ))}
+            {reactions.total}
+          </span>
         )}
 
         <div style={{ flex: 1 }} />
@@ -505,19 +522,25 @@ const s = {
   },
   actOn: { background: 'rgba(201,160,71,0.16)', borderColor: `${GOLD}66`, color: '#FFFFFF' },
   actLabel: { fontFamily: SANS, fontSize: 12 },
-  count: { fontFamily: SANS, fontSize: 12, color: 'rgba(255,255,255,0.55)' },
+  count: {
+    display: 'inline-flex', alignItems: 'center', gap: 3,
+    fontFamily: SANS, fontSize: 12, color: 'rgba(255,255,255,0.6)',
+  },
+  reactIcon: { width: 20, height: 20, display: 'block', objectFit: 'contain' },
+  reactIconSm: { width: 15, height: 15, display: 'block', objectFit: 'contain' },
 
   palette: {
     position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 40,
-    display: 'flex', gap: 2, padding: 5, borderRadius: 999,
+    display: 'flex', gap: 3, padding: 6, borderRadius: 999,
     background: 'rgba(10,16,13,0.96)', border: '1px solid rgba(255,255,255,0.14)',
     boxShadow: '0 12px 36px rgba(0,0,0,0.45)',
   },
   pGlyph: {
-    background: 'none', border: 'none', cursor: 'pointer', fontSize: 20,
-    padding: '3px 5px', borderRadius: 999, lineHeight: 1,
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    background: 'none', border: 'none', cursor: 'pointer',
+    padding: '5px 6px', borderRadius: 999, lineHeight: 1,
   },
-  pGlyphOn: { background: 'rgba(201,160,71,0.22)' },
+  pGlyphOn: { background: 'rgba(255,255,255,0.10)' },
 
   comments: { marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 },
   cQuiet: { margin: 0, fontFamily: SANS, fontSize: 12.5, color: 'rgba(255,255,255,0.45)' },
