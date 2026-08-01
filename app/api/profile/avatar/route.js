@@ -1,0 +1,69 @@
+// app/api/profile/avatar/route.js
+// ============================================================
+// POST /api/profile/avatar   (multipart/form-data, field "file")
+//   → auth() → validate it's an image within the size cap → store it in
+//     the public gc-media bucket under avatars/<clerkUserId>/<uuid>.<ext>
+//     → save the url onto the caller's gc_profiles.avatar_url →
+//     { ok, url }.
+//
+// This is the picture that represents a person everywhere they appear to
+// others: the /u/<handle> card, Find people, connections, requests. The
+// bucket is public (images ride inside profiles); the write is gated here.
+// ============================================================
+
+import { auth } from '@clerk/nextjs/server';
+import { randomUUID } from 'crypto';
+import { supabaseAdmin } from '../../../../lib/supabase';
+import { getProfileByClerkId } from '../../../../lib/social';
+
+export const runtime = 'nodejs';
+
+const BUCKET = 'gc-media';
+const MAX_BYTES = 8 * 1024 * 1024;
+const EXT_BY_TYPE = {
+  'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+  'image/gif': 'gif', 'image/avif': 'avif',
+};
+
+export async function POST(req) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ ok: false, error: 'not_signed_in' }, { status: 401 });
+
+  let form;
+  try { form = await req.formData(); } catch { return Response.json({ ok: false, error: 'bad_form' }, { status: 400 }); }
+
+  const file = form.get('file');
+  if (!file || typeof file === 'string') {
+    return Response.json({ ok: false, error: 'no_file', reason: 'No image was sent.' }, { status: 400 });
+  }
+  const ext = EXT_BY_TYPE[file.type || ''];
+  if (!ext) return Response.json({ ok: false, error: 'bad_type', reason: 'Images only (jpg, png, webp, gif).' }, { status: 400 });
+  if (file.size > MAX_BYTES) return Response.json({ ok: false, error: 'too_big', reason: 'Images must be under 8 MB.' }, { status: 400 });
+
+  try {
+    const me = await getProfileByClerkId(userId);
+    if (!me) return Response.json({ ok: false, error: 'no_profile' }, { status: 403 });
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const path = `avatars/${userId}/${randomUUID()}.${ext}`;
+
+    const { error: upErr } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .upload(path, buffer, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+
+    const { data: pub } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
+    const url = pub.publicUrl;
+
+    const { error: updErr } = await supabaseAdmin
+      .from('gc_profiles')
+      .update({ avatar_url: url })
+      .eq('id', me.id);
+    if (updErr) throw updErr;
+
+    return Response.json({ ok: true, url });
+  } catch (err) {
+    console.error('Avatar upload failed:', err);
+    return Response.json({ ok: false, error: 'server_error' }, { status: 500 });
+  }
+}

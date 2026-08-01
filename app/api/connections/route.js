@@ -31,26 +31,44 @@ export async function GET() {
     const me = await getProfileByClerkId(userId);
     if (!me) return Response.json({ ok: false, error: 'no_profile' }, { status: 403 });
 
+    // Two directions to a ceangal, and BOTH make a connection:
+    //   inbound  — they asked me, I accepted and filed them (I hold the tier)
+    //   outbound — I asked them, they accepted and filed me (they hold the
+    //              tier; I have no label on them)
+    // The list used to show only the inbound half, so a request you SENT
+    // that was accepted (you follow them) showed nowhere at all. Merge both.
     const inbound = await getFollowersOf(me.id);
 
     const { data: outbound, error } = await supabaseAdmin
       .from('gc_follows')
       .select('id, status, created_at, followee:gc_profiles!gc_follows_followee_id_fkey(id, handle, display_name, avatar_url)')
-      .eq('follower_id', me.id)
-      .neq('status', 'accepted');
+      .eq('follower_id', me.id);
     if (error) throw error;
+
+    // Dedup by person: an inbound edge (which carries MY category) wins over
+    // an outbound one for the same person.
+    const conns = new Map();
+    for (const r of inbound) {
+      if (r.status !== 'accepted') continue;
+      conns.set(r.follower.id, { id: r.id, category: r.category, person: publicProfile(r.follower) });
+    }
+    for (const r of outbound || []) {
+      if (r.status !== 'accepted') continue;
+      const pid = r.followee?.id;
+      if (!pid || conns.has(pid)) continue;
+      // I follow them; the tier is theirs to set, not mine — show neutral.
+      conns.set(pid, { id: r.id, category: null, person: publicProfile(r.followee) });
+    }
 
     return Response.json({
       ok: true,
-      connections: inbound
-        .filter((r) => r.status === 'accepted')
-        .map((r) => ({ id: r.id, category: r.category, person: publicProfile(r.follower) })),
+      connections: [...conns.values()],
       pending: inbound
         .filter((r) => r.status === 'pending')
         .map((r) => ({ id: r.id, person: publicProfile(r.follower), askedAt: r.created_at })),
-      outgoing: (outbound || []).map((r) => ({
-        id: r.id, status: r.status, person: publicProfile(r.followee),
-      })),
+      outgoing: (outbound || [])
+        .filter((r) => r.status !== 'accepted')
+        .map((r) => ({ id: r.id, status: r.status, person: publicProfile(r.followee) })),
     });
   } catch (err) {
     console.error('Connections list failed:', err);

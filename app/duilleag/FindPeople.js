@@ -84,7 +84,9 @@ export default function FindPeople({ gd, outgoing = [], onChanged }) {
             const st = stateOf(p);
             return (
               <div key={p.id} style={s.row}>
-                <span style={s.avatar}>{initials(p.displayName)}</span>
+                {p.avatarUrl
+                  ? <img src={p.avatarUrl} alt="" style={s.avatarImg} />
+                  : <span style={s.avatar}>{initials(p.displayName)}</span>}
                 <div style={s.who}>
                   <a href={`/u/${p.handle}`} style={s.name}>{p.displayName}</a>
                   <span style={s.sub}>@{p.handle}{p.region ? ` · ${p.region}` : ''}</span>
@@ -159,6 +161,10 @@ const s = {
     background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.16)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: SANS, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.80)',
+  },
+  avatarImg: {
+    width: 30, height: 30, borderRadius: '50%', flexShrink: 0, objectFit: 'cover',
+    border: '1px solid rgba(255,255,255,0.16)',
   },
   who: { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
   name: {

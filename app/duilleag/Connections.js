@@ -97,7 +97,9 @@ export default function Connections({ gd, connections, pending, onChanged }) {
           {pending.map((p) => (
             <div key={p.id} style={s.request}>
               <div style={s.requestHead}>
-                <span style={s.avatar}>{initials(p.person.displayName)}</span>
+                {p.person.avatarUrl
+                  ? <img src={p.person.avatarUrl} alt="" style={s.avatarImg} />
+                  : <span style={s.avatar}>{initials(p.person.displayName)}</span>}
                 <span style={s.name}>{p.person.displayName}</span>
               </div>
               <p style={s.askText}>
@@ -139,7 +141,9 @@ export default function Connections({ gd, connections, pending, onChanged }) {
           <ul style={s.list}>
             {connections.map((c) => (
               <li key={c.id} style={s.row}>
-                <span style={s.avatar}>{initials(c.person.displayName)}</span>
+                {c.person.avatarUrl
+                  ? <img src={c.person.avatarUrl} alt="" style={s.avatarImg} />
+                  : <span style={s.avatar}>{initials(c.person.displayName)}</span>}
                 <span style={s.rowName}>
                   {c.person.displayName}
                   <span style={s.tier}>{t(CATEGORY_LABEL[c.category] || CATEGORY_LABEL.connection)}</span>
@@ -240,6 +244,10 @@ const s = {
     background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.16)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: SANS, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.80)',
+  },
+  avatarImg: {
+    width: 30, height: 30, borderRadius: '50%', flexShrink: 0, objectFit: 'cover',
+    border: '1px solid rgba(255,255,255,0.16)',
   },
   name: { fontFamily: SANS, fontSize: 13.5, color: 'rgba(255,255,255,0.90)' },
   rowName: {

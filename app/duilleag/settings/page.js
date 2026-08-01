@@ -24,7 +24,7 @@ export const metadata = {
 async function getProfile(clerkUserId) {
   const { data } = await supabaseAdmin
     .from('gc_profiles')
-    .select('handle, display_name, region, lat, lng, location_public, onboarded_at')
+    .select('handle, display_name, avatar_url, region, lat, lng, location_public, onboarded_at')
     .eq('clerk_user_id', clerkUserId)
     .maybeSingle();
   return data;
@@ -42,6 +42,7 @@ export default async function SettingsPage() {
       profile={{
         handle: profile.handle,
         displayName: profile.display_name || `@${profile.handle}`,
+        avatarUrl: profile.avatar_url || null,
         region: profile.region,
         lat: profile.lat === null ? null : Number(profile.lat),
         lng: profile.lng === null ? null : Number(profile.lng),

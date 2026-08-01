@@ -11,7 +11,7 @@
 //     /saoghal and on other people's globes; it never hides you from your
 //     own globe. This is the "hide yourself" home Whitey asked for.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -20,6 +20,32 @@ export default function SettingsClient({ profile }) {
   const { language } = useLanguage();
   const L = (en, gd) => (language === 'gd' ? gd : en);
   const { user } = useUser();
+
+  // Avatar — the picture that represents you to others (Find people,
+  // connections, your public card). Uploads and saves in one call.
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState(null);
+  const avatarRef = useRef(null);
+
+  async function uploadAvatar(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setAvatarBusy(true); setAvatarError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/profile/avatar', { method: 'POST', body: fd });
+      const json = await res.json();
+      if (json.ok) setAvatarUrl(json.url);
+      else setAvatarError(json.reason || L('Couldn’t upload that image.', 'Cha b’ urrainn an dealbh a luchdadh.'));
+    } catch {
+      setAvatarError(L('Couldn’t upload that image.', 'Cha b’ urrainn an dealbh a luchdadh.'));
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
 
   // Change-password state. Lets an invited member who was given a temporary
   // password (created in the Clerk dashboard) set their own during or after a
@@ -121,6 +147,33 @@ export default function SettingsClient({ profile }) {
           <h1 style={s.title}>{L('Settings', 'Roghainnean')}</h1>
           <p style={s.sub}>{L('Signed in as', 'Air do chlàradh a-steach mar')} @{profile.handle}</p>
         </header>
+
+        <section style={{ ...s.card, marginBottom: 20 }}>
+          <h2 style={s.cardTitle}>{L('Your photo', 'An dealbh agad')}</h2>
+          <p style={s.cardNote}>
+            {L('The picture that represents you — shown in Find people, on your connections, and on your public card.',
+               'An dealbh a sheasas air do shon — air a shealltainn ann an Lorg daoine, air na ceanglaichean agad, agus air a’ chairt phoblach agad.')}
+          </p>
+          <div style={s.avatarRow}>
+            {avatarUrl
+              ? <img src={avatarUrl} alt="" style={s.avatarImg} />
+              : <div style={s.avatarFallback}>{initials(profile.displayName)}</div>}
+            <div>
+              <input
+                ref={avatarRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                onChange={uploadAvatar}
+                style={{ display: 'none' }}
+              />
+              <button onClick={() => avatarRef.current?.click()} disabled={avatarBusy} style={s.save}>
+                {avatarBusy ? '…' : (avatarUrl ? L('Change photo', 'Atharraich an dealbh') : L('Add a photo', 'Cuir dealbh ris'))}
+              </button>
+              <p style={s.hint}>{L('On a phone you can take a new photo or pick one.', 'Air fòn, gabhaidh tu dealbh ùr no tagh fear.')}</p>
+              {avatarError && <p style={s.error}>{avatarError}</p>}
+            </div>
+          </div>
+        </section>
 
         <section style={s.card}>
           <h2 style={s.cardTitle}>{L('Location & map', 'Àite is mapa')}</h2>
@@ -228,9 +281,26 @@ export default function SettingsClient({ profile }) {
   );
 }
 
+function initials(name) {
+  return String(name || '?')
+    .replace(/^@/, '')
+    .split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+
 const SANS = '"IBM Plex Sans", system-ui, sans-serif';
 
 const s = {
+  avatarRow: { display: 'flex', alignItems: 'center', gap: 18 },
+  avatarImg: {
+    width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+    border: '1px solid rgba(255,255,255,0.16)',
+  },
+  avatarFallback: {
+    width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
+    background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.16)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontFamily: SANS, fontSize: 22, fontWeight: 600, color: 'rgba(255,255,255,0.8)',
+  },
   page: {
     minHeight: '100dvh',
     background: 'radial-gradient(ellipse 120% 90% at 50% 12%, #0b1220 0%, #05070d 55%, #000000 100%)',
