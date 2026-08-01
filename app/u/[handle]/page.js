@@ -10,6 +10,7 @@ import { supabaseAdmin } from '../../../lib/supabase';
 import { getProfileByClerkId } from '../../../lib/social';
 import Wall from './Wall';
 import ConnectButton from './ConnectButton';
+import ImageZoom from '../../../components/ImageZoom';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -99,10 +100,9 @@ export default async function ProfilePage({ params }) {
         <div style={avatarWrap}>
           {p.avatar_url
             ? (
-              <a href={p.avatar_url} target="_blank" rel="noopener noreferrer"
-                 title="Seall nas motha · View larger" style={{ display: 'block', lineHeight: 0, cursor: 'pointer' }}>
+              <ImageZoom src={p.avatar_url} alt={name} title="Seall nas motha · View larger">
                 <img src={p.avatar_url} alt={name} style={avatarImg} />
-              </a>
+              </ImageZoom>
             )
             : <div style={avatarFallback}>{initials}</div>}
         </div>
