@@ -466,17 +466,17 @@ const s = {
     display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start',
   },
   avatar: {
-    width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+    width: 96, height: 96, borderRadius: '50%', flexShrink: 0,
     objectFit: 'cover', display: 'block',
-    border: '2px solid rgba(255,255,255,0.85)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+    border: '3px solid rgba(255,255,255,0.85)',
+    boxShadow: '0 3px 12px rgba(0,0,0,0.4)',
   },
   avatarFallback: {
-    width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+    width: 96, height: 96, borderRadius: '50%', flexShrink: 0,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     background: 'rgba(201,160,71,0.9)', color: '#1A1206',
-    border: '2px solid rgba(255,255,255,0.85)', boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
-    fontFamily: SANS, fontWeight: 700, fontSize: 16,
+    border: '3px solid rgba(255,255,255,0.85)', boxShadow: '0 3px 12px rgba(0,0,0,0.4)',
+    fontFamily: SANS, fontWeight: 700, fontSize: 38,
   },
   expandBtn: {
     flexShrink: 0, width: 28, height: 28, padding: 0,
