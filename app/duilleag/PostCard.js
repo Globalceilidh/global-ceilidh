@@ -14,6 +14,22 @@
 
 import { useState } from 'react';
 import { REACTIONS, GLYPH } from './reactions';
+import { AUDIENCES } from './Composer';
+
+// Split a body into text and #hashtag links. Tags are letters/numbers/
+// underscore (accented Gàidhlig letters included via \p{L}); the link goes
+// to the visibility-safe tag page.
+const TAG_RE = /(#[\p{L}\p{N}_]+)/gu;
+function renderBody(text) {
+  if (!text) return null;
+  return String(text).split(TAG_RE).map((part, i) => {
+    if (part[0] === '#' && part.length > 1) {
+      const tag = part.slice(1).toLowerCase();
+      return <a key={i} href={`/t/${encodeURIComponent(tag)}`} style={s.tag}>{part}</a>;
+    }
+    return part;
+  });
+}
 
 const REPORT_REASONS = [
   { value: 'spam',    label: { en: 'Spam',            gd: 'Spama' } },
@@ -29,6 +45,12 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
   const [menu, setMenu] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [reported, setReported] = useState(false);
+
+  const [sharing, setSharing] = useState(false);
+  const [shareBody, setShareBody] = useState('');
+  const [shareVis, setShareVis] = useState('connections');
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shared, setShared] = useState(false);
 
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState(null); // null = not loaded yet
@@ -110,6 +132,23 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
     }
   }
 
+  // ── reshare ───────────────────────────────────────────────────────
+  async function doShare() {
+    if (shareBusy) return;
+    setShareBusy(true);
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reshareOf: post.id, body: shareBody.trim(), visibility: shareVis }),
+      });
+      const json = await res.json();
+      if (json.ok) { setShared(true); setSharing(false); setShareBody(''); }
+    } finally {
+      setShareBusy(false);
+    }
+  }
+
   // ── delete / report ───────────────────────────────────────────────
   async function del() {
     setMenu(false);
@@ -166,7 +205,7 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
         </div>
       </header>
 
-      {post.body && <p style={s.body}>{post.body}</p>}
+      {post.body && <p style={s.body}>{renderBody(post.body)}</p>}
 
       {Array.isArray(post.media) && post.media.length > 0 && (
         <div style={s.media}>
@@ -175,6 +214,21 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
             <img key={i} src={m.url} alt="" style={s.mediaImg} loading="lazy" />
           ))}
         </div>
+      )}
+
+      {post.reshareOf && (
+        post.reshareOf.removed ? (
+          <div style={s.quoteRemoved}>{gd ? 'Chaidh am post seo a thoirt air falbh.' : 'This post is no longer available.'}</div>
+        ) : (
+          <a href={post.reshareOf.author?.handle ? `/u/${post.reshareOf.author.handle}` : undefined} style={s.quote}>
+            <span style={s.quoteAuthor}>{post.reshareOf.author?.displayName}</span>
+            {post.reshareOf.body && <span style={s.quoteBody}>{renderBody(post.reshareOf.body)}</span>}
+            {Array.isArray(post.reshareOf.media) && post.reshareOf.media.length > 0 && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={post.reshareOf.media[0].url} alt="" style={s.quoteImg} loading="lazy" />
+            )}
+          </a>
+        )
       )}
 
       <div style={s.bar}>
@@ -215,7 +269,41 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
               : (gd ? 'Freagairtean' : 'Comment')}
           </span>
         </button>
+
+        {post.visibility === 'global' && !post.reshareOf && (
+          shared ? (
+            <span style={{ ...s.act, ...s.actOn }}>{gd ? 'Air a roinn' : 'Shared'}</span>
+          ) : (
+            <button style={s.act} onClick={() => setSharing((v) => !v)}>
+              <span style={s.actLabel}>{gd ? 'Roinn' : 'Share'}</span>
+            </button>
+          )
+        )}
       </div>
+
+      {sharing && (
+        <div style={s.sharePanel}>
+          <textarea
+            value={shareBody}
+            onChange={(e) => setShareBody(e.target.value)}
+            placeholder={gd ? 'Cuir facal ris (roghainneil)…' : 'Add a word (optional)…'}
+            style={s.shareInput}
+            data-no-drag
+          />
+          <div style={s.shareBar}>
+            <select value={shareVis} onChange={(e) => setShareVis(e.target.value)} style={s.shareSelect} data-no-drag>
+              {AUDIENCES.filter((a) => a.value !== 'custom').map((a) => (
+                <option key={a.value} value={a.value}>{gd ? a.label.gd : a.label.en}</option>
+              ))}
+            </select>
+            <div style={{ flex: 1 }} />
+            <button style={s.cancel} onClick={() => setSharing(false)}>{gd ? 'Sguir dheth' : 'Cancel'}</button>
+            <button style={{ ...s.cSend, opacity: shareBusy ? 0.45 : 1 }} onClick={doShare} disabled={shareBusy}>
+              {gd ? 'Roinn' : 'Share'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {showComments && (
         <div style={s.comments}>
@@ -342,6 +430,40 @@ const s = {
     width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 10,
     border: '1px solid rgba(255,255,255,0.10)', display: 'block',
   },
+  tag: { color: GOLD, textDecoration: 'none', fontWeight: 600 },
+
+  // The embedded original inside a reshare.
+  quote: {
+    display: 'block', textDecoration: 'none', marginBottom: 10, padding: '10px 12px',
+    borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.18)',
+  },
+  quoteAuthor: {
+    display: 'block', fontFamily: '"Fraunces", "EB Garamond", Georgia, serif',
+    fontStyle: 'italic', fontWeight: 700, fontSize: 13.5, color: '#FFFFFF', marginBottom: 3,
+  },
+  quoteBody: {
+    display: 'block', fontFamily: SANS, fontSize: 13, lineHeight: 1.5,
+    color: 'rgba(255,255,255,0.82)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+  },
+  quoteImg: { width: '100%', maxHeight: 240, objectFit: 'cover', borderRadius: 8, marginTop: 8, display: 'block' },
+  quoteRemoved: {
+    marginBottom: 10, padding: '10px 12px', borderRadius: 10,
+    border: '1px dashed rgba(255,255,255,0.16)', fontFamily: SANS, fontSize: 12.5,
+    color: 'rgba(255,255,255,0.45)',
+  },
+
+  sharePanel: { marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 },
+  shareInput: {
+    width: '100%', minHeight: 52, resize: 'vertical', boxSizing: 'border-box',
+    background: 'rgba(0,0,0,0.24)', border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 9, padding: 10, color: '#FFFFFF', fontFamily: SANS, fontSize: 13,
+  },
+  shareBar: { display: 'flex', alignItems: 'center', gap: 8 },
+  shareSelect: {
+    background: 'rgba(0,0,0,0.3)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.14)',
+    borderRadius: 999, padding: '5px 10px', fontFamily: SANS, fontSize: 12,
+  },
+  cancel: { background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, color: 'rgba(255,255,255,0.55)' },
 
   bar: {
     display: 'flex', alignItems: 'center', gap: 10,

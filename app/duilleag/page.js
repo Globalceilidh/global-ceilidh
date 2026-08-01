@@ -15,7 +15,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../lib/supabase';
-import { attachEngagement } from '../../lib/social';
+import { attachEngagement, attachReshares } from '../../lib/social';
 import DuilleagShell from './DuilleagShell';
 
 export const runtime = 'nodejs';
@@ -41,13 +41,14 @@ async function getProfile(clerkUserId) {
 async function getOwnPosts(authorId) {
   const { data } = await supabaseAdmin
     .from('gc_posts')
-    .select('id, body, visibility, created_at, media')
+    .select('id, body, visibility, created_at, media, reshare_of')
     .eq('author_id', authorId)
     .eq('status', 'visible')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(30);
-  return attachEngagement(data || [], authorId);
+  const withEngagement = await attachEngagement(data || [], authorId);
+  return attachReshares(withEngagement);
 }
 
 export default async function DuilleagPage() {

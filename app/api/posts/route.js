@@ -18,7 +18,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
-import { VISIBILITIES, getFollowersOf } from '../../../lib/social';
+import { VISIBILITIES, getFollowersOf, attachReshares } from '../../../lib/social';
 
 export const runtime = 'nodejs';
 
@@ -34,6 +34,7 @@ function publicPost(row) {
     visibility: row.visibility,
     created_at: row.created_at,
     media: row.media || null,
+    reshareOf: row.reshareOf !== undefined ? row.reshareOf : null,
   };
 }
 
@@ -129,7 +130,8 @@ export async function POST(req) {
 
   const body = String(payload.body || '').trim();
   const media = cleanMedia(payload.media);
-  if (!body && !media) {
+  const reshareOf = payload.reshareOf ? String(payload.reshareOf) : null;
+  if (!body && !media && !reshareOf) {
     return Response.json({ ok: false, error: 'empty_body', reason: 'Write something or add an image.' }, { status: 400 });
   }
   if (body.length > BODY_MAX) {
@@ -168,6 +170,24 @@ export async function POST(req) {
       }
     }
 
+    // Reshare: only a post the original author marked 'global' may be
+    // reshared, so a connections/close/family post can never be pushed
+    // wider than its author chose. Validate the target here.
+    if (reshareOf) {
+      const { data: original, error: origErr } = await supabaseAdmin
+        .from('gc_posts')
+        .select('id, visibility, status, deleted_at')
+        .eq('id', reshareOf)
+        .maybeSingle();
+      if (origErr) throw origErr;
+      if (!original || original.deleted_at || original.status !== 'visible') {
+        return Response.json({ ok: false, error: 'reshare_not_found', reason: 'That post is no longer available.' }, { status: 404 });
+      }
+      if (original.visibility !== 'global') {
+        return Response.json({ ok: false, error: 'reshare_not_global', reason: 'Only public posts can be shared.' }, { status: 403 });
+      }
+    }
+
     const { data, error } = await supabaseAdmin
       .from('gc_posts')
       .insert({
@@ -176,8 +196,9 @@ export async function POST(req) {
         body,
         visibility,
         media,
+        reshare_of: reshareOf,
       })
-      .select('id, body, visibility, created_at, media')
+      .select('id, body, visibility, created_at, media, reshare_of')
       .single();
 
     if (error) {
@@ -198,7 +219,8 @@ export async function POST(req) {
       }
     }
 
-    return Response.json({ ok: true, post: publicPost(data) });
+    const [hydrated] = await attachReshares([data]);
+    return Response.json({ ok: true, post: publicPost(hydrated) });
   } catch (err) {
     console.error('Post create failed:', err);
     return Response.json({ ok: false, error: 'server_error' }, { status: 500 });

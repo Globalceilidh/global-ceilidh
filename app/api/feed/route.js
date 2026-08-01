@@ -20,7 +20,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '../../../lib/supabase';
-import { getProfileByClerkId, getAuthorsFor, tiersVisibleTo, publicProfile, attachEngagement } from '../../../lib/social';
+import { getProfileByClerkId, getAuthorsFor, tiersVisibleTo, publicProfile, attachEngagement, attachReshares } from '../../../lib/social';
 
 export const runtime = 'nodejs';
 
@@ -53,7 +53,7 @@ export async function GET(req) {
       }
     }
 
-    const select = 'id, body, visibility, created_at, media, author:gc_profiles!gc_posts_author_id_fkey(id, handle, display_name, avatar_url)';
+    const select = 'id, body, visibility, created_at, media, reshare_of, author:gc_profiles!gc_posts_author_id_fkey(id, handle, display_name, avatar_url)';
 
     const queries = [];
     for (const [tier, ids] of byTier) {
@@ -111,7 +111,8 @@ export async function GET(req) {
     const page = merged.slice(0, limit);
     const nextBefore = merged.length > limit ? page[page.length - 1].created_at : null;
 
-    const enriched = await attachEngagement(page, me.id);
+    let enriched = await attachEngagement(page, me.id);
+    enriched = await attachReshares(enriched);
 
     return Response.json({
       ok: true,
@@ -121,6 +122,7 @@ export async function GET(req) {
         visibility: row.visibility,
         created_at: row.created_at,
         media: row.media || null,
+        reshareOf: row.reshareOf || null,
         author: publicProfile(row.author),
         reactions: row.reactions,
         commentCount: row.commentCount,
