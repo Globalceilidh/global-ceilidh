@@ -140,12 +140,26 @@ const PEOPLE = [
   {
     name: 'Richard Hill', img: '/people/richard-hill.png',
     role: 'Founding Council Member · Contributing Editor · Gàidhlig & Cultural Advisor',
-    epithet: 'An Lasair Gheal', gloss: 'The White Flame', bio: null,
+    epithet: 'An Lasair Gheal', gloss: 'The White Flame',
+    bio: [
+      'Some people find Gàidhlig by crossing the Atlantic. Richard Hill found it in Wyoming.',
+      'He began learning the language at seven years old from a Scottish immigrant who had made his way to the Rocky Mountains. In 1989, Richard found what he describes as his “new family” among the Gaels of Vancouver and Victoria. He has lived deeply within the language ever since — as a teacher, singer and tireless builder of Gaelic community.',
+      'Richard is a founder of Slighe nan Gàidheal and Féis Seattle, an instructor with Colaisde na Gàidhlig, and a familiar voice within Seattle’s early-music scene.',
+      'As a Founding Board Member, Contributing Editor and Gàidhlig and Cultural Advisor to Global Ceilidh, Richard brings knowledge without pretence, wisdom without solemnity and the firm belief that Gàidhlig belongs wherever people gather to speak it, sing it and pass it onward.',
+      'The language is not something he keeps safely behind glass. He carries it into the room and invites everyone else to join in.',
+    ],
   },
   {
-    name: 'Lewis MacKinnon', img: '/people/lewis-mackinnon.png',
+    name: 'Lewis “Lodaidh” MacKinnon', img: '/people/lewis-mackinnon.png',
     role: 'Founding Council Member · Contributing Editor · Cultural Advisor',
-    epithet: 'An Guth Beò', gloss: 'The Living Voice', bio: null,
+    epithet: 'An Guth Beò', gloss: 'The Living Voice',
+    bio: [
+      'Some people inherit one language. Lewis MacKinnon was born where two cultures met.',
+      'Born in Inverness, Cape Breton, and raised in Antigonish County, Lodaidh is the son of a Gaelic-speaking Gael and an Acadian French-speaking mother. That meeting of languages, identities and traditions has shaped a life spent building connections rather than borders.',
+      'He is a Gaelic speaker, singer, musician and published poet. In 2011, Lodaidh received the Scottish Bardic Crown, becoming the first official Bard of the Royal National Mòd born outside Scotland. He has released albums in both Gaelic and English, published four bilingual collections of Gaelic poetry and serves as Executive Director of Gaelic Affairs for the Province of Nova Scotia.',
+      'As a Founding Board Member, Contributing Editor and Cultural Advisor to Global Ceilidh, Lodaidh brings the strength of a tradition firmly planted — and the generosity to share it freely.',
+      'For him, culture is not something inherited and quietly preserved. It is something spoken, sung, questioned, renewed and handed onward.',
+    ],
   },
   {
     name: 'Scott Lewis White', img: '/people/scott-white.png',
@@ -178,15 +192,19 @@ function About({ t, show }) {
       </button>
 
       <h3 style={S.peopleHead}>{t('The people', 'Na Daoine')}</h3>
-      <div style={S.peopleGrid}>
+      <div style={S.peopleStack}>
         {PEOPLE.map((p) => (
-          <div key={p.name} style={S.person}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.img} alt={p.name} style={S.personImg} loading="lazy" />
-            <span style={S.personName}>{p.name}</span>
-            <span style={S.personEpithet}>{p.epithet}{p.gloss ? ` · ${p.gloss}` : ''}</span>
-            <span style={S.personRole}>{p.role}</span>
-            {p.bio && <p style={S.personBio}>{p.bio}</p>}
+          <div key={p.name} style={S.personRow}>
+            <div style={S.personFigure}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.img} alt={p.name} style={S.personImg} loading="lazy" />
+            </div>
+            <div style={S.personInfo}>
+              <span style={S.personName}>{p.name}</span>
+              <span style={S.personEpithet}>{p.epithet}{p.gloss ? ` · ${p.gloss}` : ''}</span>
+              <span style={S.personRole}>{p.role}</span>
+              {p.bio && p.bio.map((para, i) => <p key={i} style={S.personBio}>{para}</p>)}
+            </div>
           </div>
         ))}
       </div>
@@ -349,21 +367,21 @@ const S = {
     color: 'rgba(242,236,220,0.6)', margin: '48px 0 20px', paddingTop: 28,
     borderTop: '1px solid rgba(255,255,255,0.1)',
   },
-  peopleGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 26, maxWidth: 900 },
-  person: { display: 'flex', flexDirection: 'column' },
-  // The figures are light-on-black art; 'screen' drops the black background
-  // so they float on the overlay instead of sitting in a visible black box.
+  peopleStack: { display: 'flex', flexDirection: 'column', gap: 40, maxWidth: 840 },
+  personRow: { display: 'flex', gap: 28, alignItems: 'flex-start', flexWrap: 'wrap' },
+  personFigure: { width: 168, flexShrink: 0 },
+  personInfo: { flex: 1, minWidth: 260, display: 'flex', flexDirection: 'column' },
   // The three figure PNGs are pre-normalized to one canvas (equal body
   // height, shared feet baseline + head line, hat rising into the headroom),
   // so natural aspect renders them consistently. 'screen' drops the black bg.
   personImg: {
     width: '100%', height: 'auto', display: 'block',
-    mixBlendMode: 'screen', marginBottom: 8,
+    mixBlendMode: 'screen',
   },
-  personName: { fontFamily: SANS, fontSize: 17, fontWeight: 600, color: '#fff' },
-  personEpithet: { fontFamily: '"EB Garamond", Georgia, serif', fontStyle: 'italic', fontSize: 15, color: '#C9A047', margin: '3px 0 8px' },
+  personName: { fontFamily: SANS, fontSize: 19, fontWeight: 600, color: '#fff' },
+  personEpithet: { fontFamily: '"EB Garamond", Georgia, serif', fontStyle: 'italic', fontSize: 16, color: '#C9A047', margin: '4px 0 6px' },
   personRole: { fontFamily: SANS, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(242,236,220,0.6)' },
-  personBio: { fontFamily: SANS, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(242,236,220,0.82)', margin: '10px 0 0' },
+  personBio: { fontFamily: SANS, fontSize: 14.5, lineHeight: 1.7, color: 'rgba(242,236,220,0.85)', margin: '14px 0 0' },
 
   footer: { marginTop: 48, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.1)' },
   footLink: { fontFamily: SANS, fontSize: 13, color: 'rgba(242,236,220,0.6)', textDecoration: 'underline', textUnderlineOffset: 3 },
