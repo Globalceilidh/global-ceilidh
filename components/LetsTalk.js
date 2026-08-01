@@ -353,8 +353,11 @@ const S = {
   person: { display: 'flex', flexDirection: 'column' },
   // The figures are light-on-black art; 'screen' drops the black background
   // so they float on the overlay instead of sitting in a visible black box.
+  // The three figure PNGs are pre-normalized to one canvas (equal body
+  // height, shared feet baseline + head line, hat rising into the headroom),
+  // so natural aspect renders them consistently. 'screen' drops the black bg.
   personImg: {
-    width: '100%', aspectRatio: '1 / 1', objectFit: 'contain', display: 'block',
+    width: '100%', height: 'auto', display: 'block',
     mixBlendMode: 'screen', marginBottom: 8,
   },
   personName: { fontFamily: SANS, fontSize: 17, fontWeight: 600, color: '#fff' },
