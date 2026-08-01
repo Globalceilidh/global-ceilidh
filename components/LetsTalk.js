@@ -134,12 +134,32 @@ function Card({ tag, title, onClick, children }) {
 }
 
 // ── about ─────────────────────────────────────────────────────────────
+// Roles are shown in English for now; Gàidhlig role copy wants Lewis/Joe.
+// Bios are intentionally omitted until supplied — see the `bio` slot below.
+const PEOPLE = [
+  {
+    name: 'Richard Hill', img: '/people/richard-hill.png',
+    role: 'Founding Council Member · Contributing Editor · Gàidhlig & Cultural Advisor',
+    epithet: 'An Lasair Gheal', gloss: 'The White Flame', bio: null,
+  },
+  {
+    name: 'Lewis MacKinnon', img: '/people/lewis-mackinnon.png',
+    role: 'Founding Council Member · Contributing Editor · Cultural Advisor',
+    epithet: 'An Guth Beò', gloss: 'The Living Voice', bio: null,
+  },
+  {
+    name: 'Scott Lewis White', img: '/people/scott-white.png',
+    role: 'Founder · Creator · Executive Director',
+    epithet: 'Fear an Taighe', gloss: 'The Host', bio: null,
+  },
+];
+
 function About({ t, show }) {
   return (
-    <div style={S.pane}>
+    <div>
       <button style={S.back} onClick={() => show('panels')}>← {t('Back', 'Air ais')}</button>
       <h2 style={S.h2}>{t('Global Ceilidh', 'Global Ceilidh')}</h2>
-      <div style={S.prose}>
+      <div style={{ ...S.prose, maxWidth: 620 }}>
         <p>{t(
           'Global Ceilidh is the gathering place for the global Gàidhlig world — the language, the music, and the diaspora that carry them.',
           'Is e Global Ceilidh àite-cruinneachaidh do shaoghal na Gàidhlig air feadh an t-saoghail — an cànan, an ceòl, agus an sgapadh a tha gan giùlan.'
@@ -156,6 +176,20 @@ function About({ t, show }) {
       <button style={S.textLink} onClick={() => show('involved')}>
         {t('Want to help build it? →', 'A bheil thu airson cuideachadh ga thogail? →')}
       </button>
+
+      <h3 style={S.peopleHead}>{t('The people', 'Na Daoine')}</h3>
+      <div style={S.peopleGrid}>
+        {PEOPLE.map((p) => (
+          <div key={p.name} style={S.person}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.img} alt={p.name} style={S.personImg} loading="lazy" />
+            <span style={S.personName}>{p.name}</span>
+            <span style={S.personEpithet}>{p.epithet}{p.gloss ? ` · ${p.gloss}` : ''}</span>
+            <span style={S.personRole}>{p.role}</span>
+            {p.bio && <p style={S.personBio}>{p.bio}</p>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -309,6 +343,24 @@ const S = {
   sentP: { fontFamily: SANS, fontSize: 15, color: 'rgba(242,236,220,0.8)', margin: 0 },
   or: { marginTop: 28, fontSize: 14, color: 'rgba(242,236,220,0.6)', fontFamily: SANS },
   mail: { color: '#fff', textDecoration: 'underline', textUnderlineOffset: 3 },
+
+  peopleHead: {
+    fontFamily: MONO, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase',
+    color: 'rgba(242,236,220,0.6)', margin: '48px 0 20px', paddingTop: 28,
+    borderTop: '1px solid rgba(255,255,255,0.1)',
+  },
+  peopleGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 26, maxWidth: 900 },
+  person: { display: 'flex', flexDirection: 'column' },
+  // The figures are light-on-black art; 'screen' drops the black background
+  // so they float on the overlay instead of sitting in a visible black box.
+  personImg: {
+    width: '100%', aspectRatio: '1 / 1', objectFit: 'contain', display: 'block',
+    mixBlendMode: 'screen', marginBottom: 8,
+  },
+  personName: { fontFamily: SANS, fontSize: 17, fontWeight: 600, color: '#fff' },
+  personEpithet: { fontFamily: '"EB Garamond", Georgia, serif', fontStyle: 'italic', fontSize: 15, color: '#C9A047', margin: '3px 0 8px' },
+  personRole: { fontFamily: SANS, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(242,236,220,0.6)' },
+  personBio: { fontFamily: SANS, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(242,236,220,0.82)', margin: '10px 0 0' },
 
   footer: { marginTop: 48, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.1)' },
   footLink: { fontFamily: SANS, fontSize: 13, color: 'rgba(242,236,220,0.6)', textDecoration: 'underline', textUnderlineOffset: 3 },
