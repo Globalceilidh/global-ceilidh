@@ -120,6 +120,13 @@ export default function Navigation() {
               }`}>GD</span>
             </button>
 
+            <a
+              href="/contact"
+              className="px-4 py-2 text-sm font-medium rounded-md text-gc-text hover:text-tarheel-dark hover:bg-tarheel-pale transition-all duration-200 tracking-wide"
+            >
+              {language === 'en' ? "Let's Talk" : 'Thig, bruidhinn'}
+            </a>
+
             <Link
               href="/ionnsaich"
               className="px-4 py-2 bg-tarheel text-white text-sm font-medium rounded-md hover:bg-tarheel-dark transition-colors duration-200 tracking-wide"
@@ -158,6 +165,13 @@ export default function Navigation() {
                 {link.label}
               </Link>
             ))}
+            <a
+              href="/contact"
+              className="block px-4 py-3 text-sm font-medium tracking-wide text-gc-text hover:text-tarheel-dark hover:bg-tarheel-pale transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
+              {language === 'en' ? "Let's Talk" : 'Thig, bruidhinn'}
+            </a>
             <div className="px-4 pt-3 flex items-center justify-between border-t border-gc-border mt-2">
               <span className="text-sm text-gc-muted">
                 {language === 'en' ? 'Switch to Gàidhlig' : 'Switch to English'}

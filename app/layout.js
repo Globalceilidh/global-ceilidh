@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import PresenceBeat from '../components/PresenceBeat';
 import LetsTalk from '../components/LetsTalk';
+import SiteChrome from '../components/SiteChrome';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const cinzel = Cinzel({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-cinzel' });
@@ -60,6 +61,7 @@ export default function RootLayout({ children }) {
             <RadioProvider>
               {children}
               <LetsTalk />
+              <SiteChrome />
             </RadioProvider>
           </LanguageProvider>
           <Analytics />
