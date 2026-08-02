@@ -45,9 +45,16 @@ export default function RadioClient() {
   const [featured, setFeatured] = useState(null);
 
   // Modals — Vote drives An Tonn's editorial pipeline. Request is an
-  // open queue that surfaces in sruth-admin.
+  // open queue that surfaces in sruth-admin. Info shows the grounded-Gemini
+  // artist/song copy; React records an anonymous reaction to the current song.
   const [showVote, setShowVote] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [showReact, setShowReact] = useState(false);
+
+  // Raw now-playing strings from the poll — the key for Info + React.
+  const [nowArtist, setNowArtist] = useState('');
+  const [nowTrack, setNowTrack] = useState('');
 
   // Mobile-only: which single tile is visible — the Live365 player or the
   // decorative photo/logo. Keeps the phone on one screen while still
@@ -67,8 +74,12 @@ export default function RadioClient() {
         if (data?.ok && data.artist) {
           const match = matchArtist(data.artist);
           setFeatured(match || null);
+          setNowArtist(data.artist || '');
+          setNowTrack(data.track || '');
         } else {
           setFeatured(null);
+          setNowArtist('');
+          setNowTrack('');
         }
       } catch (_) {
         // Network hiccup — leave `featured` as-is until the next tick
@@ -192,6 +203,12 @@ export default function RadioClient() {
                 Artist / Song / Album). Requests land in sruth-admin.
                 Same cream pill styling as Let's Talk + language pill. */}
             <div style={pillRowStyle}>
+              <button type="button" style={pillStyle} onClick={() => setShowInfo(true)}>
+                {language === 'gd' ? 'FIOS' : 'INFO'}
+              </button>
+              <button type="button" style={pillStyle} onClick={() => setShowReact(true)}>
+                {language === 'gd' ? 'FREAGAIR' : 'REACT'}
+              </button>
               <button type="button" style={pillStyle} onClick={() => setShowVote(true)}>
                 {t('radio.vote_pill')}
               </button>
@@ -384,6 +401,8 @@ export default function RadioClient() {
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
         {showRequest && <RequestModal onClose={() => setShowRequest(false)} />}
+        {showInfo && <InfoModal artist={nowArtist} title={nowTrack} onClose={() => setShowInfo(false)} />}
+        {showReact && <ReactModal artist={nowArtist} title={nowTrack} onClose={() => setShowReact(false)} />}
       </div>
     </>
   );
@@ -697,6 +716,166 @@ function RequestModal({ onClose }) {
   );
 }
 
+// ── Info modal — grounded-Gemini artist + song copy ────────────────────
+function InfoModal({ artist, title, onClose }) {
+  const { language } = useLanguage();
+  const gd = language === 'gd';
+  const [st, setSt] = useState({ loading: true, artist: null, song: null });
+
+  useEffect(() => {
+    if (!artist) { setSt({ loading: false, artist: null, song: null }); return; }
+    let alive = true;
+    setSt((s) => ({ ...s, loading: true }));
+    fetch(`/api/radio/artist-info?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title || '')}`)
+      .then((r) => r.json())
+      .then((d) => { if (alive) setSt({ loading: false, artist: d.artist || null, song: d.song || null }); })
+      .catch(() => { if (alive) setSt({ loading: false, artist: null, song: null }); });
+    return () => { alive = false; };
+  }, [artist, title]);
+
+  const pick = (en, gdv, status) => (gd && status === 'approved' && gdv ? gdv : en);
+  const a = st.artist;
+  const linkOrder = ['website', 'spotify', 'youtube', 'instagram', 'facebook'];
+
+  return (
+    <ModalShell title={gd ? 'A’ cluich a-nis' : 'Now Playing'} onClose={onClose}>
+      {st.loading ? (
+        <p style={infoMutedStyle}>{gd ? 'A’ luchdachadh…' : 'Loading…'}</p>
+      ) : a ? (
+        <>
+          <div>
+            <div style={infoNameStyle}>{a.name}</div>
+            {a.origin && <div style={infoOriginStyle}>{a.origin}</div>}
+          </div>
+
+          {(title || st.song) && (
+            <div style={infoSongStyle}>
+              <span style={infoLabelStyle}>{gd ? 'An t-òran' : 'This song'}</span>
+              {title && <div style={infoSongTitleStyle}>{title}</div>}
+              {st.song && st.song.blurb_en && (
+                <p style={infoTextStyle}>{pick(st.song.blurb_en, st.song.blurb_gd, st.song.gd_status)}</p>
+              )}
+            </div>
+          )}
+
+          {a.bio_en && <p style={infoTextStyle}>{pick(a.bio_en, a.bio_gd, a.gd_status)}</p>}
+          {a.sound_en && <p style={{ ...infoTextStyle, color: 'rgba(242,236,220,0.7)' }}>{pick(a.sound_en, a.sound_gd, a.gd_status)}</p>}
+
+          {a.links && Object.keys(a.links).length > 0 && (
+            <div style={infoLinksStyle}>
+              {linkOrder.filter((k) => a.links[k]).map((k) => (
+                <a key={k} href={a.links[k]} target="_blank" rel="noopener noreferrer" style={infoChipStyle}>
+                  {k[0].toUpperCase() + k.slice(1)}
+                </a>
+              ))}
+            </div>
+          )}
+
+          <div style={infoActionsStyle}>
+            {a.slug && (
+              <a href={`/artists/${a.slug}`} style={infoCtaStyle}>
+                {gd ? 'Làn ìomhaigh →' : 'Full profile →'}
+              </a>
+            )}
+            <a href="/sruth" style={infoCtaGhostStyle}>{gd ? 'Fàilte gu Sruth' : 'Get the Sruth newsletter'}</a>
+          </div>
+        </>
+      ) : (
+        // No profile (unknown / not yet generated) — a warm house panel.
+        <>
+          {artist ? <p style={infoNowStyle}>{artist}{title ? ` — ${title}` : ''}</p> : null}
+          <p style={infoTextStyle}>
+            {gd
+              ? 'Chan eil ìomhaigh againn air an neach-ciùil seo fhathast — ach tha saoghal na Gàidhlig ri lorg air Global Ceilidh.'
+              : 'We don’t have a profile for this artist yet — but the whole Gaelic world is waiting to be explored on Global Ceilidh.'}
+          </p>
+          <div style={infoActionsStyle}>
+            <a href="/AnTonn" style={infoCtaStyle}>{gd ? 'Rùraich An Tonn →' : 'Explore An Tonn →'}</a>
+            <a href="/sruth" style={infoCtaGhostStyle}>{gd ? 'Fàilte gu Sruth' : 'Get the Sruth newsletter'}</a>
+          </div>
+        </>
+      )}
+    </ModalShell>
+  );
+}
+
+// ── React modal — anonymous reaction to the current song (4 kinds) ──────
+const RADIO_REACTIONS = [
+  { kind: 'tonnsuas',  icon: '/people/rx-tonnsuas.png',  label: { en: 'Like',    gd: 'Tonn Suas' } },
+  { kind: 'tonnsios',  icon: '/people/rx-tonnsios.png',  label: { en: 'Dislike', gd: 'Tonn Sìos' } },
+  { kind: 'gradh',     icon: '/people/rx-gradh.png',     label: { en: 'Love',    gd: 'Gràdh' } },
+  { kind: 'fearagach', icon: '/people/rx-fearagach.png', label: { en: 'Angry',   gd: 'Fearagach' } },
+];
+
+function ReactModal({ artist, title, onClose }) {
+  const { language } = useLanguage();
+  const gd = language === 'gd';
+  const [counts, setCounts] = useState({});
+  const [mine, setMine] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const hasTrack = !!(artist && title);
+
+  useEffect(() => {
+    if (!hasTrack) return;
+    let alive = true;
+    fetch(`/api/radio/react?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}`)
+      .then((r) => r.json())
+      .then((d) => { if (alive && d.ok) { setCounts(d.counts || {}); setMine(d.mine || null); } })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [artist, title, hasTrack]);
+
+  const react = async (kind) => {
+    if (busy || !hasTrack) return;
+    const next = mine === kind ? '' : kind; // tap the current one again to clear
+    setBusy(true);
+    setCounts((c) => {
+      const n = { ...c };
+      if (mine) n[mine] = Math.max(0, (n[mine] || 1) - 1);
+      if (next) n[next] = (n[next] || 0) + 1;
+      return n;
+    });
+    setMine(next || null);
+    try {
+      const r = await fetch('/api/radio/react', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ artist, title, kind: next }),
+      });
+      const d = await r.json();
+      if (d.ok) { setCounts(d.counts || {}); setMine(d.mine || null); }
+    } catch { /* keep optimistic state */ }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <ModalShell title={gd ? 'Do fhreagairt' : 'React to this song'} onClose={onClose}>
+      {!hasTrack ? (
+        <p style={infoMutedStyle}>{gd ? 'Chan eil òran a’ cluich an-dràsta.' : 'Nothing is playing right now.'}</p>
+      ) : (
+        <>
+          <p style={infoNowStyle}>{artist}{title ? ` — ${title}` : ''}</p>
+          <div style={reactRowStyle}>
+            {RADIO_REACTIONS.map((r) => (
+              <button
+                key={r.kind}
+                type="button"
+                onClick={() => react(r.kind)}
+                aria-pressed={mine === r.kind}
+                style={{ ...reactBtnStyle, ...(mine === r.kind ? reactBtnOnStyle : null) }}
+              >
+                <img src={r.icon} alt={gd ? r.label.gd : r.label.en} style={reactIconStyle} draggable={false} />
+                <span style={reactLabelStyle}>{gd ? r.label.gd : r.label.en}</span>
+                <span style={reactCountStyle}>{counts[r.kind] || 0}</span>
+              </button>
+            ))}
+          </div>
+          <p style={infoMutedStyle}>{gd ? 'Gun ainm. Aon fhreagairt gach òran.' : 'Anonymous. One reaction per song.'}</p>
+        </>
+      )}
+    </ModalShell>
+  );
+}
+
 function ModalShell({ title, children, onClose }) {
   return (
     <div style={modalBackdropStyle} onClick={onClose}>
@@ -733,13 +912,43 @@ function TickerItem({ item }) {
   return body;
 }
 
+// House ads — Global Ceilidh's own promos, shown in the dead air of the
+// media tile (unknown-artist state) and interspersed between an artist's
+// photos. Not third-party advertising: every panel drives a listener deeper
+// into Global Ceilidh, which is the whole point of the radio-launch funnel.
+const HOUSE_ADS = [
+  { tag: { en: 'JOIN US', gd: 'THIG A-STEACH' }, head: 'Global Ceilidh', sub: { en: 'The whole Gaelic world, one gathering place.', gd: 'Saoghal na Gàidhlig gu lèir, aon àite-cruinneachaidh.' }, cta: { en: 'Come in', gd: 'Thig a-steach' }, href: '/' },
+  { tag: { en: 'SRUTH', gd: 'SRUTH' }, head: 'Sruth', sub: { en: 'Gaelic culture & news, straight to your inbox.', gd: 'Cultar is naidheachdan na Gàidhlig, dhan bhogsa agad.' }, cta: { en: 'Subscribe', gd: 'Clàraich' }, href: '/sruth' },
+  { tag: { en: 'AN SAOGHAL', gd: 'AN SAOGHAL' }, head: 'An Saoghal', sub: { en: 'Explore the map of the Gaelic world.', gd: 'Rùraich mapa saoghal na Gàidhlig.' }, cta: { en: 'Explore', gd: 'Rùraich' }, href: '/saoghal' },
+  { tag: { en: 'AN TONN', gd: 'AN TONN' }, head: 'An Tonn', sub: { en: 'The Gaelic & Celtic music charts.', gd: 'Clàran-ciùil na Gàidhlig ’s nan Ceilteach.' }, cta: { en: 'Listen', gd: 'Èist' }, href: '/AnTonn' },
+];
+
+function HousePanel({ ad, language }) {
+  const gd = language === 'gd';
+  return (
+    <a href={ad.href} style={housePanelStyle}>
+      <span style={houseTagStyle}>{gd ? ad.tag.gd : ad.tag.en}</span>
+      <span style={houseHeadStyle}>{ad.head}</span>
+      <span style={houseSubStyle}>{gd ? ad.sub.gd : ad.sub.en}</span>
+      <span style={houseCtaStyle}>{gd ? ad.cta.gd : ad.cta.en} →</span>
+    </a>
+  );
+}
+
 // Empty state — shown when Live365 plays an artist not in the ARTISTS
-// library, or briefly on first page load. Solid dark tile bg (NOT
-// translucent — the logo's transparent corners were letting the
-// vortex bleed through as milky white). Picks logoWide vs logoNarrow
-// so each tile aspect gets its purpose-designed image with no crop.
+// library, or briefly on first page load. Rotates the rèidio brand mark with
+// the house-ad panels so the dead air does some work.
 function EmptyTile({ wide }) {
+  const { language } = useLanguage();
   const base = wide ? videoTileStyle : photoTileStyle;
+  // Slide 0 is the brand mark; the rest are house ads.
+  const slides = [{ type: 'brand' }, ...HOUSE_ADS.map((ad) => ({ type: 'ad', ad }))];
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % slides.length), PHOTO_CAROUSEL_MS);
+    return () => clearInterval(id);
+  }, [slides.length]);
+
   return (
     <div
       className="gc-radio-tile"
@@ -751,67 +960,81 @@ function EmptyTile({ wide }) {
         WebkitBackdropFilter: 'none',
       }}
     >
-      {/* Unknown-artist fallback: the rèidio icon centered on the dark
-          tile. The icon is square + transparent, so contain (not cover)
-          with padding keeps it centered with breathing room instead of
-          being cropped to fill the landscape tile. */}
-      <img
-        src={FALLBACK.icon}
-        alt="Global Ceilidh Radio"
-        draggable={false}
-        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-          padding: '12%',
-          boxSizing: 'border-box',
-          userSelect: 'none',
-        }}
-      />
+      {slides.map((s, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute', inset: 0,
+            opacity: i === idx ? 1 : 0,
+            transition: 'opacity 1200ms ease-in-out',
+            pointerEvents: i === idx ? 'auto' : 'none',
+          }}
+        >
+          {s.type === 'brand' ? (
+            <img
+              src={FALLBACK.icon}
+              alt="Global Ceilidh Radio"
+              draggable={false}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', padding: '12%', boxSizing: 'border-box', userSelect: 'none' }}
+            />
+          ) : (
+            <HousePanel ad={s.ad} language={language} />
+          )}
+        </div>
+      ))}
     </div>
   );
 }
 
 function PhotoTile({ artist, offset = 0, wide = false }) {
+  const { language } = useLanguage();
   const photos = artist.photos || [];
-  const [idx, setIdx] = useState(photos.length ? offset % photos.length : 0);
+  // Interleave a house-ad panel after every third photo so the promos ride
+  // along with the artist imagery instead of interrupting it.
+  const slides = [];
+  photos.forEach((src, i) => {
+    slides.push({ type: 'img', src });
+    if ((i + 1) % 3 === 0) slides.push({ type: 'ad', ad: HOUSE_ADS[Math.floor(i / 3) % HOUSE_ADS.length] });
+  });
+  if (photos.length && slides.length === photos.length) slides.push({ type: 'ad', ad: HOUSE_ADS[0] });
+
+  const [idx, setIdx] = useState(0);
+  useEffect(() => { setIdx(0); }, [artist?.id]);
   useEffect(() => {
-    if (photos.length < 2) return;
-    const id = setInterval(() => {
-      setIdx((i) => (i + 1) % photos.length);
-    }, PHOTO_CAROUSEL_MS);
+    if (slides.length < 2) return;
+    const id = setInterval(() => setIdx((i) => (i + 1) % slides.length), PHOTO_CAROUSEL_MS);
     return () => clearInterval(id);
-  }, [photos.length]);
+  }, [slides.length]);
 
   if (photos.length === 0) return null;
 
   const base = wide ? videoTileStyle : photoTileStyle;
   return (
     <div className="gc-radio-tile" style={{ ...base, position: 'relative' }}>
-      {photos.map((src, i) => (
-        <img
+      {slides.map((s, i) => (
+        <div
           key={i}
-          src={src}
-          alt={artist.photoAlt || artist.name}
-          draggable={false}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            // Narrow (portrait) photos letterbox inside the landscape
-            // panel; the tile's translucent bg lets the vortex show
-            // through the letterbox borders. Landscape photos fill
-            // exactly. Same rule for either aspect — no crop.
-            objectFit: 'contain',
+            position: 'absolute', inset: 0,
             opacity: i === idx ? 1 : 0,
             transition: 'opacity 1400ms ease-in-out',
-            userSelect: 'none',
+            pointerEvents: i === idx ? 'auto' : 'none',
           }}
-        />
+        >
+          {s.type === 'img' ? (
+            // Narrow (portrait) photos letterbox inside the landscape panel;
+            // landscape photos fill. Same rule either way — no crop.
+            <img
+              src={s.src}
+              alt={artist.photoAlt || artist.name}
+              draggable={false}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', userSelect: 'none' }}
+            />
+          ) : (
+            <HousePanel ad={s.ad} language={language} />
+          )}
+        </div>
       ))}
     </div>
   );
@@ -1142,6 +1365,29 @@ const pillStyle = {
   transition: 'transform 220ms ease, box-shadow 220ms ease',
 };
 
+// House-ad panel (fills a media-tile slide).
+const housePanelStyle = {
+  position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center',
+  gap: 9, padding: '0 32px', textDecoration: 'none', boxSizing: 'border-box',
+  background: 'linear-gradient(150deg, rgba(16,46,124,0.96) 0%, rgba(6,14,32,0.98) 100%)',
+};
+const houseTagStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 11, letterSpacing: 2.4,
+  textTransform: 'uppercase', color: '#C9A047',
+};
+const houseHeadStyle = {
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif', fontSize: 38,
+  letterSpacing: '0.03em', color: '#FFFFFF', lineHeight: 1,
+};
+const houseSubStyle = {
+  fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif', fontSize: 14.5,
+  lineHeight: 1.5, color: 'rgba(242,236,220,0.82)', maxWidth: 330,
+};
+const houseCtaStyle = {
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif', fontSize: 17,
+  letterSpacing: '0.06em', textTransform: 'uppercase', color: '#C9A047', marginTop: 4,
+};
+
 const modalBackdropStyle = {
   position: 'fixed',
   inset: 0,
@@ -1321,6 +1567,73 @@ const modalOkStyle = {
   background: 'rgba(143, 203, 155, 0.08)',
   border: '1px solid rgba(143, 203, 155, 0.3)',
   borderRadius: 6,
+};
+
+// ── Info + React modal styles ─────────────────────────────────────────
+const SANS_R = 'var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif';
+
+const infoMutedStyle = {
+  fontFamily: SANS_R, fontSize: 14, color: 'rgba(242,236,220,0.55)', margin: 0, fontStyle: 'italic',
+};
+const infoNameStyle = {
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
+  fontSize: 30, letterSpacing: '0.03em', color: '#F2ECDC', lineHeight: 1.05,
+};
+const infoOriginStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 11.5, letterSpacing: 1.4,
+  textTransform: 'uppercase', color: '#C9A047', marginTop: 4,
+};
+const infoNowStyle = {
+  fontFamily: SANS_R, fontSize: 15, color: '#F2ECDC', margin: '0 0 4px', fontWeight: 600,
+};
+const infoSongStyle = {
+  borderLeft: '2px solid rgba(201,160,71,0.5)', paddingLeft: 12, margin: '2px 0',
+};
+const infoLabelStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 10, letterSpacing: 1.6,
+  textTransform: 'uppercase', color: 'rgba(242,236,220,0.5)',
+};
+const infoSongTitleStyle = {
+  fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'italic', fontSize: 16, color: '#F2ECDC', margin: '2px 0 4px',
+};
+const infoTextStyle = {
+  fontFamily: SANS_R, fontSize: 14.5, lineHeight: 1.6, color: 'rgba(242,236,220,0.9)', margin: 0,
+};
+const infoLinksStyle = { display: 'flex', flexWrap: 'wrap', gap: 8 };
+const infoChipStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 11, letterSpacing: 0.5,
+  color: '#F2ECDC', textDecoration: 'none', padding: '6px 12px', borderRadius: 999,
+  border: '1px solid rgba(242,236,220,0.22)', background: 'rgba(255,255,255,0.05)',
+};
+const infoActionsStyle = { display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 };
+const infoCtaStyle = {
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif', fontSize: 16,
+  letterSpacing: '0.06em', textTransform: 'uppercase', color: '#0A1220', background: '#C9A047',
+  textDecoration: 'none', padding: '10px 18px', borderRadius: 999,
+};
+const infoCtaGhostStyle = {
+  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif', fontSize: 16,
+  letterSpacing: '0.06em', textTransform: 'uppercase', color: '#F2ECDC', background: 'transparent',
+  textDecoration: 'none', padding: '10px 18px', borderRadius: 999, border: '1px solid rgba(242,236,220,0.28)',
+};
+const reactRowStyle = {
+  display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10,
+};
+const reactBtnStyle = {
+  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer',
+  padding: '14px 8px 10px', borderRadius: 12, background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(242,236,220,0.14)', color: '#F2ECDC',
+  transition: 'transform 140ms ease, background 140ms ease, border-color 140ms ease',
+};
+const reactBtnOnStyle = {
+  background: 'rgba(201,160,71,0.14)', borderColor: '#C9A047', transform: 'translateY(-2px)',
+};
+const reactIconStyle = { height: 46, width: 'auto', objectFit: 'contain', display: 'block', userSelect: 'none' };
+const reactLabelStyle = {
+  fontFamily: SANS_R, fontSize: 12.5, color: 'rgba(242,236,220,0.85)',
+};
+const reactCountStyle = {
+  fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 13, fontWeight: 700, color: '#C9A047',
 };
 
 // Off-screen honeypot input — bots that autofill every visible field

@@ -36,6 +36,9 @@ const PUBLIC_PREFIXES = [
   // An Saoghal — the map of the Gaelic world. Public + crawlable: it's a
   // door on the new / homepage and the destination of the vortex centre.
   "/saoghal",
+  // Public artist pages — the destination of the /radio INFO "Full profile"
+  // CTA and a crawlable landing surface for radio-driven traffic.
+  "/artists",
   // Clerk embedded sign-in / sign-up. These MUST be reachable without
   // the pre-launch cookie key — a first-time invitee following a room
   // link has no cookie yet, and would loop through /sign-in?redirect_
