@@ -12,11 +12,23 @@
 //           each author chose.
 //   right   the personal globe, then connections and requests.
 //
+// Layout has two modes, chosen by the shell:
+//   * Desktop (fragment === null) — all three columns at once in the
+//     three-column grid.
+//   * Mobile / tablet (fragment === 'left' | 'middle' | 'right') — this
+//     component renders ONE column, full-pane, to be its own swipe pane.
+//     The shell flattens the panel into three door-stops and lands on
+//     'middle' (see DuilleagShell); swiping right reveals 'left', left
+//     reveals 'right'.
+//
+// State (feed / connections / globe) is shared via DuilleagDataProvider so
+// the three split panes stay in sync.
+//
 // No profile picture and no cover photo anywhere on this surface. The
 // backdrop is the cover photo, and you know what you look like.
 
-import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useDuilleagData } from './DuilleagData';
 import PersonalGlobe from './PersonalGlobe';
 import Composer from './Composer';
 import Connections from './Connections';
@@ -24,62 +36,40 @@ import FindPeople from './FindPeople';
 import PostCard from './PostCard';
 import { NAV_ITEMS, QUICK_JUMPS } from './stubs';
 
-export default function Duilleag({ profile, initialPosts, isMobile }) {
+export default function Duilleag({ profile, fragment = null, isFlat = false }) {
   const { language } = useLanguage();
   const gd = language === 'gd';
   const t = (o) => (gd ? o.gd : o.en);
 
-  const [feed, setFeed] = useState([]);
-  const [own, setOwn] = useState(initialPosts);
-  const [connections, setConnections] = useState([]);
-  const [pending, setPending] = useState([]);
-  const [outgoing, setOutgoing] = useState([]);
-  const [loaded, setLoaded] = useState(false);
-  // The globe lives at the head of the right column, but its expand tab
-  // opens it big in the centre column (below the quick-jump icons). On a
-  // phone the columns are stacked, so it just grows in place.
-  const [globeExpanded, setGlobeExpanded] = useState(false);
+  const {
+    feed, own, connections, pending, outgoing, loaded, globeExpanded,
+    refreshConnections, refreshFeed, addOwnPost, removeOwnPost, removeFeedPost, toggleGlobe,
+  } = useDuilleagData();
 
-  const loadConnections = useCallback(async () => {
-    try {
-      const res = await fetch('/api/connections');
-      const json = await res.json();
-      if (json.ok) {
-        setConnections(json.connections || []);
-        setPending(json.pending || []);
-        setOutgoing(json.outgoing || []);
-      }
-    } catch { /* the column simply stays as it was */ }
-  }, []);
+  // Column style: on a flat (mobile/tablet) pane each column fills the pane
+  // at natural height and the pane wrapper owns the scroll; on desktop it
+  // keeps its grid-track height and inner scroll.
+  const cs = (base) => (isFlat ? { ...s.col, ...base, ...s.colFlat } : { ...s.col, ...base });
 
-  const loadFeed = useCallback(async () => {
-    try {
-      const res = await fetch('/api/feed');
-      const json = await res.json();
-      if (json.ok) setFeed(json.posts || []);
-    } catch { /* ditto */ } finally {
-      setLoaded(true);
-    }
-  }, []);
-
-  useEffect(() => { loadConnections(); loadFeed(); }, [loadConnections, loadFeed]);
-
-  const colMobile = isMobile ? s.colMobile : null;
+  // On desktop the whole column is `data-no-drag` so a stray click-drag can't
+  // spin the door. On a flat pane the pane MUST be swipeable, so we don't tag
+  // the column — only the composer stays protected so typing/selection works.
+  const colNoDrag = isFlat ? {} : { 'data-no-drag': 'true' };
 
   // One globe instance. On desktop it sits in the centre column when expanded
-  // and the right column otherwise; on mobile it stays in the right fragment
-  // and just grows.
-  const globeInMiddle = globeExpanded && !isMobile;
+  // and the right column otherwise; on a flat pane it stays in the right
+  // fragment and just grows in place.
+  const globeInMiddle = globeExpanded && !isFlat;
   const globe = (
     <PersonalGlobe
       profile={profile}
       expanded={globeExpanded}
-      onToggleExpanded={() => setGlobeExpanded((v) => !v)}
+      onToggleExpanded={toggleGlobe}
     />
   );
 
   const left = (
-    <aside style={{ ...s.col, ...s.left, ...colMobile }} data-no-drag>
+    <aside style={cs(s.left)} {...colNoDrag}>
       <a href="/" style={s.logoLink}>
         <img src="/duilleag/gc-logo.webp" alt="Global Ceilidh" style={s.logo} />
       </a>
@@ -89,7 +79,7 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
           <button
             style={{ ...s.navItem, ...s.navReq }}
             onClick={() => document.getElementById('gc-requests')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            data-no-drag
+            data-no-drag="true"
           >
             <span style={s.navIcon} aria-hidden="true">☍</span>
             <span>{gd ? 'Iarrtasan' : 'Requests'}</span>
@@ -114,7 +104,7 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
   );
 
   const middle = (
-    <section style={{ ...s.col, ...s.middle, ...colMobile }} data-no-drag>
+    <section style={cs(s.middle)} {...colNoDrag}>
       <div style={s.quickRow}>
         {QUICK_JUMPS.map((q) => (
           <a key={q.href} href={q.href} style={s.quickIconLink} title={t(q.label)} aria-label={t(q.label)}>
@@ -129,11 +119,15 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
 
       {globeInMiddle && globe}
 
-      <Composer
-        gd={gd}
-        connections={connections}
-        onPosted={(post) => setOwn((o) => [post, ...o])}
-      />
+      {/* Keep the writing area protected from the door swipe even on a flat
+          pane, so typing and text-selection work; swipe elsewhere on the pane. */}
+      <div data-no-drag="true">
+        <Composer
+          gd={gd}
+          connections={connections}
+          onPosted={addOwnPost}
+        />
+      </div>
 
       <div style={s.feed}>
         {feed.map((p) => (
@@ -142,7 +136,7 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
             post={p}
             gd={gd}
             isOwner={p.author?.handle === profile.handle}
-            onDeleted={(id) => setFeed((f) => f.filter((x) => x.id !== id))}
+            onDeleted={removeFeedPost}
           />
         ))}
 
@@ -163,7 +157,7 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
                 post={{ ...p, author: { handle: profile.handle, displayName: profile.displayName } }}
                 gd={gd}
                 isOwner
-                onDeleted={(id) => setOwn((o) => o.filter((x) => x.id !== id))}
+                onDeleted={removeOwnPost}
               />
             ))}
           </>
@@ -173,35 +167,32 @@ export default function Duilleag({ profile, initialPosts, isMobile }) {
   );
 
   const right = (
-    <aside style={{ ...s.col, ...s.right, ...colMobile }} data-no-drag>
+    <aside style={cs(s.right)} {...colNoDrag}>
       {!globeInMiddle && globe}
       <FindPeople
         gd={gd}
         outgoing={outgoing}
-        onChanged={() => { loadConnections(); }}
+        onChanged={() => { refreshConnections(); }}
       />
       <Connections
         gd={gd}
         connections={connections}
         pending={pending}
-        onChanged={() => { loadConnections(); loadFeed(); }}
+        onChanged={() => { refreshConnections(); refreshFeed(); }}
       />
     </aside>
   );
 
-  // On a phone the three-column grid can't fit — its hard min-widths add up
-  // to more than the viewport, so the two glass columns blanket the whole
-  // screen and the backdrop photo disappears behind 22px of blur. Stack to
-  // one scrolling column instead, feed first, with room at the top for the
-  // place to read behind the glass. Desktop keeps the revolving-door grid.
+  // Flat (mobile / tablet): this instance is ONE swipe pane — render only the
+  // requested column, wrapped in a full-pane scroller.
+  if (isFlat) {
+    const only = fragment === 'left' ? left : fragment === 'right' ? right : middle;
+    return <div style={s.fragment}>{only}</div>;
+  }
+
+  // Desktop: all three columns in the revolving-door grid.
   return (
-    <div style={isMobile ? s.gridMobile : s.grid}>
-      {isMobile ? (
-        <>{middle}{right}{left}</>
-      ) : (
-        <>{left}{middle}{right}</>
-      )}
-    </div>
+    <div style={s.grid}>{left}{middle}{right}</div>
   );
 }
 
@@ -236,33 +227,31 @@ const s = {
     padding: 18,
     boxSizing: 'border-box',
     // Cap the WHOLE shell and centre it, rather than capping the feed
-    // inside a track that stays full width. Capping the feed alone put
-    // the slack between the columns; capping the shell puts it outside
-    // them, where the backdrop can use it. (left/right:0 + a max-width +
-    // auto margins is what centres an absolutely-positioned box.)
+    // inside a track that stays full width.
     maxWidth: 1320,
     margin: '0 auto',
   },
-  // One scrolling column. The big top pad is deliberate: it lets the
-  // backdrop photo show above the fold before any glass covers it, which
-  // is the whole point of the surface and exactly what the desktop grid
-  // was stealing on a phone.
-  gridMobile: {
+
+  // A single flat column occupying the whole pane. The pane wrapper owns the
+  // vertical scroll (the shell's axis-lock hands vertical gestures to it and
+  // keeps horizontal for the door). Top pad clears the fixed corner chrome;
+  // it's a real page top now, not the old 20vh backdrop-reveal hack that made
+  // PD "load low" — each column starts at the top of its own pane.
+  fragment: {
     position: 'absolute',
     inset: 0,
     display: 'flex',
     flexDirection: 'column',
-    gap: 12,
-    padding: 14,
-    paddingTop: '20vh',
+    padding: '58px 14px 24px',
     boxSizing: 'border-box',
     overflowY: 'auto',
     overflowX: 'hidden',
   },
 
   col: { minHeight: 0, display: 'flex', flexDirection: 'column', gap: 14 },
-  // Full-width, natural height, no inner scroll — the page scrolls as one.
-  colMobile: { width: '100%', minHeight: 'auto', overflow: 'visible', flex: '0 0 auto' },
+  // On a flat pane the column is full-width, natural height, no inner scroll —
+  // the pane wrapper scrolls as one.
+  colFlat: { width: '100%', minHeight: 'auto', overflow: 'visible', flex: '0 0 auto' },
   left: { ...glass, padding: 16, overflow: 'hidden' },
   middle: { overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 },
   right: { overflowY: 'auto', overflowX: 'hidden' },

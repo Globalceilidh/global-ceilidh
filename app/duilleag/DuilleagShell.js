@@ -24,9 +24,10 @@
 // MapLibre globe and a live feed all at once is a lot to hold, and the
 // panes you can't see don't need to exist.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { PANELS, wrapIndex } from './panels';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PANELS } from './panels';
 import { useLanguage } from '../../context/LanguageContext';
+import { DuilleagDataProvider } from './DuilleagData';
 import Duilleag from './Duilleag';
 import Rooms from './Rooms';
 
@@ -36,6 +37,50 @@ const COMMIT_FRACTION = 0.28;  // or drag this far across the pane
 const MAX_FLING = 4;           // panes a single hard flick can carry
 const AXIS_LOCK_PX = 8;        // travel before a touch commits to an axis
 const SNAP_MS = 520;
+
+// Below this width the three-column panels can't fit side by side, so the
+// door flattens: each multi-column panel becomes one door-stop per column
+// and you swipe through them linearly. Covers phones and tablets in portrait
+// (Whitey's ask: mobile AND tablet swipe the columns).
+const FLATTEN_BELOW = 1024;
+
+// Proper modulo — JS `%` keeps the sign, which breaks the wrap when the door
+// is turned backwards past stop 0.
+const wrap = (i, n) => ((i % n) + n) % n;
+
+// The list of door-stops for the current layout.
+//   Desktop  — one stop per panel; the duilleag panel shows all three
+//              columns at once (fragment null).
+//   Flat     — the duilleag panel expands into three stops (its left /
+//              middle / right columns); every other panel stays one stop.
+// So 5 desktop panels become 7 stops today, growing toward 15 as the other
+// panels earn columns.
+function buildStops(isFlat) {
+  const stops = [];
+  PANELS.forEach((panel, panelIndex) => {
+    if (isFlat && panel.kind === 'duilleag') {
+      ['left', 'middle', 'right'].forEach((fragment) => {
+        stops.push({ key: `${panel.slug}:${fragment}`, panel, panelIndex, fragment });
+      });
+    } else {
+      stops.push({ key: panel.slug, panel, panelIndex, fragment: null });
+    }
+  });
+  return stops;
+}
+
+// When the layout flips (rotate / resize across the breakpoint), keep the
+// user on the same place: find the stop in the new list for the same panel,
+// preferring the same column, else the middle column, else the panel itself.
+function findStop(stops, panelIndex, fragment) {
+  const same = stops.filter((st) => st.panelIndex === panelIndex);
+  if (same.length === 0) return 0;
+  const chosen =
+    same.find((st) => st.fragment === fragment) ||
+    same.find((st) => st.fragment === 'middle') ||
+    same[0];
+  return stops.indexOf(chosen);
+}
 
 // Backdrop drift, as a fraction of pane travel, and the oversize that
 // hides it. BG_SCALE must exceed 1 + 2*PARALLAX or a drifting backdrop
@@ -152,15 +197,36 @@ export default function DuilleagShell({ profile, initialPosts }) {
     goTo(index + steps);
   };
 
+  // ── layout mode ─────────────────────────────────────────────────────
+  // width is 0 until the first measure on mount, so default to the desktop
+  // grid and correct immediately — no flashing a mobile layout onto a laptop.
+  const isFlat = width > 0 && width < FLATTEN_BELOW;
+  const stops = useMemo(() => buildStops(isFlat), [isFlat]);
+  const N = stops.length;
+
+  const indexRef = useRef(index);
+  useEffect(() => { indexRef.current = index; });
+
+  // Keep the user on the same place when the layout flips between grid and
+  // flat — and do the initial landing: on first measure into flat mode this
+  // maps the desktop duilleag stop onto its 'middle' column, so mobile opens
+  // on the feed rather than the nav.
+  const isFlatRef = useRef(isFlat);
+  const prevStopsRef = useRef(stops);
+  useEffect(() => {
+    if (isFlatRef.current === isFlat) return;
+    const prev = prevStopsRef.current;
+    const cur = prev[wrap(indexRef.current, prev.length)];
+    setIndex(findStop(stops, cur.panelIndex, cur.fragment));
+    isFlatRef.current = isFlat;
+    prevStopsRef.current = stops;
+  }, [isFlat, stops]);
+
   // ── which panes exist ───────────────────────────────────────────────
   const live = [index - 1, index, index + 1];
 
-  // Phone vs the three-column grid. width is 0 until the first measure on
-  // mount, so we default to the desktop grid and correct immediately — no
-  // point flashing a mobile layout onto a laptop.
-  const isMobile = width > 0 && width < 760;
-
   return (
+    <DuilleagDataProvider initialPosts={initialPosts}>
     <main
       ref={rootRef}
       style={styles.root}
@@ -170,7 +236,8 @@ export default function DuilleagShell({ profile, initialPosts }) {
       onPointerCancel={endGesture}
     >
       {live.map((v) => {
-        const panel = PANELS[wrapIndex(v)];
+        const stop = stops[wrap(v, N)];
+        const panel = stop.panel;
         // Panes are spaced by 100% of their OWN width, never by a measured
         // pixel value. Measuring the root and multiplying is what broke
         // this the first time: the measurement came back ~1300 while the
@@ -206,7 +273,7 @@ export default function DuilleagShell({ profile, initialPosts }) {
 
             <div style={styles.paneInner}>
               {panel.kind === 'duilleag' ? (
-                <Duilleag profile={profile} initialPosts={initialPosts} isMobile={isMobile} />
+                <Duilleag profile={profile} fragment={stop.fragment} isFlat={isFlat} />
               ) : panel.kind === 'rooms' ? (
                 <Rooms language={language} />
               ) : (
@@ -222,17 +289,18 @@ export default function DuilleagShell({ profile, initialPosts }) {
       <button aria-label="Next" data-no-drag style={{ ...styles.arrow, right: 14 }} onClick={() => step(1)}>›</button>
 
       <nav style={styles.dots} data-no-drag aria-label="Panels">
-        {PANELS.map((p, i) => (
+        {stops.map((st, i) => (
           <button
-            key={p.slug}
-            onClick={() => step(i - wrapIndex(index))}
-            aria-label={p.place.en}
-            aria-current={wrapIndex(index) === i}
-            style={{ ...styles.dot, ...(wrapIndex(index) === i ? styles.dotOn : null) }}
+            key={st.key}
+            onClick={() => step(i - wrap(index, N))}
+            aria-label={st.panel.place.en}
+            aria-current={wrap(index, N) === i}
+            style={{ ...styles.dot, ...(wrap(index, N) === i ? styles.dotOn : null) }}
           />
         ))}
       </nav>
     </main>
+    </DuilleagDataProvider>
   );
 }
 
