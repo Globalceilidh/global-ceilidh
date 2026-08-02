@@ -26,8 +26,8 @@ export const NAV_ITEMS = [
 export const QUICK_JUMPS = [
   { href: '/radio',   iconImg: '/AnTonn/test/reidio-chip.png',  label: { en: 'Radio',      gd: 'Rèidio' } },
   { href: '/AnTonn',  iconImg: '/AnTonn/test/antonn-chip.png',  label: { en: 'An Tonn',    gd: 'An Tonn' } },
+  { href: '/sruth', iconImg: '/AnTonn/test/sruth-chip.png', label: { en: 'Sruth', gd: 'Sruth' } },
   { href: '/saoghal', iconImg: '/AnTonn/test/saoghal-chip.png', label: { en: 'An Saoghal', gd: 'An Saoghal' } },
   { href: '/rooms/an-cidsin', iconImg: '/AnTonn/test/rooms-chip.png', label: { en: 'Ceilidh Rooms', gd: 'Seòmraichean' } },
-  { href: '/sruth', iconImg: '/AnTonn/test/sruth-chip.png', label: { en: 'Sruth', gd: 'Sruth' } },
 ];
 
