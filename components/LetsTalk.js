@@ -21,6 +21,12 @@ import ImageZoom from './ImageZoom';
 
 const CONTACT_EMAIL = 'sruth_editors@globalceilidh.com';
 
+// Vision statement — final wording supplied by Whitey (EN + GD).
+const VISION_EN =
+  'We are a global Gaelic language and cultural learning community where everyone with an interest in Gaelic is welcome. We celebrate the language, culture, identity, and heritage of the Gaels while opening pathways for learners, speakers, descendants, communities, and friends of Gaelic to connect, participate, and belong. Together, we foster pride, shared stewardship, and a living commitment to champion Gaelic around the globe.';
+const VISION_GD =
+  '’S e coimhearsnachd ionnsachaidh Cruinneil na Gàidhlig is a cultuir a th’unnainn far a bheil fàilte ro’n a h-uile duine aig a bheil suim anns an t-saoghal Ghàidhealach. Tha sinn a’ cumail suas cànan, cultur, féin-aithne, agus dualchas nan Gàidheal fhad ’s a thathas a’ fosgladh shlighean gus luchd-ionnsachaidh, luchd-bruidhinn, sliochdan, coimhearsnachdan, is caraidean dha’n Ghàidhig a cheangal r’a chéile is iad a bhios r’am compàirteachadh, is a’ buntainn dh’a chèile. Bidh sinn ag àrachadh pròis, stiùbhartachd chompàirtichte, is sinne a tha an geall ri bhith ri fìor-bhrosnachadh an t-saoghail Ghàidhealaich air feadh na Cruinne.';
+
 const BEBAS = 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif';
 const SANS = 'var(--font-ibm-plex-sans), system-ui, sans-serif';
 const MONO = '"IBM Plex Mono", ui-monospace, monospace';
@@ -97,6 +103,10 @@ function Panels({ t, show }) {
   return (
     <>
       <h2 style={S.h1}>{t('Fàilte — it’s good to meet you.', 'Fàilte — ’s math ur coinneachadh.')}</h2>
+      <div style={S.vision}>
+        <span style={S.visionLabel}>{t('Our Vision', 'Ar n-Aithris-Rùin')}</span>
+        <p style={S.visionText}>{t(VISION_EN, VISION_GD)}</p>
+      </div>
       <div style={S.grid}>
         <Card
           tag={t('GET INVOLVED', 'AN SÀS')}
@@ -322,6 +332,12 @@ const S = {
     letterSpacing: '0.01em', margin: '0 0 40px', fontWeight: 400,
   },
   h2: { fontFamily: BEBAS, color: '#fff', fontSize: 'clamp(34px, 5vw, 54px)', letterSpacing: '0.02em', margin: '14px 0 18px', fontWeight: 400 },
+
+  vision: { margin: '-8px 0 34px', padding: '20px 24px', borderLeft: '3px solid #C9A047',
+    background: 'rgba(201,160,71,0.06)', borderRadius: '0 12px 12px 0', maxWidth: 720 },
+  visionLabel: { display: 'block', fontFamily: BEBAS, color: '#C9A047', fontSize: 17,
+    letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 },
+  visionText: { fontFamily: SANS, fontSize: 16.5, lineHeight: 1.7, color: 'rgba(242,236,220,0.9)', margin: 0 },
 
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(258px, 1fr))', gap: 18 },
   card: {
