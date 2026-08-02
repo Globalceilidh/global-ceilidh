@@ -112,6 +112,10 @@ function Panels({ t, show }) {
           'The largest Gaelic community was never just one place. It has been on the move for centuries with stops here and there. Its numbers have swelled and ebbed, and we now find ourselves spread out all over the globe once again, yearning for a sense of community.',
           'Cha b’ e a-riamh dìreach aon àite a bh’ anns a’ choimhearsnachd Ghàidhlig as motha. Tha i air a bhith air imrich fad linntean, a’ stad an siud ’s an seo. Tha na h-àireamhan aice air at is air traoghadh, agus tha sinn a-nis sgapte air feadh na cruinne a-rithist, ag iarraidh mothachadh air coimhearsnachd.'
         )}</p>
+        <p>{t(
+          'Whatever has brought you to Global Ceilidh, we hope you feel welcome and at home, and that you’ve found what you’ve been searching for. If not, let us know what it is and we’ll help you bring it to life. This culture is yours, this language is yours, this life is yours… live it!',
+          'Ge b’ e dè a thug gu Global Ceilidh thu, tha sinn an dòchas gum bi thu a’ faireachdainn fàilte is aig an taigh, agus gun do lorg thu na bha thu a’ sireadh. Mura do lorg, innis dhuinn dè a th’ ann agus cuidichidh sinn thu gus a thoirt beò. Is leatsa an cultar seo, is leatsa an cànan seo, is leatsa a’ bheatha seo… bi beò innte!'
+        )}</p>
       </div>
       <div style={S.grid}>
         <Card
