@@ -14,6 +14,7 @@ export const REACTIONS = [
   { kind: 'curam',     label: { en: 'Care',     gd: 'Cùram' },     icon: '/people/rx-curam.png',     color: '#C9A047' }, // gold
   { kind: 'solas',     label: { en: 'Approval', gd: 'Sòlas' },     icon: '/people/rx-solas.png',     color: '#F4C430' }, // sunny yellow
   { kind: 'tonnsios',  label: { en: 'Dislike',  gd: 'Tonn Sìos' }, icon: '/people/rx-tonnsios.png',  color: '#1B3A8B' }, // dark blue
+  { kind: 'bron',      label: { en: 'Sad',      gd: 'Bròn' },      icon: '/people/rx-bron.png',      color: '#6E7F94' }, // slate blue
   { kind: 'fearagach', label: { en: 'Angry',    gd: 'Fearagach' }, icon: '/people/rx-fearagach.png', color: '#2B3A55' }, // dark storm blue
 ];
 
