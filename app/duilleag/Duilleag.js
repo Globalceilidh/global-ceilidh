@@ -246,9 +246,16 @@ const s = {
     boxSizing: 'border-box',
     overflowY: 'auto',
     overflowX: 'hidden',
+    // Own the horizontal gesture. Without this the scroll container keeps the
+    // default touch-action, so the browser claims a rightward swipe for its
+    // back-navigation gesture (leftward has no forward history so it slips
+    // through — which is why only one swipe direction worked). pan-y allows
+    // vertical scroll and hands every horizontal swipe to the door.
+    touchAction: 'pan-y',
+    overscrollBehavior: 'contain',
   },
 
-  col: { minHeight: 0, display: 'flex', flexDirection: 'column', gap: 14 },
+  col: { minHeight: 0, display: 'flex', flexDirection: 'column', gap: 14, touchAction: 'pan-y' },
   // On a flat pane the column is full-width, natural height, no inner scroll —
   // the pane wrapper scrolls as one.
   colFlat: { width: '100%', minHeight: 'auto', overflow: 'visible', flex: '0 0 auto' },
