@@ -105,16 +105,8 @@ function Panels({ t, show }) {
       <h2 style={S.h1}>{t('Fàilte — it’s good to meet you.', 'Fàilte — ’s math ur coinneachadh.')}</h2>
       <div style={{ ...S.prose, maxWidth: 620, margin: '0 0 34px' }}>
         <p>{t(
-          'Global Ceilidh is the gathering place for the global Gàidhlig world — the language, the music, and the diaspora that carry them.',
-          'Is e Global Ceilidh àite-cruinneachaidh do shaoghal na Gàidhlig air feadh an t-saoghail — an cànan, an ceòl, agus an sgapadh a tha gan giùlan.'
-        )}</p>
-        <p>{t(
-          'The largest Gaelic community was never one place. It’s everyone, everywhere, at once — and now it has a home you can walk into from anywhere in the world.',
-          'Cha b’ e aon àite a-riamh an coimhearsnachd Ghàidhlig as motha. ’S e a h-uile duine, anns gach àite, aig an aon àm — agus a-nis tha dachaigh aice as urrainn dhut tighinn a-steach thuice à àite sam bith air an t-saoghal.'
-        )}</p>
-        <p>{t(
-          'Come in through Sruth for the news, the Radio for the sound of it, An Tonn for the music, An Saoghal to see the Gaelic world on the map, and the Ceilidh Rooms to sit with people — then make it your own on your Duilleag.',
-          'Thig a-steach tro Sruth airson na naidheachdan, an Rèidio airson an fhuaim, An Tonn airson a’ chiùil, An Saoghal gus saoghal na Gàidhlig fhaicinn air a’ mhapa, agus na Seòmraichean Cèilidh gus suidhe còmhla ri daoine — an uair sin dèan agad fhèin e air an Duilleag agad.'
+          'Global Ceilidh is the online gathering place for the Gaelic world — the culture, language, history, heritage and the people living it now, in order to ensure it continues on.',
+          'Is e Global Ceilidh an t-àite-cruinneachaidh air-loidhne do shaoghal na Gàidhlig — an cultar, an cànan, an eachdraidh, an dualchas agus na daoine a tha ga bheò an-diugh, gus dèanamh cinnteach gun lean e air adhart.'
         )}</p>
       </div>
       <div style={S.grid}>
