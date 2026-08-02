@@ -15,6 +15,13 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const FEEDBACK_ADDR = 'sruth_editors@globalceilidh.com';
 
+// Vision statement — FIRST DRAFT in Whitey's voice; swap in the final words.
+// Gàidhlig is first-pass and wants Lewis/Joe's eye before it's treated as final.
+const VISION_EN =
+  'Our vision is a Gàidhlig world without walls — where every Gael, every learner, and every friend of the language can step into the same room, whatever corner of the earth they wake up in. The largest Gaelic community was never a place on a map. It is all of us, together — the language, the music, the stories, the diaspora — a cèilidh that never has to end.';
+const VISION_GD =
+  'Is e ar lèirsinn saoghal Gàidhlig gun bhallaichean — far an tèid aig gach Gàidheal, gach neach-ionnsachaidh, agus gach caraid don chànan air tighinn a-steach don aon rùm, ge b’ e càite air an t-saoghal an dùisg iad. Cha b’ e àite air mapa a-riamh a’ choimhearsnachd Ghàidhlig as motha. ’S e sinn uile còmhla — an cànan, an ceòl, na sgeulachdan, an sgapadh — cèilidh nach fheum crìoch a thighinn air gu bràth.';
+
 export default function Contact() {
   const { language } = useLanguage();
   const gd = language === 'gd';
@@ -59,6 +66,11 @@ export default function Contact() {
             'Is e Global Ceilidh àite-cruinneachaidh do shaoghal na Gàidhlig air feadh an t-saoghail — an cànan, an ceòl, an sgapadh. Ceistean, beachdan, ceartachaidhean, no cuideachadh: seo an doras. Bidh sinn a’ leughadh a h-uile càil.'
           )}
         </p>
+
+        <section style={S.vision}>
+          <span style={S.visionLabel}>{t('Our Vision', 'Ar Lèirsinn')}</span>
+          <p style={S.visionText}>{t(VISION_EN, VISION_GD)}</p>
+        </section>
 
         {status === 'sent' ? (
           <div style={S.sent}>
@@ -119,6 +131,12 @@ const S = {
     margin: '0 0 20px', lineHeight: 0.95 },
   lede: { fontFamily: 'var(--font-ibm-plex-sans), system-ui, sans-serif', fontSize: 16,
     lineHeight: 1.7, color: 'rgba(242,236,220,0.85)', margin: '0 0 36px' },
+  vision: { margin: '0 0 38px', padding: '22px 26px', borderLeft: '3px solid #C9A047',
+    background: 'rgba(201,160,71,0.06)', borderRadius: '0 12px 12px 0' },
+  visionLabel: { display: 'block', fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
+    color: '#C9A047', fontSize: 16, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 11 },
+  visionText: { fontFamily: 'var(--font-ibm-plex-sans), system-ui, sans-serif', fontSize: 17.5,
+    lineHeight: 1.7, color: 'rgba(242,236,220,0.92)', margin: 0 },
   form: { display: 'flex', flexDirection: 'column', gap: 18 },
   label: { display: 'flex', flexDirection: 'column', gap: 7 },
   labelText: { fontFamily: 'var(--font-ibm-plex-sans), system-ui, sans-serif', fontSize: 12,
