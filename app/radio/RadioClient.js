@@ -173,6 +173,7 @@ export default function RadioClient() {
                 className="gc-radio-tile"
                 style={{
                   ...playerFrameStyle,
+                  position: 'relative',
                   ...(isMobile && mobileView !== 'player' ? { display: 'none' } : null),
                 }}
               >
@@ -183,6 +184,11 @@ export default function RadioClient() {
                   allow="autoplay; encrypted-media"
                   style={{ width: '100%', height: '100%', display: 'block', border: 0 }}
                 />
+                {/* INFO overlays only the player — the photo carousel beside it
+                    stays visible and the stream keeps playing underneath. */}
+                {showInfo && (
+                  <InfoCard artist={nowArtist} title={nowTrack} onClose={() => setShowInfo(false)} />
+                )}
               </div>
               {/* Decorative now-playing photo / logo tile. On mobile shown
                   only when the Photo tab is active (JS-controlled); on
@@ -203,7 +209,11 @@ export default function RadioClient() {
                 Artist / Song / Album). Requests land in sruth-admin.
                 Same cream pill styling as Let's Talk + language pill. */}
             <div style={pillRowStyle}>
-              <button type="button" style={pillStyle} onClick={() => setShowInfo(true)}>
+              <button
+                type="button"
+                style={pillStyle}
+                onClick={() => { setShowInfo(true); if (isMobile) setMobileView('player'); }}
+              >
                 {language === 'gd' ? 'FIOS' : 'INFO'}
               </button>
               <button type="button" style={pillStyle} onClick={() => setShowReact(true)}>
@@ -401,7 +411,6 @@ export default function RadioClient() {
 
         {showVote && <VoteModal onClose={() => setShowVote(false)} />}
         {showRequest && <RequestModal onClose={() => setShowRequest(false)} />}
-        {showInfo && <InfoModal artist={nowArtist} title={nowTrack} onClose={() => setShowInfo(false)} />}
         {showReact && <ReactModal artist={nowArtist} title={nowTrack} onClose={() => setShowReact(false)} />}
       </div>
     </>
@@ -716,11 +725,16 @@ function RequestModal({ onClose }) {
   );
 }
 
-// ── Info modal — grounded-Gemini artist + song copy ────────────────────
-function InfoModal({ artist, title, onClose }) {
+// ── Info card — grounded-Gemini artist + song copy ─────────────────────
+// Overlays only the player tile (the photo carousel stays visible beside it),
+// so it never takes over the page or stops the stream. "← Back to player"
+// instead of an ×. The Sruth CTA flips the card to an inline signup rather
+// than navigating away — the radio keeps playing the whole time.
+function InfoCard({ artist, title, onClose }) {
   const { language } = useLanguage();
   const gd = language === 'gd';
   const [st, setSt] = useState({ loading: true, artist: null, song: null });
+  const [view, setView] = useState('info'); // info | sruth
 
   useEffect(() => {
     if (!artist) { setSt({ loading: false, artist: null, song: null }); return; }
@@ -736,66 +750,140 @@ function InfoModal({ artist, title, onClose }) {
   const pick = (en, gdv, status) => (gd && status === 'approved' && gdv ? gdv : en);
   const a = st.artist;
   const linkOrder = ['website', 'spotify', 'youtube', 'instagram', 'facebook'];
+  const onBack = () => (view === 'sruth' ? setView('info') : onClose());
+  const backLabel = view === 'sruth'
+    ? (gd ? 'Air ais' : 'Back')
+    : (gd ? 'Air ais dhan chluicheadair' : 'Back to player');
+
+  const sruthBtn = (
+    <button type="button" style={infoCtaGhostBtnStyle} onClick={() => setView('sruth')}>
+      {gd ? 'Fàilte gu Sruth' : 'Get the Sruth newsletter'}
+    </button>
+  );
 
   return (
-    <ModalShell title={gd ? 'A’ cluich a-nis' : 'Now Playing'} onClose={onClose}>
-      {st.loading ? (
-        <p style={infoMutedStyle}>{gd ? 'A’ luchdachadh…' : 'Loading…'}</p>
-      ) : a ? (
-        <>
-          <div>
-            <div style={infoNameStyle}>{a.name}</div>
-            {a.origin && <div style={infoOriginStyle}>{a.origin}</div>}
-          </div>
-
-          {(title || st.song) && (
-            <div style={infoSongStyle}>
-              <span style={infoLabelStyle}>{gd ? 'An t-òran' : 'This song'}</span>
-              {title && <div style={infoSongTitleStyle}>{title}</div>}
-              {st.song && st.song.blurb_en && (
-                <p style={infoTextStyle}>{pick(st.song.blurb_en, st.song.blurb_gd, st.song.gd_status)}</p>
-              )}
+    <div style={infoCardStyle}>
+      <button type="button" onClick={onBack} style={infoBackStyle}>← {backLabel}</button>
+      <div style={infoCardBodyStyle}>
+        {view === 'sruth' ? (
+          <SruthSignup gd={gd} />
+        ) : st.loading ? (
+          <p style={infoMutedStyle}>{gd ? 'A’ luchdachadh…' : 'Loading…'}</p>
+        ) : a ? (
+          <>
+            <div>
+              <div style={infoNameStyle}>{a.name}</div>
+              {a.origin && <div style={infoOriginStyle}>{a.origin}</div>}
             </div>
-          )}
 
-          {a.bio_en && <p style={infoTextStyle}>{pick(a.bio_en, a.bio_gd, a.gd_status)}</p>}
-          {a.sound_en && <p style={{ ...infoTextStyle, color: 'rgba(242,236,220,0.7)' }}>{pick(a.sound_en, a.sound_gd, a.gd_status)}</p>}
-
-          {a.links && Object.keys(a.links).length > 0 && (
-            <div style={infoLinksStyle}>
-              {linkOrder.filter((k) => a.links[k]).map((k) => (
-                <a key={k} href={a.links[k]} target="_blank" rel="noopener noreferrer" style={infoChipStyle}>
-                  {k[0].toUpperCase() + k.slice(1)}
-                </a>
-              ))}
-            </div>
-          )}
-
-          <div style={infoActionsStyle}>
-            {a.slug && (
-              <a href={`/artists/${a.slug}`} style={infoCtaStyle}>
-                {gd ? 'Làn ìomhaigh →' : 'Full profile →'}
-              </a>
+            {(title || st.song) && (
+              <div style={infoSongStyle}>
+                <span style={infoLabelStyle}>{gd ? 'An t-òran' : 'This song'}</span>
+                {title && <div style={infoSongTitleStyle}>{title}</div>}
+                {st.song && st.song.blurb_en && (
+                  <p style={infoTextStyle}>{pick(st.song.blurb_en, st.song.blurb_gd, st.song.gd_status)}</p>
+                )}
+              </div>
             )}
-            <a href="/sruth" style={infoCtaGhostStyle}>{gd ? 'Fàilte gu Sruth' : 'Get the Sruth newsletter'}</a>
-          </div>
-        </>
+
+            {a.bio_en && <p style={infoTextStyle}>{pick(a.bio_en, a.bio_gd, a.gd_status)}</p>}
+            {a.sound_en && <p style={{ ...infoTextStyle, color: 'rgba(242,236,220,0.7)' }}>{pick(a.sound_en, a.sound_gd, a.gd_status)}</p>}
+
+            {a.links && Object.keys(a.links).length > 0 && (
+              <div style={infoLinksStyle}>
+                {linkOrder.filter((k) => a.links[k]).map((k) => (
+                  <a key={k} href={a.links[k]} target="_blank" rel="noopener noreferrer" style={infoChipStyle}>
+                    {k[0].toUpperCase() + k.slice(1)}
+                  </a>
+                ))}
+              </div>
+            )}
+
+            <div style={infoActionsStyle}>
+              {a.slug && (
+                <a href={`/artists/${a.slug}`} target="_blank" rel="noopener noreferrer" style={infoCtaStyle}>
+                  {gd ? 'Làn ìomhaigh →' : 'Full profile →'}
+                </a>
+              )}
+              {sruthBtn}
+            </div>
+          </>
+        ) : (
+          // No profile (unknown / not yet generated) — a warm house panel.
+          <>
+            {artist ? <p style={infoNowStyle}>{artist}{title ? ` — ${title}` : ''}</p> : null}
+            <p style={infoTextStyle}>
+              {gd
+                ? 'Chan eil ìomhaigh againn air an neach-ciùil seo fhathast — ach tha saoghal na Gàidhlig ri lorg air Global Ceilidh.'
+                : 'We don’t have a profile for this artist yet — but the whole Gaelic world is waiting to be explored on Global Ceilidh.'}
+            </p>
+            <div style={infoActionsStyle}>
+              <a href="/AnTonn" target="_blank" rel="noopener noreferrer" style={infoCtaStyle}>{gd ? 'Rùraich An Tonn →' : 'Explore An Tonn →'}</a>
+              {sruthBtn}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Inline Sruth signup inside the info card — posts to /api/subscribe so the
+// listener never leaves /radio and the stream keeps playing.
+function SruthSignup({ gd }) {
+  const [email, setEmail] = useState('');
+  const [hp, setHp] = useState('');
+  const [status, setStatus] = useState('idle'); // idle | sending | ok | error
+  const [err, setErr] = useState('');
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (status === 'sending') return;
+    setStatus('sending'); setErr('');
+    try {
+      const r = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, website: hp, source: 'radio' }),
+      });
+      const d = await r.json();
+      if (r.ok && d.success) setStatus('ok');
+      else { setErr(d.error || (gd ? 'Cha b’ urrainn clàradh.' : 'Could not subscribe.')); setStatus('error'); }
+    } catch {
+      setErr(gd ? 'Mearachd lìonraidh.' : 'Network error.'); setStatus('error');
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={infoNameStyle}>Sruth</div>
+      <p style={infoTextStyle}>
+        {gd
+          ? 'Cultar is naidheachdan na Gàidhlig, dhan bhogsa agad. Cumaidh an rèidio a’ dol fhad ’s a chlàras tu.'
+          : 'Gaelic culture & news, straight to your inbox. The radio keeps playing while you sign up.'}
+      </p>
+      {status === 'ok' ? (
+        <p style={{ ...infoTextStyle, color: '#8FCB9B' }}>
+          {gd ? 'Mòran taing — chaidh do chlàradh.' : 'Thanks — you’re on the list.'}
+        </p>
       ) : (
-        // No profile (unknown / not yet generated) — a warm house panel.
-        <>
-          {artist ? <p style={infoNowStyle}>{artist}{title ? ` — ${title}` : ''}</p> : null}
-          <p style={infoTextStyle}>
-            {gd
-              ? 'Chan eil ìomhaigh againn air an neach-ciùil seo fhathast — ach tha saoghal na Gàidhlig ri lorg air Global Ceilidh.'
-              : 'We don’t have a profile for this artist yet — but the whole Gaelic world is waiting to be explored on Global Ceilidh.'}
-          </p>
-          <div style={infoActionsStyle}>
-            <a href="/AnTonn" style={infoCtaStyle}>{gd ? 'Rùraich An Tonn →' : 'Explore An Tonn →'}</a>
-            <a href="/sruth" style={infoCtaGhostStyle}>{gd ? 'Fàilte gu Sruth' : 'Get the Sruth newsletter'}</a>
-          </div>
-        </>
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <input
+            type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+            placeholder={gd ? 'sibhse@eisimpleir.com' : 'you@example.com'}
+            style={modalInputStyle}
+          />
+          <input
+            type="text" value={hp} onChange={(e) => setHp(e.target.value)}
+            tabIndex={-1} autoComplete="off" aria-hidden="true" style={honeypotStyle}
+          />
+          {status === 'error' && <div style={modalErrorStyle}>{err}</div>}
+          <button type="submit" disabled={status === 'sending'} style={{ ...modalSubmitStyle, alignSelf: 'flex-start' }}>
+            {status === 'sending' ? (gd ? 'A’ cur…' : 'Subscribing…') : (gd ? 'Clàraich' : 'Subscribe')}
+          </button>
+        </form>
       )}
-    </ModalShell>
+    </div>
   );
 }
 
@@ -1615,6 +1703,24 @@ const infoCtaGhostStyle = {
   fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif', fontSize: 16,
   letterSpacing: '0.06em', textTransform: 'uppercase', color: '#F2ECDC', background: 'transparent',
   textDecoration: 'none', padding: '10px 18px', borderRadius: 999, border: '1px solid rgba(242,236,220,0.28)',
+};
+const infoCtaGhostBtnStyle = { ...infoCtaGhostStyle, cursor: 'pointer' };
+
+// The info card fills only the player tile (rendered inside it, position:relative).
+const infoCardStyle = {
+  position: 'absolute', inset: 0, zIndex: 5, display: 'flex', flexDirection: 'column',
+  background: 'rgba(8,14,28,0.975)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+  borderRadius: 8, overflow: 'hidden', color: '#F2ECDC',
+};
+const infoBackStyle = {
+  flexShrink: 0, width: '100%', textAlign: 'left', cursor: 'pointer',
+  background: 'rgba(255,255,255,0.05)', border: 'none', borderBottom: '1px solid rgba(242,236,220,0.12)',
+  color: '#C9A047', fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 12, letterSpacing: 1,
+  padding: '10px 16px',
+};
+const infoCardBodyStyle = {
+  flex: 1, minHeight: 0, overflowY: 'auto', padding: '14px 16px 18px',
+  display: 'flex', flexDirection: 'column', gap: 12,
 };
 const reactRowStyle = {
   display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10,
