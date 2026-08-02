@@ -14,7 +14,7 @@
 //
 // Gàidhlig copy is first-draft — wants Lewis/Joe before it's treated as final.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
 import ImageZoom from './ImageZoom';
@@ -39,6 +39,7 @@ export default function LetsTalk() {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [view, setView] = useState('panels'); // panels | involved | contact | about
+  const scrimRef = useRef(null); // the scroll container — reset to top on view change
 
   useEffect(() => setMounted(true), []);
   const close = useCallback(() => { setOpen(false); setView('panels'); }, []);
@@ -68,10 +69,19 @@ export default function LetsTalk() {
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
   }, [open, close]);
 
+  // Always land at the top of a freshly-shown view. The overlay's own scroll
+  // container persists its scrollTop across view swaps, so navigating from the
+  // panels (scrolled down to reach the cards) into About/Contact/Involved would
+  // otherwise drop you partway down the new page — worst on the tall About view,
+  // most visible on mobile where the panels prose forces a long scroll first.
+  useEffect(() => {
+    if (open && scrimRef.current) scrimRef.current.scrollTop = 0;
+  }, [open, view]);
+
   if (!mounted || !open) return null;
 
   return createPortal(
-    <div style={S.scrim} onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
+    <div ref={scrimRef} style={S.scrim} onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
       <style>{`
         .gc-lt-card:hover { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.3) !important; }
         .gc-lt-card:hover .gc-lt-arrow { border-color:#fff; }
@@ -125,7 +135,7 @@ function Panels({ t, show }) {
         />
         <Card
           tag={t('ABOUT', 'MU AR DEIDHINN')}
-          title={t('Who we are, and why.', 'Cò sinn, agus carson.')}
+          title={t('Who we are and why we are here.', 'Cò sinn, agus carson a tha sinn an seo.')}
           onClick={() => show('about')}
         />
         <Card
