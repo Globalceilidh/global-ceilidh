@@ -160,7 +160,7 @@ function Card({ tag, title, onClick, children }) {
 const PEOPLE = [
   {
     name: 'Richard Hill', img: '/people/richard-hill.png',
-    role: 'Founding Council Member · Contributing Editor · Gàidhlig & Cultural Advisor',
+    role: 'Founding Council Member · Contributing Editor · Gàidhlig Language & Cultural Advisor',
     epithet: 'An Ridire Bàn', gloss: 'The White Knight',
     bio: [
       'Some people find Gàidhlig by crossing the Atlantic. Richard Hill found it in Wyoming.',
