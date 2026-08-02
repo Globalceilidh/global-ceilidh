@@ -290,9 +290,6 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
           )}
         </div>
 
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/people/rx-curam.png" alt="Care" width={22} height={22} style={{ width: 22, height: 22, display: 'block', objectFit: 'contain' }} />
-
         {reactions.total > 0 && (
           <span style={s.count}>
             {summaryReactions.map((r) => (
@@ -529,8 +526,8 @@ const s = {
     display: 'inline-flex', alignItems: 'center', gap: 3,
     fontFamily: SANS, fontSize: 12, color: 'rgba(255,255,255,0.6)',
   },
-  reactIcon: { width: 40, height: 40, display: 'block', objectFit: 'contain' },
-  reactIconSm: { width: 28, height: 28, display: 'block', objectFit: 'contain' },
+  reactIcon: { width: 40, height: 40, minWidth: 40, minHeight: 40, flexShrink: 0, display: 'block', objectFit: 'contain' },
+  reactIconSm: { width: 28, height: 28, minWidth: 28, minHeight: 28, flexShrink: 0, display: 'block', objectFit: 'contain' },
 
   palette: {
     position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 40,
