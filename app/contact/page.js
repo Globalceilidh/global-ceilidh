@@ -13,7 +13,7 @@ import Link from 'next/link';
 import LanguagePill from '../../components/LanguagePill';
 import { useLanguage } from '../../context/LanguageContext';
 
-const FEEDBACK_ADDR = 'sruth_editors@globalceilidh.com';
+const FEEDBACK_ADDR = 'globalceilidh@gmail.com';
 
 // Vision statement — final wording supplied by Whitey (EN + GD).
 const VISION_EN =

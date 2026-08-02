@@ -19,7 +19,7 @@ import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
 import ImageZoom from './ImageZoom';
 
-const CONTACT_EMAIL = 'sruth_editors@globalceilidh.com';
+const CONTACT_EMAIL = 'globalceilidh@gmail.com';
 
 // Vision statement — final wording supplied by Whitey (EN + GD).
 const VISION_EN =
@@ -119,7 +119,7 @@ function Panels({ t, show }) {
       </div>
       <div style={S.grid}>
         <Card
-          tag={t('GET INVOLVED', 'AN SÀS')}
+          tag={t('JOIN US', 'AN SÀS')}
           title={t('I’m interested in getting involved.', 'Tha ùidh agam a bhith an sàs.')}
           onClick={() => show('involved')}
         />
@@ -199,7 +199,7 @@ function About({ t, show }) {
   return (
     <div>
       <button style={S.back} onClick={() => show('panels')}>← {t('Back', 'Air ais')}</button>
-      <h2 style={S.h2}>{t('Global Ceilidh', 'Global Ceilidh')}</h2>
+      <h2 style={S.h2}>{t('Who we are, and why we’re here…', 'Cò sinn, agus carson a tha sinn an seo…')}</h2>
       <div style={{ ...S.vision, maxWidth: 620 }}>
         <span style={S.visionLabel}>{t('Our Vision', 'Ar n-Aithris-Rùin')}</span>
         <p style={S.visionText}>{t(VISION_EN, VISION_GD)}</p>
