@@ -103,9 +103,19 @@ function Panels({ t, show }) {
   return (
     <>
       <h2 style={S.h1}>{t('Fàilte — it’s good to meet you.', 'Fàilte — ’s math ur coinneachadh.')}</h2>
-      <div style={S.vision}>
-        <span style={S.visionLabel}>{t('Our Vision', 'Ar n-Aithris-Rùin')}</span>
-        <p style={S.visionText}>{t(VISION_EN, VISION_GD)}</p>
+      <div style={{ ...S.prose, maxWidth: 620, margin: '0 0 34px' }}>
+        <p>{t(
+          'Global Ceilidh is the gathering place for the global Gàidhlig world — the language, the music, and the diaspora that carry them.',
+          'Is e Global Ceilidh àite-cruinneachaidh do shaoghal na Gàidhlig air feadh an t-saoghail — an cànan, an ceòl, agus an sgapadh a tha gan giùlan.'
+        )}</p>
+        <p>{t(
+          'The largest Gaelic community was never one place. It’s everyone, everywhere, at once — and now it has a home you can walk into from anywhere in the world.',
+          'Cha b’ e aon àite a-riamh an coimhearsnachd Ghàidhlig as motha. ’S e a h-uile duine, anns gach àite, aig an aon àm — agus a-nis tha dachaigh aice as urrainn dhut tighinn a-steach thuice à àite sam bith air an t-saoghal.'
+        )}</p>
+        <p>{t(
+          'Come in through Sruth for the news, the Radio for the sound of it, An Tonn for the music, An Saoghal to see the Gaelic world on the map, and the Ceilidh Rooms to sit with people — then make it your own on your Duilleag.',
+          'Thig a-steach tro Sruth airson na naidheachdan, an Rèidio airson an fhuaim, An Tonn airson a’ chiùil, An Saoghal gus saoghal na Gàidhlig fhaicinn air a’ mhapa, agus na Seòmraichean Cèilidh gus suidhe còmhla ri daoine — an uair sin dèan agad fhèin e air an Duilleag agad.'
+        )}</p>
       </div>
       <div style={S.grid}>
         <Card
@@ -190,19 +200,9 @@ function About({ t, show }) {
     <div>
       <button style={S.back} onClick={() => show('panels')}>← {t('Back', 'Air ais')}</button>
       <h2 style={S.h2}>{t('Global Ceilidh', 'Global Ceilidh')}</h2>
-      <div style={{ ...S.prose, maxWidth: 620 }}>
-        <p>{t(
-          'Global Ceilidh is the gathering place for the global Gàidhlig world — the language, the music, and the diaspora that carry them.',
-          'Is e Global Ceilidh àite-cruinneachaidh do shaoghal na Gàidhlig air feadh an t-saoghail — an cànan, an ceòl, agus an sgapadh a tha gan giùlan.'
-        )}</p>
-        <p>{t(
-          'The largest Gaelic community was never one place. It’s everyone, everywhere, at once — and now it has a home you can walk into from anywhere in the world.',
-          'Cha b’ e aon àite a-riamh an coimhearsnachd Ghàidhlig as motha. ’S e a h-uile duine, anns gach àite, aig an aon àm — agus a-nis tha dachaigh aice as urrainn dhut tighinn a-steach thuice à àite sam bith air an t-saoghal.'
-        )}</p>
-        <p>{t(
-          'Come in through Sruth for the news, the Radio for the sound of it, An Tonn for the music, An Saoghal to see the Gaelic world on the map, and the Ceilidh Rooms to sit with people — then make it your own on your Duilleag.',
-          'Thig a-steach tro Sruth airson na naidheachdan, an Rèidio airson an fhuaim, An Tonn airson a’ chiùil, An Saoghal gus saoghal na Gàidhlig fhaicinn air a’ mhapa, agus na Seòmraichean Cèilidh gus suidhe còmhla ri daoine — an uair sin dèan agad fhèin e air an Duilleag agad.'
-        )}</p>
+      <div style={{ ...S.vision, maxWidth: 620 }}>
+        <span style={S.visionLabel}>{t('Our Vision', 'Ar n-Aithris-Rùin')}</span>
+        <p style={S.visionText}>{t(VISION_EN, VISION_GD)}</p>
       </div>
       <button style={S.textLink} onClick={() => show('involved')}>
         {t('Want to help build it? →', 'A bheil thu airson cuideachadh ga thogail? →')}
