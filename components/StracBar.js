@@ -3,11 +3,17 @@
 // components/StracBar.js
 // Site-wide Gàidhlig accent (stràc) helper. Mounted once in the root layout.
 // Whenever any text <input> or <textarea> is focused, a cobalt "liquid glass"
-// bar rises just above the on-screen keyboard offering the five grave-accented
-// vowels — à è ì ò ù — plus a caps toggle for À È Ì Ò Ù.
+// bar appears offering the five grave-accented vowels — à è ì ò ù — plus a
+// caps toggle for À È Ì Ò Ù.
 //
 // Scottish Gàidhlig uses the grave accent (an stràc throm) ONLY; the acute
 // (á) is Irish. So the grave marks are the only ones offered.
+//
+// Placement is hybrid:
+//   * Fine pointer (desktop) — anchored to the focused field, floating just
+//     above it (below if there's no room), following it on scroll.
+//   * Coarse pointer (touch) — pinned just above the on-screen keyboard via
+//     the visualViewport, where the OS puts its own input-accessory bars.
 //
 // Insertion detail (the part that's easy to get wrong): our fields are React
 // *controlled* inputs. Writing el.value directly gets clobbered on the next
@@ -37,16 +43,52 @@ function isEditableTextField(el) {
   return false;
 }
 
+const GAP = 8;
+
 export default function StracBar() {
   const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState(false);
   const [caps, setCaps] = useState(false);
-  const [bottom, setBottom] = useState(0);
+  // Resolved placement: {mode:'anchor', top, left} or {mode:'bottom', bottom}.
+  // null until first measured — the bar stays hidden to avoid a flash.
+  const [place, setPlace] = useState(null);
 
   const fieldRef = useRef(null);
   const barRef = useRef(null);
+  const anchorRef = useRef(false); // true on a fine pointer (desktop)
 
   useEffect(() => setMounted(true), []);
+
+  // Fine pointer → anchor to the field; coarse (touch) → ride the keyboard.
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: fine)');
+    const set = () => { anchorRef.current = mq.matches; };
+    set();
+    mq.addEventListener?.('change', set);
+    return () => mq.removeEventListener?.('change', set);
+  }, []);
+
+  const reposition = useCallback(() => {
+    const el = fieldRef.current;
+    if (!el) return;
+    const vv = window.visualViewport;
+
+    if (anchorRef.current) {
+      const rect = el.getBoundingClientRect();
+      const bar = barRef.current;
+      const bw = bar ? bar.offsetWidth : 240;
+      const bh = bar ? bar.offsetHeight : 56;
+      const vw = window.innerWidth;
+      let top = rect.top - bh - GAP;
+      if (top < GAP) top = rect.bottom + GAP; // no room above → below the field
+      let left = rect.left + rect.width / 2 - bw / 2; // centred over the field
+      left = Math.max(GAP, Math.min(left, vw - bw - GAP));
+      setPlace({ mode: 'anchor', top, left });
+    } else {
+      const inset = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+      setPlace({ mode: 'bottom', bottom: inset + GAP });
+    }
+  }, []);
 
   // Track the focused field. focusin/out bubble to document, so this also
   // catches fields inside portals/modals (Let's Talk, the radio modals, …).
@@ -55,14 +97,15 @@ export default function StracBar() {
       if (isEditableTextField(e.target)) {
         fieldRef.current = e.target;
         setActive(true);
+        // rAF so the bar is rendered/measured before we place it.
+        requestAnimationFrame(reposition);
       }
     };
     const onFocusOut = (e) => {
-      // Focus moving into the bar itself shouldn't dismiss it (its buttons
-      // preventDefault so this normally won't fire, but guard anyway).
       if (barRef.current && barRef.current.contains(e.relatedTarget)) return;
       fieldRef.current = null;
       setActive(false);
+      setPlace(null);
     };
     document.addEventListener('focusin', onFocusIn);
     document.addEventListener('focusout', onFocusOut);
@@ -70,33 +113,29 @@ export default function StracBar() {
       document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('focusout', onFocusOut);
     };
-  }, []);
+  }, [reposition]);
 
-  // Ride just above the on-screen keyboard. visualViewport shrinks when the
-  // keyboard opens; the gap between its bottom and the layout viewport bottom
-  // IS the keyboard height. On desktop that gap is 0 and the bar sits at the
-  // window bottom.
+  // While a field is focused, keep the bar in place as the page scrolls, the
+  // window resizes, or the keyboard opens/closes.
   useEffect(() => {
     if (!active) return;
-    const vv = window.visualViewport;
-    const reposition = () => {
-      if (vv) setBottom(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
-      else setBottom(0);
-    };
     reposition();
+    const vv = window.visualViewport;
+    window.addEventListener('scroll', reposition, true); // capture → any scroller
+    window.addEventListener('resize', reposition);
     if (vv) {
       vv.addEventListener('resize', reposition);
       vv.addEventListener('scroll', reposition);
     }
-    window.addEventListener('resize', reposition);
     return () => {
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
       if (vv) {
         vv.removeEventListener('resize', reposition);
         vv.removeEventListener('scroll', reposition);
       }
-      window.removeEventListener('resize', reposition);
     };
-  }, [active]);
+  }, [active, reposition]);
 
   const insert = useCallback((ch) => {
     const el = fieldRef.current;
@@ -118,9 +157,17 @@ export default function StracBar() {
   if (!mounted || !active) return null;
 
   const letters = caps ? UPPER : LOWER;
+  const posStyle = place?.mode === 'anchor'
+    ? { top: place.top, left: place.left }
+    : { left: '50%', transform: 'translateX(-50%)', bottom: place?.bottom ?? GAP };
 
   return createPortal(
-    <div ref={barRef} style={{ ...S.bar, bottom: bottom + 8 }} role="toolbar" aria-label="Gàidhlig accents">
+    <div
+      ref={barRef}
+      style={{ ...S.bar, ...posStyle, opacity: place ? 1 : 0 }}
+      role="toolbar"
+      aria-label="Gàidhlig accents"
+    >
       <style>{`
         .gc-strac-key:active { transform: translateY(1px) scale(0.955); filter: brightness(1.12); }
         @media (prefers-reduced-motion: reduce) { .gc-strac-key { transition: none; } }
@@ -158,8 +205,6 @@ export default function StracBar() {
 const S = {
   bar: {
     position: 'fixed',
-    left: '50%',
-    transform: 'translateX(-50%)',
     zIndex: 10000, // above the Let's Talk scrim (9999) so it works in overlays
     display: 'flex',
     gap: 6,
@@ -175,6 +220,7 @@ const S = {
       'inset 0 -10px 18px -12px rgba(0,0,0,0.55)',
     backdropFilter: 'blur(16px) saturate(150%)',
     WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+    transition: 'opacity 120ms ease',
   },
   key: {
     minWidth: 40,
