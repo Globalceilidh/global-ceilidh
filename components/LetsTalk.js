@@ -175,7 +175,7 @@ const PEOPLE = [
     role: 'Founding Council Member · Contributing Editor · Gàidhlig Language & Cultural Advisor',
     epithet: 'An Guth Beò', gloss: 'The Living Voice',
     bio: [
-      'Most people inherit a language and a culture. Lewis MacKinnon inherited three.',
+      'Most people inherit one language and heritage. Lewis MacKinnon inherited three.',
       'Born in Inverness, Cape Breton, and raised in Antigonish County, Lodaidh is the son of a Gaelic-speaking Gael and an Acadian French-speaking mother. That meeting of languages, identities and traditions has shaped a life spent building connections rather than borders.',
       'He is a Gaelic speaker, singer, musician and published poet. In 2011, Lodaidh received the Scottish Bardic Crown, becoming the first official Bard of the Royal National Mòd born outside Scotland. He has released albums in both Gaelic and English, published four bilingual collections of Gaelic poetry and serves as Executive Director of Gaelic Affairs for the Province of Nova Scotia.',
       'As a Founding Council Member, Contributing Editor and Cultural Advisor to Global Ceilidh, Lodaidh brings the strength of a tradition firmly planted — and the generosity to share it freely.',
