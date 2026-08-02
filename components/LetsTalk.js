@@ -172,7 +172,7 @@ const PEOPLE = [
   },
   {
     name: 'Lewis “Lodaidh” MacKinnon', img: '/people/lewis-mackinnon.png',
-    role: 'Founding Council Member · Contributing Editor · Cultural Advisor',
+    role: 'Founding Council Member · Contributing Editor · Gàidhlig Language & Cultural Advisor',
     epithet: 'An Guth Beò', gloss: 'The Living Voice',
     bio: [
       'Some people inherit one language. Lewis MacKinnon was born where two cultures met.',
