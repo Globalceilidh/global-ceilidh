@@ -161,7 +161,7 @@ const PEOPLE = [
   {
     name: 'Richard Hill', img: '/people/richard-hill.png',
     role: 'Founding Council Member · Contributing Editor · Gàidhlig & Cultural Advisor',
-    epithet: 'An Lasair Gheal', gloss: 'The White Flame',
+    epithet: 'An Ridire Bàn', gloss: 'The White Knight',
     bio: [
       'Some people find Gàidhlig by crossing the Atlantic. Richard Hill found it in Wyoming.',
       'He began learning the language at seven years old from a Scottish immigrant who had made his way to the Rocky Mountains. In 1989, Richard found what he describes as his “new family” among the Gaels of Vancouver and Victoria. He has lived deeply within the language ever since — as a teacher, singer and tireless builder of Gaelic community.',
