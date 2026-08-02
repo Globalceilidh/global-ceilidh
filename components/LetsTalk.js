@@ -167,7 +167,7 @@ const PEOPLE = [
       'He began learning the language at seven years old from a Scottish immigrant who had made his way to the Rocky Mountains. In 1989, Richard found what he describes as his “new family” among the Gaels of Vancouver and Victoria. He has lived deeply within the language ever since — as an educator, a learner, and a tireless Ambassador of the Ghàidhealtachd.',
       'Richard is a founder of Slighe nan Gàidheal and Féis Seattle, an instructor with Colaisde na Gàidhlig, and a familiar voice within Seattle’s early-music scene.',
       'As a Founding Council Member, Contributing Editor and Gàidhlig and Cultural Advisor to Global Ceilidh, Richard brings knowledge without pretence, wisdom without solemnity and the firm belief that Gàidhlig belongs wherever people gather to speak it, sing it and pass it onward.',
-      'The language is not something he keeps safely behind glass. He carries it into the room and invites everyone else to join in.',
+      'The Gàidhlig language is not a relic to Richard. He lives it and carries it into every room and invites everyone else to join in.',
     ],
   },
   {
