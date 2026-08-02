@@ -108,6 +108,10 @@ function Panels({ t, show }) {
           'Global Ceilidh is the online gathering place for the Gaelic world — the culture, language, history, heritage and the people living it now, in order to ensure it continues on.',
           'Is e Global Ceilidh an t-àite-cruinneachaidh air-loidhne do shaoghal na Gàidhlig — an cultar, an cànan, an eachdraidh, an dualchas agus na daoine a tha ga bheò an-diugh, gus dèanamh cinnteach gun lean e air adhart.'
         )}</p>
+        <p>{t(
+          'The largest Gaelic community was never just one place. It has been on the move for centuries with stops here and there. Its numbers have swelled and ebbed, and we now find ourselves spread out all over the globe once again, yearning for a sense of community.',
+          'Cha b’ e a-riamh dìreach aon àite a bh’ anns a’ choimhearsnachd Ghàidhlig as motha. Tha i air a bhith air imrich fad linntean, a’ stad an siud ’s an seo. Tha na h-àireamhan aice air at is air traoghadh, agus tha sinn a-nis sgapte air feadh na cruinne a-rithist, ag iarraidh mothachadh air coimhearsnachd.'
+        )}</p>
       </div>
       <div style={S.grid}>
         <Card
