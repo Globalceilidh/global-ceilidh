@@ -217,7 +217,8 @@ export default function Composer({ gd, connections, onPosted }) {
           disabled={media.length >= 4 || uploading || !!video}
           title={gd ? 'Cuir dealbh ris' : 'Add an image'}
           aria-label={gd ? 'Cuir dealbh ris' : 'Add an image'}
-        >🖼</button>
+        >{/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/people/ic-image.png" alt="" style={s.attachIcon} /></button>
         {STREAM_ENABLED && (
           <button
             style={s.attach}
@@ -225,7 +226,8 @@ export default function Composer({ gd, connections, onPosted }) {
             disabled={videoUploading || !!video || media.length > 0}
             title={gd ? 'Cuir bhidio ris' : 'Add a video'}
             aria-label={gd ? 'Cuir bhidio ris' : 'Add a video'}
-          >🎬</button>
+          >{/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/people/ic-bhidio.png" alt="" style={s.attachIcon} /></button>
         )}
         <div style={{ position: 'relative' }}>
           <button style={s.audience} onClick={() => setPicking((p) => !p)}>
@@ -307,10 +309,12 @@ const s = {
   },
   bar: { display: 'flex', alignItems: 'center', gap: 9 },
   attach: {
-    flexShrink: 0, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 999, width: 30, height: 28, cursor: 'pointer', fontSize: 15, lineHeight: 1,
+    flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 999, width: 40, height: 34, cursor: 'pointer',
     color: 'rgba(255,255,255,0.75)', padding: 0,
   },
+  attachIcon: { width: 26, height: 26, minWidth: 26, minHeight: 26, flexShrink: 0, display: 'block', objectFit: 'contain' },
   thumbs: { display: 'flex', flexWrap: 'wrap', gap: 6 },
   thumb: { position: 'relative', width: 66, height: 66, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.14)' },
   thumbImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },

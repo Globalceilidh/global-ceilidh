@@ -11,7 +11,7 @@
 export const REACTIONS = [
   { kind: 'tonnsuas',  label: { en: 'Like',     gd: 'Tonn Suas' }, icon: '/people/rx-tonnsuas.png',  color: '#7EC8E3' }, // light blue
   { kind: 'gradh',     label: { en: 'Love',     gd: 'Gràdh' },     icon: '/people/rx-gradh.png',     color: '#E5484D' }, // red
-  { kind: 'curam',     label: { en: 'Care',     gd: 'Cùram' },     icon: '/people/rx-curam.png',     color: '#2E86DE' }, // blue
+  { kind: 'curam',     label: { en: 'Care',     gd: 'Cùram' },     icon: '/people/rx-curam.png',     color: '#C9A047' }, // gold
   { kind: 'solas',     label: { en: 'Approval', gd: 'Sòlas' },     icon: '/people/rx-solas.png',     color: '#F4C430' }, // sunny yellow
   { kind: 'tonnsios',  label: { en: 'Dislike',  gd: 'Tonn Sìos' }, icon: '/people/rx-tonnsios.png',  color: '#1B3A8B' }, // dark blue
   { kind: 'fearagach', label: { en: 'Angry',    gd: 'Fearagach' }, icon: '/people/rx-fearagach.png', color: '#2B3A55' }, // dark storm blue
