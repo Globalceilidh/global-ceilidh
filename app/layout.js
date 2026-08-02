@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import PresenceBeat from '../components/PresenceBeat';
 import LetsTalk from '../components/LetsTalk';
+import StracBar from '../components/StracBar';
 import SiteChrome from '../components/SiteChrome';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -61,6 +62,7 @@ export default function RootLayout({ children }) {
             <RadioProvider>
               {children}
               <LetsTalk />
+              <StracBar />
               <SiteChrome />
             </RadioProvider>
           </LanguageProvider>
