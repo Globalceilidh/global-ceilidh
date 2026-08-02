@@ -264,15 +264,11 @@ export default function PostCard({ post, gd, isOwner, onDeleted }) {
       <div style={s.bar}>
         <div style={{ position: 'relative' }}>
           <button
-            style={{ ...s.act, ...(reactions.mine && REACTION[reactions.mine] ? { ...s.actOn, borderColor: `${REACTION[reactions.mine].color}88` } : null) }}
+            style={s.act}
             onClick={() => setPalette((p) => !p)}
           >
-            {reactions.mine && REACTION[reactions.mine]
-              ? <img src={REACTION[reactions.mine].icon} alt="" style={s.reactIcon} />
-              : <span aria-hidden="true">☺</span>}
-            <span style={s.actLabel}>
-              {reactions.mine && REACTION[reactions.mine] ? t(REACTION[reactions.mine].label) : (gd ? 'Freagair' : 'React')}
-            </span>
+            <span aria-hidden="true">☺</span>
+            <span style={s.actLabel}>{gd ? 'Freagair' : 'React'}</span>
           </button>
           {palette && (
             <div style={s.palette}>
