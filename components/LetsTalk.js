@@ -163,7 +163,7 @@ const PEOPLE = [
     role: 'Founding Council Member · Contributing Editor · Gàidhlig Language & Cultural Advisor',
     epithet: 'An Ridire Bàn', gloss: 'The White Knight',
     bio: [
-      'Some people find Gàidhlig by crossing the Atlantic. Richard Hill found it in Wyoming.',
+      'Some people find Gàidhlig by visiting the Hebrides. Gàidhlig found Richard in Wyoming.',
       'He began learning the language at seven years old from a Scottish immigrant who had made his way to the Rocky Mountains. In 1989, Richard found what he describes as his “new family” among the Gaels of Vancouver and Victoria. He has lived deeply within the language ever since — as a teacher, singer and tireless builder of Gaelic community.',
       'Richard is a founder of Slighe nan Gàidheal and Féis Seattle, an instructor with Colaisde na Gàidhlig, and a familiar voice within Seattle’s early-music scene.',
       'As a Founding Council Member, Contributing Editor and Gàidhlig and Cultural Advisor to Global Ceilidh, Richard brings knowledge without pretence, wisdom without solemnity and the firm belief that Gàidhlig belongs wherever people gather to speak it, sing it and pass it onward.',
