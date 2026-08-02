@@ -15,12 +15,11 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const FEEDBACK_ADDR = 'sruth_editors@globalceilidh.com';
 
-// Vision statement — FIRST DRAFT in Whitey's voice; swap in the final words.
-// Gàidhlig is first-pass and wants Lewis/Joe's eye before it's treated as final.
+// Vision statement — final wording supplied by Whitey (EN + GD).
 const VISION_EN =
-  'Our vision is a Gàidhlig world without walls — where every Gael, every learner, and every friend of the language can step into the same room, whatever corner of the earth they wake up in. The largest Gaelic community was never a place on a map. It is all of us, together — the language, the music, the stories, the diaspora — a cèilidh that never has to end.';
+  'We are a global Gaelic language and cultural learning community where everyone with an interest in Gaelic is welcome. We celebrate the language, culture, identity, and heritage of the Gaels while opening pathways for learners, speakers, descendants, communities, and friends of Gaelic to connect, participate, and belong. Together, we foster pride, shared stewardship, and a living commitment to champion Gaelic around the globe.';
 const VISION_GD =
-  'Is e ar lèirsinn saoghal Gàidhlig gun bhallaichean — far an tèid aig gach Gàidheal, gach neach-ionnsachaidh, agus gach caraid don chànan air tighinn a-steach don aon rùm, ge b’ e càite air an t-saoghal an dùisg iad. Cha b’ e àite air mapa a-riamh a’ choimhearsnachd Ghàidhlig as motha. ’S e sinn uile còmhla — an cànan, an ceòl, na sgeulachdan, an sgapadh — cèilidh nach fheum crìoch a thighinn air gu bràth.';
+  '’S e coimhearsnachd ionnsachaidh Cruinneil na Gàidhlig is a cultuir a th’unnainn far a bheil fàilte ro’n a h-uile duine aig a bheil suim anns an t-saoghal Ghàidhealach. Tha sinn a’ cumail suas cànan, cultur, féin-aithne, agus dualchas nan Gàidheal fhad ’s a thathas a’ fosgladh shlighean gus luchd-ionnsachaidh, luchd-bruidhinn, sliochdan, coimhearsnachdan, is caraidean dha’n Ghàidhig a cheangal r’a chéile is iad a bhios r’am compàirteachadh, is a’ buntainn dh’a chèile. Bidh sinn ag àrachadh pròis, stiùbhartachd chompàirtichte, is sinne a tha an geall ri bhith ri fìor-bhrosnachadh an t-saoghail Ghàidhealaich air feadh na Cruinne.';
 
 export default function Contact() {
   const { language } = useLanguage();
@@ -68,7 +67,7 @@ export default function Contact() {
         </p>
 
         <section style={S.vision}>
-          <span style={S.visionLabel}>{t('Our Vision', 'Ar Lèirsinn')}</span>
+          <span style={S.visionLabel}>{t('Our Vision', 'Ar n-Aithris-Rùin')}</span>
           <p style={S.visionText}>{t(VISION_EN, VISION_GD)}</p>
         </section>
 
