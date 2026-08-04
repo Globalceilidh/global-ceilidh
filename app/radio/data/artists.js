@@ -323,7 +323,27 @@ export const ARTISTS = [
     ],
     photoAlt: 'Skerryvore — press photo',
     videos: [],
-    tourDates: null,
+    // Ticker set = the imminent run (Aug–mid-Sep 2026). Full 2026/27 world tour
+    // (~85 dates) held for a dedicated tour page; a ticker can't scroll them all
+    // inside its 6-min window. Source: skerryvore.com/tour (2026-08-03).
+    tour: [
+      { date: 'Aug 7',     city: 'Sion, Switzerland',     venue: 'Guinness Irish Festival' },
+      { date: 'Aug 9',     city: 'Linlithgow, UK',        venue: 'Party at The Palace' },
+      { date: 'Aug 16',    city: 'Brechin, UK',           venue: 'Summer End Angus' },
+      { date: 'Aug 21',    city: 'Darvel, UK',            venue: 'Darvel Music Festival (Sold Out)' },
+      { date: 'Aug 22',    city: 'Edinburgh, UK',         venue: 'Heather On The Hill' },
+      { date: 'Aug 23',    city: 'Exeter, UK',            venue: 'Beautiful Days' },
+      { date: 'Aug 29',    city: 'Tønder, Denmark',       venue: 'Tønder Festival' },
+      { date: 'Aug 30',    city: 'Merthyr Mawr, UK',      venue: 'Between the Trees' },
+      { date: 'Sep 1',     city: 'Northampton, MA',       venue: 'The Iron Horse' },
+      { date: 'Sep 2',     city: 'Natick, MA',            venue: 'Center for Arts in Natick' },
+      { date: 'Sep 3',     city: 'Boothbay Harbor, ME',   venue: 'The Opera House' },
+      { date: 'Sep 4',     city: 'Plymouth, NH',          venue: 'The Flying Monkey' },
+      { date: 'Sep 5',     city: 'Altamont, NY',          venue: 'Capital District Scottish Games' },
+      { date: 'Sep 16',    city: 'Mason City, IA',        venue: 'North Iowa Area Community College' },
+      { date: 'Sep 18–19', city: 'Appleton, WI',          venue: 'Fox Cities Irish Fest' },
+      { date: 'Sep 20',    city: 'Madison, WI',           venue: 'Atwood Music Hall' },
+    ],
     isPartner: false,
   },
   {
