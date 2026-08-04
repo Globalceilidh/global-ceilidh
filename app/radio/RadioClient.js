@@ -1465,15 +1465,18 @@ function mobileTabStyle(active) {
   };
 }
 
-// Pure white pill in Bebas Neue — matches every other pill on the
-// radio page (Let's Talk, language slider, Vote, Request). One
-// consistent look across the surface.
+// See-through "liquid glass" pill with a gold band — Info / React / Vote /
+// Request. Matches the gold-band pill treatment used elsewhere on mobile
+// (the player/photo toggle, the ticker frame): translucent dark glass with a
+// backdrop blur, a gold border, and cream lettering in Bebas Neue.
 const pillStyle = {
   padding: '11px 26px',
   borderRadius: 999,
-  background: '#FFFFFF',
-  color: '#0A0D14',
-  border: 'none',
+  background: 'rgba(10, 13, 20, 0.35)',
+  color: '#F2ECDC',
+  border: '1.5px solid rgba(201, 160, 71, 0.9)',  // gold band
+  backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)',
   fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
   fontWeight: 400,
   fontSize: 18,
@@ -1481,7 +1484,7 @@ const pillStyle = {
   textTransform: 'uppercase',
   cursor: 'pointer',
   boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-  transition: 'transform 220ms ease, box-shadow 220ms ease',
+  transition: 'transform 220ms ease, box-shadow 220ms ease, background 220ms ease',
 };
 
 // House-ad panel (fills a media-tile slide).
