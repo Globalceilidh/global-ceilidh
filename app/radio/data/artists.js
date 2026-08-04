@@ -322,6 +322,7 @@ export const ARTISTS = [
       '/radio/skerryvore/skerryvore_4.png',
     ],
     photoAlt: 'Skerryvore — press photo',
+    poster: '/radio/skerryvore/skerryvore-live.png', // live shot w/ SKERRYVORE backdrop — ticker frame
     videos: [],
     // Ticker set = the imminent run (Aug–mid-Sep 2026). Full 2026/27 world tour
     // (~85 dates) held for a dedicated tour page; a ticker can't scroll them all
