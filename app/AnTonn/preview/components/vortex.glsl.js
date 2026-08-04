@@ -32,6 +32,7 @@ export const VORTEX_FRAGMENT_SHADER = /* glsl */ `
   uniform vec2  uMouse;
   uniform vec2  uMouseVel;
   uniform float uIntensity;
+  uniform float uSpin;      // extra whole-pattern rotation (radians); 0 = off
 
   varying vec2 vUv;
 
@@ -107,8 +108,9 @@ export const VORTEX_FRAGMENT_SHADER = /* glsl */ `
     float speed = 0.10 + uIntensity * 0.35;
     float t = uTime * speed;
 
-    // Spiral coordinates — but warped, not perfect
-    float spiralAngle = a + t + r * mix(2.0, 4.5, uIntensity);
+    // Spiral coordinates — but warped, not perfect. uSpin rotates the whole
+    // pattern (an accumulated angle from the parent) on top of the base drift.
+    float spiralAngle = a + t + uSpin + r * mix(2.0, 4.5, uIntensity);
 
     // Domain-warped noise field drives the turbulence. Position varies
     // with polar angle + radial distance + time so the storm is always

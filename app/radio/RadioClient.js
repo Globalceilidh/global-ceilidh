@@ -172,6 +172,7 @@ export default function RadioClient() {
               intensity={0.24}
               mouseUv={mouseUv}
               paused={docHidden}
+              spin={isMobile ? 0.3 : 0}
             />
           </Canvas>
         </div>

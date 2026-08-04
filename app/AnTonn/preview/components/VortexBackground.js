@@ -17,10 +17,11 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { VORTEX_VERTEX_SHADER, VORTEX_FRAGMENT_SHADER } from './vortex.glsl'
 
-export default function VortexBackground({ intensity = 0.0, mouseUv, paused = false }) {
+export default function VortexBackground({ intensity = 0.0, mouseUv, paused = false, spin = 0 }) {
   const { size } = useThree()
   const lastTimeRef = useRef(0)
   const accumulatedRef = useRef(0)
+  const spinRef = useRef(0)
   const lastMouseRef = useRef({ x: 0.5, y: 0.5 })
 
   const uniforms = useMemo(() => ({
@@ -29,6 +30,7 @@ export default function VortexBackground({ intensity = 0.0, mouseUv, paused = fa
     uMouse:      { value: new THREE.Vector2(0.5, 0.5) },
     uMouseVel:   { value: new THREE.Vector2(0, 0) },
     uIntensity:  { value: 0.0 },
+    uSpin:       { value: 0 },
   }), [])  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -41,6 +43,10 @@ export default function VortexBackground({ intensity = 0.0, mouseUv, paused = fa
       const dt = now - (lastTimeRef.current || now)
       accumulatedRef.current += dt
       uniforms.uTime.value = accumulatedRef.current
+      // Accumulate an extra whole-pattern rotation at `spin` rad/sec (0 = off,
+      // so consumers that don't set it are unaffected).
+      spinRef.current += spin * dt
+      uniforms.uSpin.value = spinRef.current
     }
     lastTimeRef.current = now
 
