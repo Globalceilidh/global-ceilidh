@@ -286,18 +286,19 @@ export default function RadioClient() {
                 </button>
               </div>
             ) : (
-              // Desktop: all four as the see-through gold-band pills.
+              // Desktop: same treatment as the phone — cream until clicked,
+              // gold while that panel is open (each tied to its own modal).
               <div style={pillRowStyle}>
-                <button type="button" style={pillStyle} onClick={() => setShowInfo(true)}>
+                <button type="button" style={mobileTabStyle(showInfo)} onClick={() => setShowInfo(true)}>
                   {language === 'gd' ? 'FIOS' : 'INFO'}
                 </button>
-                <button type="button" style={pillStyle} onClick={() => setShowReact(true)}>
+                <button type="button" style={mobileTabStyle(showReact)} onClick={() => setShowReact(true)}>
                   {language === 'gd' ? 'FREAGAIR' : 'REACT'}
                 </button>
-                <button type="button" style={pillStyle} onClick={() => setShowVote(true)}>
+                <button type="button" style={mobileTabStyle(showVote)} onClick={() => setShowVote(true)}>
                   {t('radio.vote_pill')}
                 </button>
-                <button type="button" style={pillStyle} onClick={() => setShowRequest(true)}>
+                <button type="button" style={mobileTabStyle(showRequest)} onClick={() => setShowRequest(true)}>
                   {t('radio.request_pill')}
                 </button>
               </div>
@@ -1514,28 +1515,6 @@ function mobileTabStyle(active) {
     transition: 'color 180ms ease, background 180ms ease, border-color 180ms ease',
   };
 }
-
-// See-through "liquid glass" pill with a gold band — Info / React / Vote /
-// Request. Matches the gold-band pill treatment used elsewhere on mobile
-// (the player/photo toggle, the ticker frame): translucent dark glass with a
-// backdrop blur, a gold border, and cream lettering in Bebas Neue.
-const pillStyle = {
-  padding: '11px 26px',
-  borderRadius: 999,
-  background: 'rgba(10, 13, 20, 0.35)',
-  color: '#F2ECDC',
-  border: '1.5px solid rgba(201, 160, 71, 0.9)',  // gold band
-  backdropFilter: 'blur(6px)',
-  WebkitBackdropFilter: 'blur(6px)',
-  fontFamily: 'var(--font-bebas-neue), "Bebas Neue", Impact, system-ui, sans-serif',
-  fontWeight: 400,
-  fontSize: 18,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-  boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-  transition: 'transform 220ms ease, box-shadow 220ms ease, background 220ms ease',
-};
 
 // House-ad panel (fills a media-tile slide).
 const housePanelStyle = {
