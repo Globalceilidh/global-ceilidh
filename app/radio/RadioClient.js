@@ -193,6 +193,16 @@ export default function RadioClient() {
                 >
                   {language === 'gd' ? 'Dealbh' : 'Photo'}
                 </button>
+                {/* Info sits on this line too (matches the tabs' size/shape);
+                    it's an action, not a view — opens the artist card over the
+                    player. Lights gold while the card is open. */}
+                <button
+                  type="button"
+                  onClick={() => { setShowInfo(true); setMobileView('player'); }}
+                  style={mobileTabStyle(showInfo)}
+                >
+                  {language === 'gd' ? 'FIOS' : 'INFO'}
+                </button>
               </div>
             )}
 
@@ -238,24 +248,37 @@ export default function RadioClient() {
             {/* Vote + Request pills — Vote drives An Tonn Top-10s (Best
                 Artist / Song / Album). Requests land in sruth-admin.
                 Same cream pill styling as Let's Talk + language pill. */}
-            <div style={pillRowStyle}>
-              <button
-                type="button"
-                style={pillStyle}
-                onClick={() => { setShowInfo(true); if (isMobile) setMobileView('player'); }}
-              >
-                {language === 'gd' ? 'FIOS' : 'INFO'}
-              </button>
-              <button type="button" style={pillStyle} onClick={() => setShowReact(true)}>
-                {language === 'gd' ? 'FREAGAIR' : 'REACT'}
-              </button>
-              <button type="button" style={pillStyle} onClick={() => setShowVote(true)}>
-                {t('radio.vote_pill')}
-              </button>
-              <button type="button" style={pillStyle} onClick={() => setShowRequest(true)}>
-                {t('radio.request_pill')}
-              </button>
-            </div>
+            {isMobile ? (
+              // Mobile: Info has moved up to the top toggle row, so this line is
+              // React · Request · Vote — sized + styled to match the top tabs.
+              <div style={mobileTabsStyle}>
+                <button type="button" style={mobileTabStyle(showReact)} onClick={() => setShowReact(true)}>
+                  {language === 'gd' ? 'FREAGAIR' : 'REACT'}
+                </button>
+                <button type="button" style={mobileTabStyle(showRequest)} onClick={() => setShowRequest(true)}>
+                  {t('radio.request_pill')}
+                </button>
+                <button type="button" style={mobileTabStyle(showVote)} onClick={() => setShowVote(true)}>
+                  {t('radio.vote_pill')}
+                </button>
+              </div>
+            ) : (
+              // Desktop: all four as the see-through gold-band pills.
+              <div style={pillRowStyle}>
+                <button type="button" style={pillStyle} onClick={() => setShowInfo(true)}>
+                  {language === 'gd' ? 'FIOS' : 'INFO'}
+                </button>
+                <button type="button" style={pillStyle} onClick={() => setShowReact(true)}>
+                  {language === 'gd' ? 'FREAGAIR' : 'REACT'}
+                </button>
+                <button type="button" style={pillStyle} onClick={() => setShowVote(true)}>
+                  {t('radio.vote_pill')}
+                </button>
+                <button type="button" style={pillStyle} onClick={() => setShowRequest(true)}>
+                  {t('radio.request_pill')}
+                </button>
+              </div>
+            )}
 
             {/* Ticker — the current roster act's tour dates, with a photo
                 frame on the left and the rèidio icon as the separator. The act
