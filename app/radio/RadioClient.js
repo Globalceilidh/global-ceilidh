@@ -140,6 +140,24 @@ export default function RadioClient() {
     setMouseUv({ x: e.clientX / w, y: e.clientY / h });
   };
 
+  // Mobile has no cursor, so the whirlpool would sit dead-centre and never
+  // move. Drift its focus automatically along a slow Lissajous path so it
+  // roams most of the screen. Two slightly different periods keep the motion
+  // from looping obviously. ~25fps (throttled to spare re-renders); paused
+  // when the tab is hidden. Desktop keeps following the real cursor.
+  useEffect(() => {
+    if (!isMobile || docHidden) return;
+    const start = Date.now();
+    const id = setInterval(() => {
+      const t = (Date.now() - start) / 1000;
+      setMouseUv({
+        x: 0.5 + 0.34 * Math.sin(t * 0.18),
+        y: 0.5 + 0.30 * Math.sin(t * 0.23 + 1.1),
+      });
+    }, 40);
+    return () => clearInterval(id);
+  }, [isMobile, docHidden]);
+
   return (
     <>
       <div style={pageOuterStyle} onPointerMove={onPointerMove}>
