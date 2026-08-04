@@ -230,6 +230,7 @@ export const ARTISTS = [
       '/radio/manran/photo-3.png',
     ],
     photoAlt: 'Mànran — press photo',
+    poster: '/radio/manran/manran-live.png', // live shot w/ MÀNRAN banner — ticker frame
     // Video retired 2026-07-07 (see Ally's videos comment); kept as
     // a reference in case /AnTonn/bhidio revives it:
     //   { videoId: 'lTrHY3U4gYA', start: 0, end: 240 }
