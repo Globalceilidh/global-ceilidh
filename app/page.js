@@ -89,9 +89,11 @@ export default function Home() {
   // the in-code POEM_* when no edit has been published.
   const site = useSiteContent();
 
-  // On a narrow screen the wide tilted swirl gets cropped to its bright centre
-  // under objectFit:cover — reads as a glow. Track mobile and switch to
-  // objectFit:contain there so the whole swirl is visible.
+  // The vortex art is 16:9. Under objectFit:cover it's cropped to its churning
+  // bright centre (reads as "spinning"); under objectFit:contain the whole calm
+  // swirl shows, centred. We now render the CONTAIN view on every viewport, and
+  // on desktop we show the still poster (non-spinning) — matching exactly what a
+  // phone shows when autoplay is blocked (Scott's request, 2026-08-03).
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
     setIsMobile(mq.matches);
@@ -165,13 +167,15 @@ export default function Home() {
           width: 'min(100vw, 100vh)', height: 'min(100vw, 100vh)',
         }}
       >
-        {(vortexError || reduceMotion) ? (
-          // Fallback = the still swirl (never the glow gradient), so a video
-          // failure or reduced-motion degrades to a swirl, not a glow.
+        {(vortexError || reduceMotion || !isMobile) ? (
+          // Desktop (and reduced-motion / video-error) = the still swirl, never
+          // the spinning video — contain-fit so the whole scene shows centred,
+          // exactly the non-spinning image a phone displays when autoplay is
+          // blocked. Mobile keeps the looping video below.
           <img
             src={VORTEX_STILL}
             alt="A silver chrome whirlpool spiralling into a white-hot centre"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: isMobile ? 'contain' : 'cover', display: 'block' }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           />
         ) : (
           <video
@@ -181,10 +185,9 @@ export default function Home() {
             autoPlay loop muted playsInline preload="auto"
             aria-label="A silver chrome whirlpool spiralling into a white-hot centre"
             onError={() => setVortexError(true)}
-            // cover fills the stage on desktop; contain on mobile so the whole
-            // tilted swirl shows instead of being cropped to its bright centre
-            // (which read as a large glow on phones).
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: isMobile ? 'contain' : 'cover', display: 'block' }}
+            // Mobile only: the whole tilted swirl shows (contain), not cropped
+            // to its bright centre.
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           />
         )}
 
