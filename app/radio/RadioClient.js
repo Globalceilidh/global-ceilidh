@@ -206,9 +206,13 @@ export default function RadioClient() {
               </div>
             )}
 
+            {/* Desktop: flexible spacer above the tiles+pills cluster so it
+                centres vertically. Mobile keeps the growing featured row. */}
+            {!isMobile && <div aria-hidden="true" style={{ flex: '1 1 auto' }} />}
+
             {/* Live365 player + decorative photo. Desktop: side by side.
                 Mobile: one at a time, chosen by the toggle above. */}
-            <div className="gc-featured-row" style={featuredRowStyle}>
+            <div className="gc-featured-row" style={{ ...featuredRowStyle, flex: isMobile ? '1 1 auto' : '0 0 auto' }}>
               <div
                 className="gc-radio-tile"
                 style={{
@@ -279,6 +283,10 @@ export default function RadioClient() {
                 </button>
               </div>
             )}
+
+            {/* Desktop: flexible spacer below the cluster so the ticker + footer
+                still pin to the bottom (mobile's featured row does this itself). */}
+            {!isMobile && <div aria-hidden="true" style={{ flex: '1 1 auto' }} />}
 
             {/* Ticker — the current roster act's tour dates, with a photo
                 frame on the left and the rèidio icon as the separator. The act
