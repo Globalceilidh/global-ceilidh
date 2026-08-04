@@ -404,7 +404,19 @@ export const ARTISTS = [
     ],
     photoAlt: 'Tide Lines — press photo',
     videos: [],
-    tourDates: null,
+    // Source: Tide Lines tour page (2026-08-03).
+    tour: [
+      { date: 'Aug 5',  city: 'Glasgow, UK',              venue: 'The Art School (Sold Out)' },
+      { date: 'Aug 6',  city: 'Inverness, UK',            venue: 'An Seòmar (Sold Out)' },
+      { date: 'Aug 7',  city: 'Caol, UK',                 venue: 'Caol Community Centre (Sold Out)' },
+      { date: 'Aug 8',  city: 'Bunessan, UK',             venue: 'Bunessan Village Hall (Sold Out)' },
+      { date: 'Aug 14', city: 'Brechin, UK',              venue: "Summer's End Angus (Sold Out)" },
+      { date: 'Aug 16', city: 'Crieff, UK',               venue: 'Crieff Highland Gathering' },
+      { date: 'Aug 29', city: 'Kirn, UK',                 venue: 'Cowal Highland Gathering' },
+      { date: 'Sep 3',  city: 'Berwick-upon-Tweed, UK',   venue: 'Lindisfarne Festival' },
+      { date: 'Sep 5',  city: 'Dunnet, UK',               venue: 'Tunes by the Dunes' },
+      { date: 'Sep 19', city: 'Glasgow, UK',              venue: 'OVO Hydro' },
+    ],
     isPartner: false,
   },
   {

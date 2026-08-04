@@ -24,7 +24,7 @@ const PHOTO_CAROUSEL_MS = 8500;
 // Add an id here (and give the artist a `tour` array in data/artists.js) to
 // grow the roster toward five.
 const TICKER_ROTATION_MS = 6 * 60 * 1000; // 6 minutes per act
-const TICKER_ROSTER_IDS = ['ally-the-piper', 'manran', 'skipinnish', 'skerryvore']; // → 5 with Tide Lines
+const TICKER_ROSTER_IDS = ['ally-the-piper', 'manran', 'skipinnish', 'skerryvore', 'tide-lines']; // five acts → twice/hr each
 const TICKER_ROSTER = TICKER_ROSTER_IDS
   .map((id) => ARTISTS.find((a) => a.id === id))
   .filter((a) => a && Array.isArray(a.tour) && a.tour.length); // only acts with real dates
