@@ -234,7 +234,28 @@ export const ARTISTS = [
     // a reference in case /AnTonn/bhidio revives it:
     //   { videoId: 'lTrHY3U4gYA', start: 0, end: 240 }
     videos: [],
-    tourDates: 'Jul 16 Isle of Lewis (HebCelt Festival) · Jul 26 Loon-Plage, France (Parc Galame) · Jul 30–Aug 1 Inverness (Belladrum Tartan Heart Festival) · Aug 14–15 York (The Magpies Festival) · Sep 4–6 Jedburgh (Edge Fest)',
+    // Refreshed 2026-08-03 from Whitey (supersedes the old HebCelt-era string).
+    tour: [
+      { date: 'Aug 5',      city: 'Lorient, France',        venue: 'Congress Palace' },
+      { date: 'Aug 8',      city: 'New Lanark, Scotland',    venue: 'Lanark Market' },
+      { date: 'Aug 14',     city: 'York, England',          venue: 'Sutton Park (The Magpies Festival)' },
+      { date: 'Sep 5',      city: 'Inverness, Scotland',     venue: 'Eden Court' },
+      { date: 'Sep 6',      city: 'Oxnam, Scotland',         venue: 'Lilliardsedge Holiday Park (Edge Fest)' },
+      { date: 'Sep 12',     city: 'Moutier, Switzerland',    venue: 'Fête de la Vieille Ville' },
+      { date: 'Oct 9',      city: 'Forfar, Scotland',        venue: 'Forfar Reid Hall' },
+      { date: 'Oct 10',     city: 'Dunoon, Scotland',        venue: "The Queen's Hall" },
+      { date: 'Oct 17',     city: 'Fort William, Scotland',  venue: 'The Nevis Centre' },
+      { date: 'Nov 28',     city: 'Aberdeen, Scotland',      venue: 'Aberdeen Music Hall' },
+      { date: 'Dec 12',     city: 'Glasgow, Scotland',       venue: 'OVO Hydro' },
+      { date: 'Dec 28',     city: 'Stirling, Scotland',      venue: 'Albert Halls' },
+      { date: 'Dec 29',     city: 'Strathpeffer, Scotland',  venue: 'Strathpeffer Pavilion' },
+      { date: 'Dec 30',     city: 'Kingussie, Scotland',     venue: 'Badenoch Centre' },
+      { date: "Jan 1 '27",  city: 'Portree, Scotland',       venue: 'Portree Community Centre' },
+      { date: "Jan 2 '27",  city: 'Killin, Scotland',        venue: 'McLaren Hall' },
+      { date: "Oct 15 '27", city: 'Lindau, Germany',         venue: 'Club Vaudeville' },
+      { date: "Oct 23 '27", city: 'Ludwigsburg, Germany',    venue: 'Scala Kultur' },
+      { date: "Oct 28 '27", city: 'Hamburg, Germany',        venue: 'Knust' },
+    ],
     isPartner: false,
   },
   {
@@ -318,7 +339,15 @@ export const ARTISTS = [
     ],
     photoAlt: 'Skipinnish — press photo',
     videos: [],
-    tourDates: 'Sep 19 Gloucestershire, England · Nov 22–30 Germany Tour (Hamburg · Berlin · Cologne · Munich · Stuttgart) · Dec 3 Fort William (Nevis Centre) · Dec 4 Glasgow (Royal Concert Hall) · Dec 5 Glasgow (Barrowland Ballroom) · Dec 10 Perth (Perth Concert Hall) · Dec 11 Oban (Corran Halls)',
+    tour: [
+      { date: 'Sep 19',   city: 'Gloucestershire, England', venue: '' },
+      { date: 'Nov 22–30', city: 'Germany Tour',            venue: 'Hamburg · Berlin · Cologne · Munich · Stuttgart' },
+      { date: 'Dec 3',    city: 'Fort William, Scotland',   venue: 'Nevis Centre' },
+      { date: 'Dec 4',    city: 'Glasgow, Scotland',        venue: 'Royal Concert Hall' },
+      { date: 'Dec 5',    city: 'Glasgow, Scotland',        venue: 'Barrowland Ballroom' },
+      { date: 'Dec 10',   city: 'Perth, Scotland',          venue: 'Perth Concert Hall' },
+      { date: 'Dec 11',   city: 'Oban, Scotland',           venue: 'Corran Halls' },
+    ],
     isPartner: false,
   },
   {

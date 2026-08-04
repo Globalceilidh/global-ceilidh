@@ -16,16 +16,19 @@ const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so up
 // different artist).
 const PHOTO_CAROUSEL_MS = 8500;
 
-// The ticker features ONE artist's tour dates. Swap FEATURED_ID to change
-// who's on the strip. The dates string is split into segments, and the
-// rèidio icon (not an emoji/bullet) separates them.
-const FEATURED_ID = 'ally-the-piper';
-const FEATURED = ARTISTS.find((a) => a.id === FEATURED_ID);
-const FEATURED_PHOTO = FEATURED?.photos?.[0] || null;
-const FEATURED_POSTER = FEATURED?.poster || FEATURED_PHOTO;   // ticker frame art
-const FEATURED_TICKETS = FEATURED?.tickets || null;           // click-through
+// The ticker ROTATES a small roster of touring acts — one act at a time, its
+// tour dates scrolling beside a photo/poster frame, the rèidio icon (not an
+// emoji/bullet) as the separator. Each act holds the strip for TICKER_ROTATION_MS
+// (6 min), so a roster of five shows every act twice an hour. Rotation is
+// clock-aligned (Math.floor(now / 6min)) so every listener sees the same act.
+// Add an id here (and give the artist a `tour` array in data/artists.js) to
+// grow the roster toward five.
+const TICKER_ROTATION_MS = 6 * 60 * 1000; // 6 minutes per act
+const TICKER_ROSTER_IDS = ['ally-the-piper', 'manran', 'skipinnish']; // → 5 when 2 more land
+const TICKER_ROSTER = TICKER_ROSTER_IDS
+  .map((id) => ARTISTS.find((a) => a.id === id))
+  .filter((a) => a && Array.isArray(a.tour) && a.tour.length); // only acts with real dates
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
-const TICKER_STOPS = FEATURED?.tour || [];
 
 export default function RadioClient() {
   const { t, language } = useLanguage();
@@ -43,6 +46,11 @@ export default function RadioClient() {
   // not in the library, matchArtist returns null and both tiles fall
   // back to the EmptyTile (which shows FALLBACK.logo when present).
   const [featured, setFeatured] = useState(null);
+
+  // Ticker rotation — which roster act currently holds the strip. Starts at 0
+  // for SSR (no Date.now() at render → no hydration mismatch); the effect below
+  // snaps it to the clock-aligned act on mount, then advances every 6 min.
+  const [tickerIdx, setTickerIdx] = useState(0);
 
   // Modals — Vote drives An Tonn's editorial pipeline. Request is an
   // open queue that surfaces in sruth-admin. Info shows the grounded-Gemini
@@ -95,6 +103,28 @@ export default function RadioClient() {
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
   }, []);
+
+  // Rotate the ticker act every 6 minutes, clock-aligned so all listeners are
+  // in sync. First advance fires at the next 6-min boundary, then on interval.
+  useEffect(() => {
+    const n = TICKER_ROSTER.length;
+    if (n <= 1) return; // nothing to rotate
+    const compute = () => Math.floor(Date.now() / TICKER_ROTATION_MS) % n;
+    setTickerIdx(compute());
+    const msToBoundary = TICKER_ROTATION_MS - (Date.now() % TICKER_ROTATION_MS);
+    let intervalId;
+    const timeoutId = setTimeout(() => {
+      setTickerIdx(compute());
+      intervalId = setInterval(() => setTickerIdx(compute()), TICKER_ROTATION_MS);
+    }, msToBoundary);
+    return () => { clearTimeout(timeoutId); if (intervalId) clearInterval(intervalId); };
+  }, []);
+
+  // The act currently on the strip + its derived frame art / stops.
+  const tickerAct = TICKER_ROSTER[tickerIdx % (TICKER_ROSTER.length || 1)] || null;
+  const tickerPoster = tickerAct?.poster || tickerAct?.photos?.[0] || null;
+  const tickerTickets = tickerAct?.tickets || null;
+  const tickerStops = tickerAct?.tour || [];
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -227,24 +257,25 @@ export default function RadioClient() {
               </button>
             </div>
 
-            {/* Ticker — the featured artist's tour dates only, with a photo
-                frame on the left and the rèidio icon as the separator. */}
-            <div style={tickerOuterStyle} aria-label={`Global Ceilidh Radio — ${FEATURED?.name || 'featured artist'} tour dates`}>
-              {FEATURED_POSTER && (
-                FEATURED_TICKETS ? (
-                  <a href={FEATURED_TICKETS} target="_blank" rel="noopener noreferrer"
-                    style={tickerFrameStyle} aria-label={`${FEATURED?.name || 'Artist'} — tickets`} title={`${FEATURED?.name || ''} — tickets`}>
-                    <img src={FEATURED_POSTER} alt={`${FEATURED?.name || ''} — Tour Dates`} style={tickerFrameImgStyle} draggable={false} />
+            {/* Ticker — the current roster act's tour dates, with a photo
+                frame on the left and the rèidio icon as the separator. The act
+                rotates every 6 min (see TICKER_ROSTER). */}
+            <div style={tickerOuterStyle} aria-label={`Global Ceilidh Radio — ${tickerAct?.name || 'featured artist'} tour dates`}>
+              {tickerPoster && (
+                tickerTickets ? (
+                  <a href={tickerTickets} target="_blank" rel="noopener noreferrer"
+                    style={tickerFrameStyle} aria-label={`${tickerAct?.name || 'Artist'} — tickets`} title={`${tickerAct?.name || ''} — tickets`}>
+                    <img src={tickerPoster} alt={`${tickerAct?.name || ''} — Tour Dates`} style={tickerFrameImgStyle} draggable={false} />
                   </a>
                 ) : (
                   <div style={tickerFrameStyle}>
-                    <img src={FEATURED_POSTER} alt={FEATURED?.name || ''} style={tickerFrameImgStyle} draggable={false} />
+                    <img src={tickerPoster} alt={tickerAct?.name || ''} style={tickerFrameImgStyle} draggable={false} />
                   </div>
                 )
               )}
               <div style={tickerViewportStyle}>
-                <div className="gc-ticker-track">
-                  {[...TICKER_STOPS, ...TICKER_STOPS].flatMap((stop, i) => [
+                <div className="gc-ticker-track" key={tickerAct?.id || 'ticker'}>
+                  {[...tickerStops, ...tickerStops].flatMap((stop, i) => [
                     <span key={`s${i}`} style={tickerStackStyle}>
                       <span className="gc-ticker-text" style={tickerDateStyle}>
                         {stop.date}{stop.city ? ` · ${stop.city}` : ''}
