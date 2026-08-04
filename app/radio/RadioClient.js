@@ -196,18 +196,18 @@ export default function RadioClient() {
                 <button
                   type="button"
                   role="tab"
-                  aria-selected={mobileView === 'player'}
-                  onClick={() => setMobileView('player')}
-                  style={mobileTabStyle(mobileView === 'player')}
+                  aria-selected={mobileView === 'player' && !showInfo}
+                  onClick={() => { setMobileView('player'); setShowInfo(false); }}
+                  style={mobileTabStyle(mobileView === 'player' && !showInfo)}
                 >
                   {language === 'gd' ? 'Inneal-chlàr' : 'Player'}
                 </button>
                 <button
                   type="button"
                   role="tab"
-                  aria-selected={mobileView === 'image'}
-                  onClick={() => setMobileView('image')}
-                  style={mobileTabStyle(mobileView === 'image')}
+                  aria-selected={mobileView === 'image' && !showInfo}
+                  onClick={() => { setMobileView('image'); setShowInfo(false); }}
+                  style={mobileTabStyle(mobileView === 'image' && !showInfo)}
                 >
                   {language === 'gd' ? 'Dealbh' : 'Photo'}
                 </button>
