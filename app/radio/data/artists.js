@@ -360,6 +360,7 @@ export const ARTISTS = [
       '/radio/skipinnish/photo-4.png',
     ],
     photoAlt: 'Skipinnish — press photo',
+    poster: '/radio/skipinnish/skipinnish-live.png', // SKIPINNISH logo over a lit crowd — ticker frame
     videos: [],
     // Refreshed 2026-08-03 from Whitey (supersedes the old string).
     tour: [
