@@ -403,6 +403,7 @@ export const ARTISTS = [
       '/radio/tide_lines/t-l-4.png',
     ],
     photoAlt: 'Tide Lines — press photo',
+    poster: '/radio/tide_lines/tide-lines-poster.png', // TIDE LINES tour-dates poster — ticker frame
     videos: [],
     // Source: Tide Lines tour page (2026-08-03).
     tour: [
