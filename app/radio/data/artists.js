@@ -437,6 +437,27 @@ export const ARTISTS = [
     tourDates: null,
     isPartner: false,
   },
+  {
+    id: 'gaelic-storm',
+    name: 'Gaelic Storm',
+    aliases: ['gaelic storm'],
+    emoji: '⛈️',
+    tagline: null,
+    photos: [],
+    photoAlt: 'Gaelic Storm — press photo',
+    poster: '/radio/gaelic_storm/gaelic-storm-poster.png', // band press shot — ticker frame
+    videos: [],
+    // Source: Gaelic Storm tour page (2026-08-03). Feb 9 Gainesville dropped (PPD/postponed).
+    tour: [
+      { date: 'Aug 21', city: 'Kalamazoo, MI',    venue: "Bell's Eccentric Cafe" },
+      { date: 'Sep 3',  city: 'St. Louis, MO',    venue: 'Old Rock House' },
+      { date: 'Oct 20', city: 'Old Saybrook, CT', venue: 'The Katharine Hepburn Cultural Arts Center' },
+      { date: 'Nov 6',  city: 'Leesburg, VA',     venue: 'Tally Ho Theater' },
+      { date: 'Nov 7',  city: 'Rocky Mount, VA',  venue: 'Harvester Performance Center' },
+      { date: 'Nov 12', city: 'Florence, SC',     venue: 'Francis Marion University PAC' },
+    ],
+    isPartner: false,
+  },
 ];
 
 // Phase 3 fallback — shown when Live365 reports an artist that

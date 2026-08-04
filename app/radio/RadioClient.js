@@ -16,15 +16,15 @@ const LIVE365_POLL_MS = 5000; // 5s poll — API caches server-side for 4s so up
 // different artist).
 const PHOTO_CAROUSEL_MS = 8500;
 
-// The ticker ROTATES a small roster of touring acts — one act at a time, its
-// tour dates scrolling beside a photo/poster frame, the rèidio icon (not an
-// emoji/bullet) as the separator. Each act holds the strip for TICKER_ROTATION_MS
-// (6 min), so a roster of five shows every act twice an hour. Rotation is
-// clock-aligned (Math.floor(now / 6min)) so every listener sees the same act.
-// Add an id here (and give the artist a `tour` array in data/artists.js) to
-// grow the roster toward five.
-const TICKER_ROTATION_MS = 6 * 60 * 1000; // 6 minutes per act
-const TICKER_ROSTER_IDS = ['ally-the-piper', 'manran', 'skipinnish', 'skerryvore', 'tide-lines']; // five acts → twice/hr each
+// The ticker ROTATES a roster of touring acts — one act at a time, its tour
+// dates scrolling beside a photo/poster frame, the rèidio icon (not an
+// emoji/bullet) as the separator. Each act holds the strip for TICKER_ROTATION_MS,
+// clock-aligned (Math.floor(now / ms)) so every listener sees the same act.
+// To keep every act showing exactly TWICE an hour, the per-act time = 60 min /
+// (2 × roster size): 5 acts → 6 min, 6 acts → 5 min, etc. Add an id here (and a
+// `tour` array in data/artists.js) to grow the roster; retune the divisor to match.
+const TICKER_ROSTER_IDS = ['ally-the-piper', 'manran', 'skipinnish', 'skerryvore', 'tide-lines', 'gaelic-storm'];
+const TICKER_ROTATION_MS = 5 * 60 * 1000; // 6 acts × 5 min × 2 = 60 min → twice/hr each
 const TICKER_ROSTER = TICKER_ROSTER_IDS
   .map((id) => ARTISTS.find((a) => a.id === id))
   .filter((a) => a && Array.isArray(a.tour) && a.tour.length); // only acts with real dates
