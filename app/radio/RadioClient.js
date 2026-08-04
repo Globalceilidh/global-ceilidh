@@ -181,10 +181,10 @@ export default function RadioClient() {
         <main style={contentLayerStyle}>
           <div className="gc-radio-wrapper" style={contentWrapperStyle}>
             <header style={mastheadStyle}>
-              <h1 className="gc-radio-title" style={{ ...titleStyle, textTransform: 'none' }}>
+              <h1 className={`gc-radio-title${language === 'gd' ? ' gc-gd' : ''}`} style={{ ...titleStyle, textTransform: 'none' }}>
                 {language === 'gd' ? 'RÈIDIO CÈILIDH na CRUINNE' : 'GLOBAL CEILIDH RADIO'}
               </h1>
-              <p className="gc-radio-tagline" style={taglineStyle}>{t('radio.tagline')}</p>
+              <p className={`gc-radio-tagline${language === 'gd' ? ' gc-gd' : ''}`} style={taglineStyle}>{t('radio.tagline')}</p>
             </header>
 
             {/* Mobile: a small toggle to swap the single visible tile
@@ -430,6 +430,15 @@ export default function RadioClient() {
                   font-size: 18px !important;
                   line-height: 1.45 !important;
                   color: rgba(242, 236, 220, 0.9) !important;
+                }
+                /* Gàidhlig masthead is longer — shrink it so the header stays
+                   the same height as English and the player + ticker below
+                   don't get squeezed. */
+                .gc-radio-title.gc-gd {
+                  font-size: 34px !important;
+                }
+                .gc-radio-tagline.gc-gd {
+                  font-size: 15px !important;
                 }
                 .gc-ticker-text {
                   font-size: 17px !important;
