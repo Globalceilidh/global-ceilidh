@@ -305,7 +305,7 @@ export default function Home() {
       {showCountdown && (
         <div className="gc-countdown" aria-hidden="true">
           <div className="gc-cd-eyebrow">
-            {language === 'gd' ? 'TÒISICHIDH AN CÈILIDH' : 'GLOBAL CEILIDH BEGINS'}
+            {language === 'gd' ? 'Tòisichidh an cuairt-shruth a’ snìomh' : 'The whirlpool begins to spin'}
           </div>
           <div className="gc-cd-clock">
             {cdCells.map((c, i) => (
@@ -507,7 +507,7 @@ const STYLES = `
     background: radial-gradient(58% 60% at 50% 50%, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.30) 46%, transparent 76%);
     z-index: -1; pointer-events: none; }
   .gc-cd-eyebrow { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
-    text-transform: uppercase; letter-spacing: 0.34em; color: rgba(255,255,255,0.84);
+    text-transform: uppercase; letter-spacing: 0.22em; line-height: 1.3; color: rgba(255,255,255,0.84);
     font-size: clamp(12px, 2.1vmin, 21px); margin-bottom: clamp(10px, 1.9vmin, 22px);
     text-shadow: 0 1px 10px rgba(0,0,0,0.85); }
   .gc-cd-clock { display: flex; justify-content: center; align-items: flex-start; gap: clamp(14px, 3.2vmin, 42px); }
@@ -526,7 +526,7 @@ const STYLES = `
   @media (max-width: 768px) {
     /* Countdown sits a touch higher on phones so it clears the icon row. */
     .gc-countdown { bottom: clamp(150px, 24vh, 260px); }
-    .gc-cd-eyebrow { letter-spacing: 0.2em; }
+    .gc-cd-eyebrow { letter-spacing: 0.13em; }
     .gc-cd-date { letter-spacing: 0.16em; }
     /* Trim the EN/GD pill (its size is inline, so scale the whole thing). */
     .gc-langpill { transform: scale(0.66); transform-origin: top left; }
