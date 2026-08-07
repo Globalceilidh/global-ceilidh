@@ -457,7 +457,23 @@ function VideoPlayer({ queue, startIndex, onClose }) {
         title={nativeFs ? 'Exit fullscreen' : 'Fullscreen'}
         style={fsButtonStyle}
       >
-        {nativeFs ? '⤡' : '⤢'}
+        {nativeFs ? (
+          // minimize — arrows pull IN from 2 o'clock + 8 o'clock
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="20 10 14 10 14 4" />
+            <polyline points="4 14 10 14 10 20" />
+            <line x1="14" y1="10" x2="21" y2="3" />
+            <line x1="10" y1="14" x2="3" y2="21" />
+          </svg>
+        ) : (
+          // maximize — arrows push OUT to 2 o'clock + 8 o'clock
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" y1="3" x2="14" y2="10" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        )}
       </button>
 
       <div style={expanded ? { ...playerScreenStyle, borderRadius: 0, border: 'none' } : playerScreenStyle}>
@@ -700,18 +716,16 @@ const fsButtonStyle = {
   top: 8,
   right: 8,
   zIndex: 6,
-  width: 40,
-  height: 34,
+  width: 52,
+  height: 46,
   padding: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   background: 'rgba(46, 8, 18, 0.7)',
   border: '1px solid rgba(242, 236, 220, 0.18)',
-  borderRadius: 4,
+  borderRadius: 6,
   color: 'rgba(242, 236, 220, 0.94)',
-  fontSize: 18,
-  lineHeight: 1,
   cursor: 'pointer',
   backdropFilter: 'blur(6px)',
   WebkitBackdropFilter: 'blur(6px)',
