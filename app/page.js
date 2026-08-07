@@ -500,7 +500,7 @@ const STYLES = `
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.5); }
   /* ── Launch countdown — white chrome on the dormant black whirlpool ── */
   .gc-countdown { position: fixed; left: 50%; bottom: clamp(178px, 27vh, 340px);
-    transform: translateX(-50%); z-index: 12; pointer-events: none;
+    transform: translate(-50%, -5vh); z-index: 12; pointer-events: none;
     width: min(94vw, 760px); text-align: center; color: #fff; }
   /* Soft dark halo so the digits stay legible over the swirl's mid-ring. */
   .gc-countdown::before { content: ""; position: absolute; inset: -22% -14%;
