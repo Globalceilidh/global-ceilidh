@@ -239,6 +239,19 @@ function VideoPlayer({ queue, startIndex, onClose }) {
   // phase: 'playing' | 'between' | 'continue' — controls the overlay.
   const [phase, setPhase] = useState('playing')
   const [countdown, setCountdown] = useState(0)
+  const [fullscreen, setFullscreen] = useState(false)
+
+  // Phone turned sideways → let the video fill the whole screen. A
+  // landscape viewport under ~500px tall is a phone in landscape (not a
+  // tablet/desktop), so we blow the player out edge-to-edge over the
+  // header/footer chrome.
+  useEffect(() => {
+    const mq = window.matchMedia('(orientation: landscape) and (max-height: 500px)')
+    const sync = () => setFullscreen(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   const ytContainerRef = useRef(null)
   const playerRef = useRef(null)
@@ -382,12 +395,18 @@ function VideoPlayer({ queue, startIndex, onClose }) {
     currentVideo?.videoUrl
 
   return (
-    <div style={playerStyle}>
-      <button type="button" onClick={onClose} style={closeButtonStyle}>
+    <div style={fullscreen ? fullscreenPlayerStyle : playerStyle}>
+      <button
+        type="button"
+        onClick={onClose}
+        style={fullscreen
+          ? { ...closeButtonStyle, position: 'absolute', top: 10, left: 10, zIndex: 5 }
+          : closeButtonStyle}
+      >
         ← {language === 'gd' ? 'Air ais dhan Bhalla' : 'Back to wall'}
       </button>
 
-      <div style={playerScreenStyle}>
+      <div style={fullscreen ? { ...playerScreenStyle, borderRadius: 0, border: 'none' } : playerScreenStyle}>
         {isYouTube ? (
           <div ref={ytContainerRef} style={playerIframeStyle} />
         ) : isFile ? (
@@ -589,6 +608,19 @@ const playerStyle = {
   flexDirection: 'column',
   gap: 12,
   zIndex: 3,
+}
+
+// Landscape-phone fullscreen: the player fills the entire viewport, over
+// the wordmark header + language pill. Close button floats in the corner
+// (absolute) so the video screen takes the whole frame.
+const fullscreenPlayerStyle = {
+  position: 'fixed',
+  inset: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 0,
+  background: '#000',
+  zIndex: 50,
 }
 
 const closeButtonStyle = {
