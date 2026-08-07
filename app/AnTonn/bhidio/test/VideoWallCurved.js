@@ -91,6 +91,19 @@ export default function VideoWallCurved({ catalog }) {
   const { language } = useLanguage()
   // selected shape: { queue: [videos], startIndex: number, categorySlug: string }
   const [selected, setSelected] = useState(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Below ~768px the six edge-to-edge columns collapse to unreadable
+  // slivers. On a phone we drop the curve and let the wall scroll
+  // horizontally, sizing each column so only ~2–3 categories show at a
+  // time (swipe sideways for the rest).
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   if (selected) {
     return (
@@ -105,8 +118,24 @@ export default function VideoWallCurved({ catalog }) {
   const centre = (CATEGORIES.length - 1) / 2
   const maxOffset2 = centre * centre
 
+  // Mobile: horizontal-scroll strip, no perspective/curve, each column a
+  // fixed slice (~42vw ⇒ a bit over two visible, so the third peeks and
+  // invites the swipe). Desktop: the six-column curved wall unchanged.
+  const wall = isMobile
+    ? {
+        ...wallStyle,
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        perspective: 'none',
+        pointerEvents: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        scrollSnapType: 'x proximity',
+        gap: 10,
+      }
+    : wallStyle
+
   return (
-    <div style={wallStyle}>
+    <div style={wall}>
       {CATEGORIES.map((cat, i) => {
         const offset = i - centre
         // Negative sign so left columns tilt right (positive rotateY)
@@ -117,12 +146,15 @@ export default function VideoWallCurved({ catalog }) {
         // quadratic ramp, just inverted around max² so the ramp
         // curves the middle back instead of the edges.
         const depth = (maxOffset2 - offset * offset) * DEPTH_PER_UNIT2
+        const col = isMobile
+          ? { ...columnStyle, flex: '0 0 42vw', minWidth: 150, scrollSnapAlign: 'start' }
+          : columnStyle
         return (
           <div
             key={cat.slug}
             style={{
-              ...columnStyle,
-              transform: `translateZ(${-depth}px) rotateY(${tilt}deg)`,
+              ...col,
+              transform: isMobile ? 'none' : `translateZ(${-depth}px) rotateY(${tilt}deg)`,
             }}
           >
             <div style={headerStyle}>
