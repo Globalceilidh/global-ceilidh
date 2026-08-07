@@ -240,6 +240,7 @@ function VideoPlayer({ queue, startIndex, onClose }) {
   const [phase, setPhase] = useState('playing')
   const [countdown, setCountdown] = useState(0)
   const [fullscreen, setFullscreen] = useState(false)
+  const [nativeFs, setNativeFs] = useState(false)
 
   // Phone turned sideways → let the video fill the whole screen. A
   // landscape viewport under ~500px tall is a phone in landscape (not a
@@ -257,6 +258,48 @@ function VideoPlayer({ queue, startIndex, onClose }) {
   const playerRef = useRef(null)
   const timerRef = useRef(null)
   const sessionStartRef = useRef(Date.now())
+  const rootRef = useRef(null)
+
+  // Native browser fullscreen — the only thing that hides the URL bar +
+  // system chrome. It needs a user gesture, so it's driven by the ⤢ button
+  // (not the orientation change, which browsers won't let auto-fullscreen).
+  // Best-effort orientation lock to landscape on the way in.
+  useEffect(() => {
+    const onFs = () => setNativeFs(!!(document.fullscreenElement || document.webkitFullscreenElement))
+    document.addEventListener('fullscreenchange', onFs)
+    document.addEventListener('webkitfullscreenchange', onFs)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFs)
+      document.removeEventListener('webkitfullscreenchange', onFs)
+    }
+  }, [])
+
+  const toggleFullscreen = () => {
+    const doc = document
+    if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+      const exit = doc.exitFullscreen || doc.webkitExitFullscreen
+      if (exit) exit.call(doc)
+      try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock() } catch (_) { /* not supported */ }
+      return
+    }
+    const el = rootRef.current
+    if (!el) return
+    const req = el.requestFullscreen || el.webkitRequestFullscreen
+    if (req) {
+      Promise.resolve(req.call(el))
+        .then(() => {
+          try {
+            const p = screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')
+            if (p && p.catch) p.catch(() => {})   // desktop rejects — ignore
+          } catch (_) { /* not supported */ }
+        })
+        .catch(() => {})
+    } else {
+      // iOS Safari can't fullscreen a div — use the <video> element if present.
+      const vid = el.querySelector('video')
+      if (vid && vid.webkitEnterFullscreen) { try { vid.webkitEnterFullscreen() } catch (_) { /* ignore */ } }
+    }
+  }
 
   const currentVideo = queue[index]
   const hasNext = index < queue.length - 1
@@ -394,19 +437,30 @@ function VideoPlayer({ queue, startIndex, onClose }) {
     (currentVideo?.source === 'own' || currentVideo?.source === 'submitted') &&
     currentVideo?.videoUrl
 
+  const expanded = fullscreen || nativeFs
   return (
-    <div style={fullscreen ? fullscreenPlayerStyle : playerStyle}>
+    <div ref={rootRef} style={expanded ? fullscreenPlayerStyle : playerStyle}>
       <button
         type="button"
         onClick={onClose}
-        style={fullscreen
-          ? { ...closeButtonStyle, position: 'absolute', top: 10, left: 10, zIndex: 5 }
+        style={expanded
+          ? { ...closeButtonStyle, position: 'absolute', top: 10, left: 10, zIndex: 6 }
           : closeButtonStyle}
       >
         ← {language === 'gd' ? 'Air ais dhan Bhalla' : 'Back to wall'}
       </button>
 
-      <div style={fullscreen ? { ...playerScreenStyle, borderRadius: 0, border: 'none' } : playerScreenStyle}>
+      <button
+        type="button"
+        onClick={toggleFullscreen}
+        aria-label={nativeFs ? 'Exit fullscreen' : 'Fullscreen'}
+        title={nativeFs ? 'Exit fullscreen' : 'Fullscreen'}
+        style={fsButtonStyle}
+      >
+        {nativeFs ? '⤡' : '⤢'}
+      </button>
+
+      <div style={expanded ? { ...playerScreenStyle, borderRadius: 0, border: 'none' } : playerScreenStyle}>
         {isYouTube ? (
           <div ref={ytContainerRef} style={playerIframeStyle} />
         ) : isFile ? (
@@ -634,6 +688,30 @@ const closeButtonStyle = {
   fontSize: 12,
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
+  cursor: 'pointer',
+  backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)',
+}
+
+// Fullscreen toggle — floats top-right of the player in every mode, so it's
+// there to tap once the phone is sideways (true chrome-free fullscreen).
+const fsButtonStyle = {
+  position: 'absolute',
+  top: 8,
+  right: 8,
+  zIndex: 6,
+  width: 40,
+  height: 34,
+  padding: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(46, 8, 18, 0.7)',
+  border: '1px solid rgba(242, 236, 220, 0.18)',
+  borderRadius: 4,
+  color: 'rgba(242, 236, 220, 0.94)',
+  fontSize: 18,
+  lineHeight: 1,
   cursor: 'pointer',
   backdropFilter: 'blur(6px)',
   WebkitBackdropFilter: 'blur(6px)',
