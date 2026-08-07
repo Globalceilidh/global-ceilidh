@@ -500,7 +500,7 @@ const STYLES = `
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.5); }
   /* ── Launch countdown — white chrome on the dormant black whirlpool ── */
   .gc-countdown { position: fixed; left: 50%; bottom: clamp(178px, 27vh, 340px);
-    transform: translate(-50%, -5vh); z-index: 12; pointer-events: none;
+    transform: translate(-50%, -3vh); z-index: 12; pointer-events: none;
     width: min(94vw, 760px); text-align: center; color: #fff; }
   /* Soft dark halo so the digits stay legible over the swirl's mid-ring. */
   .gc-countdown::before { content: ""; position: absolute; inset: -22% -14%;
@@ -525,7 +525,7 @@ const STYLES = `
     text-shadow: 0 1px 10px rgba(0,0,0,0.85); }
   @media (max-width: 768px) {
     /* Countdown sits a touch higher on phones so it clears the icon row. */
-    .gc-countdown { bottom: clamp(150px, 24vh, 260px); }
+    .gc-countdown { bottom: clamp(150px, 24vh, 260px); transform: translate(-50%, -10vh); }
     .gc-cd-eyebrow { letter-spacing: 0.13em; }
     .gc-cd-date { letter-spacing: 0.16em; }
     /* Trim the EN/GD pill (its size is inline, so scale the whole thing). */
