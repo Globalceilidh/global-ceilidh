@@ -33,6 +33,11 @@ const SIGN_SRC   = '/gc-vortex-sign-2.png';   // cartoon arrow, transparent PNG
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 const ANTONN_ICON = '/AnTonn/test/AnTonn.png';   // wave-heart emblem (An Tonn wing)
 
+// LAUNCH — the sniomh stays STILL (dormant) until this instant, then the
+// mercury whirlpool starts spinning: Global Ceilidh begins. Scott, 2026-08-07:
+// 1 September 2026, 09:00 BST = 08:00 UTC. Month is 0-indexed (8 = September).
+const LAUNCH_MS = Date.UTC(2026, 8, 1, 8, 0, 0);
+
 const SRUTH = { ready: true, src: '/gc-sruth-logo.png' };
 
 // The Jabberwocky verse — the hidden-head easter egg. Toggles EN/GD with the
@@ -84,6 +89,7 @@ export default function Home() {
   const [reduceMotion, setReduceMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [poemOpen, setPoemOpen] = useState(false);
+  const [now, setNow] = useState(null); // client clock for the launch countdown
   const { language } = useLanguage();
   // The easter-egg verse is editor-editable (home.easter_egg); falls back to
   // the in-code POEM_* when no edit has been published.
@@ -111,9 +117,25 @@ export default function Home() {
     return () => mq.removeEventListener('change', on);
   }, []);
 
+  // Launch countdown: tick the client clock every second. `now` stays null on
+  // the server + first paint (no hydration mismatch), so the still/dormant
+  // sniomh is what renders until this resolves on the client.
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Has the whirlpool woken? Before the launch instant the sniomh is a still
+  // (dormant) image on every viewport; at/after it, the mercury video spins.
+  const launched = now != null && now >= LAUNCH_MS;
+
   // Mobile browsers block <video autoPlay> unless `muted` is set as a DOM
   // PROPERTY — React's muted attribute alone is unreliable, so the video never
-  // starts on phones. Set it on the element and explicitly kick play().
+  // starts on phones. Set it on the element and explicitly kick play(). Also
+  // re-runs when `launched` flips true, so a visitor sitting on the page at
+  // 09:00 sees it start spinning without a reload.
   const videoRef = useRef(null);
   useEffect(() => {
     const v = videoRef.current;
@@ -136,7 +158,7 @@ export default function Home() {
       v.removeEventListener('loadeddata', tryPlay);
       done();
     };
-  }, [reduceMotion, isMobile]);
+  }, [reduceMotion, isMobile, launched]);
 
   // Where the glowing core goes. Until Clerk has loaded we don't know, so
   // default to the story — that's correct for every first-time visitor,
@@ -148,6 +170,18 @@ export default function Home() {
   // site. It lives in the Archives now — /saoghal itself is the hub you
   // explore once you're in, not the front-door funnel.
   const coreHref = isLoaded && isSignedIn ? '/duilleag' : '/saoghal/archives/Gael_1';
+
+  // Countdown breakdown (days/hours/mins/secs remaining to launch). Only shown
+  // once the client clock resolves and while we're still pre-launch.
+  const cdDiff = Math.max(0, LAUNCH_MS - (now ?? LAUNCH_MS));
+  const cdTotal = Math.floor(cdDiff / 1000);
+  const showCountdown = now != null && !launched;
+  const cdCells = [
+    { n: String(Math.floor(cdTotal / 86400)),            label: language === 'gd' ? 'Làithean'   : 'Days'  },
+    { n: String(Math.floor((cdTotal % 86400) / 3600)).padStart(2, '0'), label: language === 'gd' ? 'Uairean'    : 'Hours' },
+    { n: String(Math.floor((cdTotal % 3600) / 60)).padStart(2, '0'),    label: language === 'gd' ? 'Mionaidean' : 'Mins'  },
+    { n: String(cdTotal % 60).padStart(2, '0'),          label: language === 'gd' ? 'Diogan'     : 'Secs'  },
+  ];
 
   const caption = language === 'gd' ? ['TÒISICHIBH', 'AN SEO'] : ['START', 'HERE'];
   // GD is much longer than EN — size it down so it stays on the plank.
@@ -167,11 +201,11 @@ export default function Home() {
           width: 'min(100vw, 100vh)', height: 'min(100vw, 100vh)',
         }}
       >
-        {(vortexError || reduceMotion || !isMobile) ? (
-          // Desktop (and reduced-motion / video-error) = the still swirl, never
-          // the spinning video — contain-fit so the whole scene shows centred,
-          // exactly the non-spinning image a phone displays when autoplay is
-          // blocked. Mobile keeps the looping video below.
+        {(!launched || vortexError || reduceMotion) ? (
+          // Pre-launch (and reduced-motion / video-error) = the still, DORMANT
+          // swirl on every viewport — contain-fit, whole scene centred. The
+          // whirlpool only wakes and spins at the launch instant (LAUNCH_MS);
+          // until then the countdown below marks the wait.
           <img
             src={VORTEX_STILL}
             alt="A silver chrome whirlpool spiralling into a white-hot centre"
@@ -265,6 +299,28 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ── Launch countdown — the sniomh is dormant until 1 Sept 09:00 BST.
+             Fixed overlay in the lower-centre (above the icon row); pointer-
+             events:none so the core + signpost stay clickable through it. ── */}
+      {showCountdown && (
+        <div className="gc-countdown" aria-hidden="true">
+          <div className="gc-cd-eyebrow">
+            {language === 'gd' ? 'TÒISICHIDH AN CÈILIDH' : 'GLOBAL CEILIDH BEGINS'}
+          </div>
+          <div className="gc-cd-clock">
+            {cdCells.map((c, i) => (
+              <div className="gc-cd-cell" key={i}>
+                <span className="gc-cd-num">{c.n}</span>
+                <span className="gc-cd-label">{c.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="gc-cd-date">
+            {language === 'gd' ? '1 DEN T-SULTAIN 2026 · 9M' : '1 SEPTEMBER 2026 · 9 AM'}
+          </div>
+        </div>
+      )}
+
       {/* ── The Jabberwocky verse — revealed by the hidden head hotspot ── */}
       <div
         className={`gc-poem${poemOpen ? ' gc-poem-open' : ''}`}
@@ -333,6 +389,7 @@ export default function Home() {
           radio station, the Sruth culture newsletter, and An Saoghal, a map of the
           Gaelic world. Enter through the centre to begin.
         </p>
+        <p>Global Ceilidh opens on 1 September 2026 at 9am.</p>
         <nav aria-label="Global Ceilidh">
           <a href="/saoghal">An Saoghal — the map of the Gaelic world</a>
           <a href="/radio">Global Ceilidh Radio — Scottish Gaelic music, streaming</a>
@@ -441,7 +498,36 @@ const STYLES = `
     background: linear-gradient(160deg, #2b2b2b 0%, #050505 45%, #1c1c1c 100%); border: 1px solid #333; color: #eaeaea;
     font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-weight: 700; font-size: clamp(24px, 4vw, 44px); line-height: 1;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.5); }
+  /* ── Launch countdown — white chrome on the dormant black whirlpool ── */
+  .gc-countdown { position: fixed; left: 50%; bottom: clamp(178px, 27vh, 340px);
+    transform: translateX(-50%); z-index: 12; pointer-events: none;
+    width: min(94vw, 760px); text-align: center; color: #fff; }
+  /* Soft dark halo so the digits stay legible over the swirl's mid-ring. */
+  .gc-countdown::before { content: ""; position: absolute; inset: -22% -14%;
+    background: radial-gradient(58% 60% at 50% 50%, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.30) 46%, transparent 76%);
+    z-index: -1; pointer-events: none; }
+  .gc-cd-eyebrow { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+    text-transform: uppercase; letter-spacing: 0.34em; color: rgba(255,255,255,0.84);
+    font-size: clamp(12px, 2.1vmin, 21px); margin-bottom: clamp(10px, 1.9vmin, 22px);
+    text-shadow: 0 1px 10px rgba(0,0,0,0.85); }
+  .gc-cd-clock { display: flex; justify-content: center; align-items: flex-start; gap: clamp(14px, 3.2vmin, 42px); }
+  .gc-cd-cell { display: flex; flex-direction: column; align-items: center; min-width: clamp(46px, 11vmin, 96px); }
+  .gc-cd-num { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+    font-size: clamp(44px, 10.5vmin, 108px); line-height: 0.9; letter-spacing: 0.02em; color: #fff;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 24px rgba(255,255,255,0.30), 0 2px 14px rgba(0,0,0,0.75); }
+  .gc-cd-label { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+    text-transform: uppercase; letter-spacing: 0.18em; color: rgba(255,255,255,0.62);
+    font-size: clamp(10px, 1.7vmin, 16px); margin-top: clamp(4px, 0.9vmin, 10px); }
+  .gc-cd-date { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+    text-transform: uppercase; letter-spacing: 0.28em; color: rgba(255,255,255,0.72);
+    font-size: clamp(11px, 1.9vmin, 18px); margin-top: clamp(14px, 2.4vmin, 26px);
+    text-shadow: 0 1px 10px rgba(0,0,0,0.85); }
   @media (max-width: 768px) {
+    /* Countdown sits a touch higher on phones so it clears the icon row. */
+    .gc-countdown { bottom: clamp(150px, 24vh, 260px); }
+    .gc-cd-eyebrow { letter-spacing: 0.2em; }
+    .gc-cd-date { letter-spacing: 0.16em; }
     /* Trim the EN/GD pill (its size is inline, so scale the whole thing). */
     .gc-langpill { transform: scale(0.66); transform-origin: top left; }
     /* Sruth wordmark — a touch bigger, still balanced against the two icons. */
