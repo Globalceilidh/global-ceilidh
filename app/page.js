@@ -4,7 +4,7 @@
 //
 // Concept (Scott, 2026-07-18): Alice-down-the-rabbit-hole × Wizard-of-Oz
 // cyclone (L. Frank Baum was a Syracuse-area man). Black & white only. The
-// site's sniomh chrome whirlpool is the way through; a cartoon wooden sign
+// site's coingeal chrome whirlpool is the way through; a cartoon wooden sign
 // points into it. The caption is NOT baked into the sign art — it's overlaid
 // here so it flips EN⇄GD with the pill.
 //   • click the glowing core          → the welcome cinematic (members → /duilleag)
@@ -33,7 +33,7 @@ const SIGN_SRC   = '/gc-vortex-sign-2.png';   // cartoon arrow, transparent PNG
 const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 const ANTONN_ICON = '/AnTonn/test/AnTonn.png';   // wave-heart emblem (An Tonn wing)
 
-// LAUNCH — the sniomh stays STILL (dormant) until this instant, then the
+// LAUNCH — the coingeal stays STILL (dormant) until this instant, then the
 // mercury whirlpool starts spinning: Global Ceilidh begins. Scott, 2026-08-07:
 // 1 September 2026, 09:00 BST = 08:00 UTC. Month is 0-indexed (8 = September).
 const LAUNCH_MS = Date.UTC(2026, 8, 1, 8, 0, 0);
@@ -119,7 +119,7 @@ export default function Home() {
 
   // Launch countdown: tick the client clock every second. `now` stays null on
   // the server + first paint (no hydration mismatch), so the still/dormant
-  // sniomh is what renders until this resolves on the client.
+  // coingeal is what renders until this resolves on the client.
   useEffect(() => {
     const tick = () => setNow(Date.now());
     tick();
@@ -127,7 +127,7 @@ export default function Home() {
     return () => clearInterval(id);
   }, []);
 
-  // Has the whirlpool woken? Before the launch instant the sniomh is a still
+  // Has the whirlpool woken? Before the launch instant the coingeal is a still
   // (dormant) image on every viewport; at/after it, the mercury video spins.
   const launched = now != null && now >= LAUNCH_MS;
 
@@ -299,7 +299,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Launch countdown — the sniomh is dormant until 1 Sept 09:00 BST.
+      {/* ── Launch countdown — the coingeal is dormant until 1 Sept 09:00 BST.
              Fixed overlay in the lower-centre (above the icon row); pointer-
              events:none so the core + signpost stay clickable through it. ── */}
       {showCountdown && (
