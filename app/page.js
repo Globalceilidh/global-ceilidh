@@ -176,11 +176,19 @@ export default function Home() {
   const cdDiff = Math.max(0, LAUNCH_MS - (now ?? LAUNCH_MS));
   const cdTotal = Math.floor(cdDiff / 1000);
   const showCountdown = now != null && !launched;
+  const cdDays  = Math.floor(cdTotal / 86400);
+  const cdHours = Math.floor((cdTotal % 86400) / 3600);
+  const cdMins  = Math.floor((cdTotal % 3600) / 60);
+  const cdSecs  = cdTotal % 60;
+  // Each cell goes red at 10 and below (the "final stretch" cue). Because
+  // hours/mins/secs cycle, they flip back to white the instant they roll
+  // over (e.g. secs 10→…→0 red, then back to 59 white); days only counts
+  // down, so once it hits 10 it stays red.
   const cdCells = [
-    { n: String(Math.floor(cdTotal / 86400)),            label: language === 'gd' ? 'Làithean'   : 'Days'  },
-    { n: String(Math.floor((cdTotal % 86400) / 3600)).padStart(2, '0'), label: language === 'gd' ? 'Uairean'    : 'Hours' },
-    { n: String(Math.floor((cdTotal % 3600) / 60)).padStart(2, '0'),    label: language === 'gd' ? 'Mionaidean' : 'Mins'  },
-    { n: String(cdTotal % 60).padStart(2, '0'),          label: language === 'gd' ? 'Diogan'     : 'Secs'  },
+    { v: cdDays,  n: String(cdDays),                     label: language === 'gd' ? 'Làithean'   : 'Days'  },
+    { v: cdHours, n: String(cdHours).padStart(2, '0'),   label: language === 'gd' ? 'Uairean'    : 'Hours' },
+    { v: cdMins,  n: String(cdMins).padStart(2, '0'),    label: language === 'gd' ? 'Mionaidean' : 'Mins'  },
+    { v: cdSecs,  n: String(cdSecs).padStart(2, '0'),    label: language === 'gd' ? 'Diogan'     : 'Secs'  },
   ];
 
   const caption = language === 'gd' ? ['TÒISICHIBH', 'AN SEO'] : ['START', 'HERE'];
@@ -310,7 +318,7 @@ export default function Home() {
           <div className="gc-cd-clock">
             {cdCells.map((c, i) => (
               <div className="gc-cd-cell" key={i}>
-                <span className="gc-cd-num">{c.n}</span>
+                <span className={`gc-cd-num${c.v <= 10 ? ' gc-cd-hot' : ''}`}>{c.n}</span>
                 <span className="gc-cd-label">{c.label}</span>
               </div>
             ))}
@@ -343,6 +351,10 @@ export default function Home() {
           transform: isMobile ? 'translate(-50%, 50%)' : 'translateY(50%)',
           zIndex: 10, display: 'block', lineHeight: 0 }}
       >
+        <span className="gc-icon-cap" aria-hidden="true">
+          <span className="gc-cap-name">Global Ceilidh Radio</span>
+          <span className="gc-cap-status">available now — listen…</span>
+        </span>
         <img src={REIDIO_ICON} alt="Global Ceilidh Radio"
           style={{ width: 'clamp(64px, 9.5vw, 112px)', height: 'auto', display: 'block' }} />
       </a>
@@ -353,6 +365,10 @@ export default function Home() {
         className="gc-antonn"
         style={{ position: 'fixed', bottom: 'clamp(44px, 9vh, 140px)', left: '50%', transform: 'translate(-50%, 50%)', zIndex: 10, display: 'block', lineHeight: 0 }}
       >
+        <span className="gc-icon-cap" aria-hidden="true">
+          <span className="gc-cap-name">An Tonn</span>
+          <span className="gc-cap-status">coming soon…</span>
+        </span>
         <img src={ANTONN_ICON} alt="An Tonn"
           style={{ width: 'clamp(84px, 12vw, 150px)', height: 'auto', display: 'block', mixBlendMode: 'screen' }} />
       </a>
@@ -367,6 +383,9 @@ export default function Home() {
           transform: isMobile ? 'translate(-50%, 50%)' : 'translateY(50%)',
           zIndex: 10, display: 'block' }}
       >
+        <span className="gc-icon-cap" aria-hidden="true">
+          <span className="gc-cap-status">archives available now — read</span>
+        </span>
         {SRUTH.ready ? (
           <span className="gc-sruth-logo" role="img" aria-label="sruth."
             style={{ '--sruth': `url(${SRUTH.src})` }}>
@@ -500,7 +519,7 @@ const STYLES = `
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.5); }
   /* ── Launch countdown — white chrome on the dormant black whirlpool ── */
   .gc-countdown { position: fixed; left: 50%; bottom: clamp(178px, 27vh, 340px);
-    transform: translate(-50%, -3vh); z-index: 12; pointer-events: none;
+    transform: translate(-50%, -4vh); z-index: 12; pointer-events: none;
     width: min(94vw, 760px); text-align: center; color: #fff; }
   /* Soft dark halo so the digits stay legible over the swirl's mid-ring. */
   .gc-countdown::before { content: ""; position: absolute; inset: -22% -14%;
@@ -515,7 +534,11 @@ const STYLES = `
   .gc-cd-num { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
     font-size: clamp(44px, 10.5vmin, 108px); line-height: 0.9; letter-spacing: 0.02em; color: #fff;
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 24px rgba(255,255,255,0.30), 0 2px 14px rgba(0,0,0,0.75); }
+    text-shadow: 0 0 24px rgba(255,255,255,0.30), 0 2px 14px rgba(0,0,0,0.75);
+    transition: color 300ms ease, text-shadow 300ms ease; }
+  /* Final stretch: a cell turns red at 10 and below (whites back out on roll-over). */
+  .gc-cd-num.gc-cd-hot { color: #ff3b30;
+    text-shadow: 0 0 26px rgba(255,59,48,0.50), 0 2px 14px rgba(0,0,0,0.78); }
   .gc-cd-label { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
     text-transform: uppercase; letter-spacing: 0.18em; color: rgba(255,255,255,0.62);
     font-size: clamp(10px, 1.7vmin, 16px); margin-top: clamp(4px, 0.9vmin, 10px); }
@@ -523,15 +546,31 @@ const STYLES = `
     text-transform: uppercase; letter-spacing: 0.28em; color: rgba(255,255,255,0.72);
     font-size: clamp(11px, 1.9vmin, 18px); margin-top: clamp(14px, 2.4vmin, 26px);
     text-shadow: 0 1px 10px rgba(0,0,0,0.85); }
+  /* ── Signage above each bottom icon (name + status) ── */
+  .gc-icon-cap { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    margin-bottom: clamp(8px, 1.4vh, 18px); width: max-content; max-width: clamp(120px, 16vw, 200px);
+    display: flex; flex-direction: column; align-items: center; gap: clamp(2px, 0.4vh, 5px);
+    text-align: center; pointer-events: none; }
+  .gc-cap-name { font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+    text-transform: uppercase; letter-spacing: 0.12em; line-height: 1; color: #fff;
+    font-size: clamp(13px, 1.7vmin, 20px);
+    text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.9); }
+  .gc-cap-status { font-family: var(--font-fraunces), Georgia, serif; font-style: italic;
+    line-height: 1.15; color: rgba(255,255,255,0.82); font-size: clamp(10px, 1.3vmin, 13px);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.92); }
   @media (max-width: 768px) {
     /* Countdown sits a touch higher on phones so it clears the icon row. */
-    .gc-countdown { bottom: clamp(150px, 24vh, 260px); transform: translate(-50%, -10vh); }
+    .gc-countdown { bottom: clamp(150px, 24vh, 260px); transform: translate(-50%, -8vh); }
     .gc-cd-eyebrow { letter-spacing: 0.13em; }
     .gc-cd-date { letter-spacing: 0.16em; }
     /* Trim the EN/GD pill (its size is inline, so scale the whole thing). */
     .gc-langpill { transform: scale(0.66); transform-origin: top left; }
     /* Sruth wordmark — a touch bigger, still balanced against the two icons. */
     .gc-sruth-logo { width: clamp(108px, 30vw, 168px); }
+    /* Icon signage: narrower + smaller so the three don't collide on phones. */
+    .gc-icon-cap { max-width: 32vw; margin-bottom: clamp(6px, 1vh, 12px); }
+    .gc-cap-name { font-size: clamp(11px, 3vw, 15px); letter-spacing: 0.08em; }
+    .gc-cap-status { font-size: clamp(9px, 2.4vw, 12px); }
     /* Drop the Jabberwocky verse below the pill. */
     .gc-poem { top: clamp(64px, 13vh, 96px); }
   }
