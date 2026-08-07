@@ -6,65 +6,42 @@ const COOKIE_NAME = "gc_access";
 
 // These routes are always public — no key required.
 //
-// Site-wide gating policy (Scott, 2026-05-30): everything is pre-launch
-// gated EXCEPT the root, the launched Sruth product, and the Sruth
-// archive. Anything still in development — /news, future marketing pages,
-// editor previews — sits behind the cookie-key gate. The editor accesses
-// gated routes by visiting any URL with ?key=6776, which sets the
-// gc_access cookie for 30 days. Add a route here only when it's ready
-// for public visibility.
+// Site-wide gating policy (Scott, 2026-08-07 — "shut the door"): the
+// outside world may reach ONLY three products — Global Ceilidh Radio,
+// the "Let's Talk" contact page, and Sruth (the newsletter product +
+// archive). EVERYTHING else — the Duilleag/social layer, An Saoghal,
+// the An Tonn wing (Ceòl/Bhidio/Leabhraichean/Pod-chraoladh + hub),
+// artist pages, Rooms, contributor upload links, /welcome, /u/ profiles —
+// is now closed to the public and sits behind the cookie-key gate.
+// Insiders open the whole site by visiting any URL with ?key=6776, which
+// sets the gc_access cookie for 30 days (see below); a keyed request
+// passes every route, so members/editors are unaffected.
+//
+// Only the auth pages + framework/asset paths are also public, because
+// the three open products (and the keyed sign-in flow) need them to
+// function. Add a route here only when it's ready for public visibility.
 const PUBLIC_PREFIXES = [
+  // Sruth — the launched newsletter product + its public archive
+  // (/sruth/archive). One of the three doors left open to the world.
   "/sruth",
-  "/feisean",
-  "/coming-soon-features",
-  // Rooms are pre-launch-public so invitees can land on a /rooms/<slug>
-  // URL without needing the editor's cookie key. Clerk auth still gates
-  // entry — see app/rooms/[slug]/page.js and the token route.
-  "/rooms",
-  // Global Ceilidh Radio + An Tonn Bhidio: public for listener/viewer
-  // traffic + AdSense revenue. Radio now lives at the top-level /radio;
-  // /AnTonn/radio 308-redirects to it (next.config.js) but is kept public
-  // as a belt-and-braces so the redirect never trips the cookie gate.
+  // Global Ceilidh Radio: public for listener traffic + AdSense revenue.
+  // Radio lives at the top-level /radio; /AnTonn/radio 308-redirects to it
+  // (next.config.js) but is kept public as a belt-and-braces so the
+  // redirect never trips the cookie gate.
   "/radio",
   "/AnTonn/radio",
-  "/AnTonn/bhidio",
-  // The live An Tonn verticals (flipped 2026-07-28) — public wing so the
-  // constellation's tiles work without the editor cookie.
-  "/AnTonn/ceol",
-  "/AnTonn/leabhraichean",
-  "/AnTonn/podcraoladh",
-  // An Saoghal — the map of the Gaelic world. Public + crawlable: it's a
-  // door on the new / homepage and the destination of the vortex centre.
-  "/saoghal",
-  // Public artist pages — the destination of the /radio INFO "Full profile"
-  // CTA and a crawlable landing surface for radio-driven traffic.
-  "/artists",
-  // Clerk embedded sign-in / sign-up. These MUST be reachable without
-  // the pre-launch cookie key — a first-time invitee following a room
-  // link has no cookie yet, and would loop through /sign-in?redirect_
-  // url=... straight back to "/" if the middleware bounced them.
+  // The "Let's Talk" contact/about page — the pill on Radio points here;
+  // the third door left open. (LetsTalk.js also opens it as an in-place
+  // overlay on the public pages, so it works without navigation too.)
+  "/contact",
+  // Clerk embedded sign-in / sign-up. Kept public so the auth surface is
+  // reachable and Clerk's protect→/sign-in redirect never loops back to
+  // "/". These leak no GC content; a signed-in user still needs the
+  // cookie key to pass any gated route.
   "/sign-in",
   "/sign-up",
-  // Social layer: onboarding + public profile pages. These bypass the
-  // pre-launch cookie gate (a freshly signed-up user has no gc_access
-  // cookie), but Clerk still gates the sensitive parts — /welcome runs
-  // auth() and bounces to /sign-in if signed out; /u/<handle> is a
-  // public profile view by design.
-  "/welcome",
-  "/u/",
-  // The Duilleag-cèilidh — a person's own private room. It bypasses the
-  // cookie gate for the same reason /welcome does (a new signup has no
-  // gc_access cookie), but it is the most private surface on the site:
-  // the page itself calls auth() and redirects signed-out visitors to
-  // /sign-in, and there is no visitor mode to fall through to.
-  "/duilleag",
-  // Per-contributor upload links (globalceilidh.com/contribute/<token>).
-  // These are personal, tokened, and noindexed — a contributor with no
-  // Clerk account and no cookie key must be able to reach their link.
-  "/contribute",
-  // The "Let's Talk" contact/about page — the pill on Radio/An Tonn/marble
-  // points here; must be reachable without the pre-launch cookie key.
-  "/contact",
+  // AdSense verification for the radio, framework internals, and assets —
+  // required for the open products to render.
   "/ads.txt",
   "/api/",
   "/_next/",
@@ -73,11 +50,12 @@ const PUBLIC_PREFIXES = [
 const PUBLIC_EXTENSIONS = /\.(png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|css|js)$/i;
 
 function isPublic(pathname) {
+  // The root stays public: it's the whirlpool front door AND the redirect
+  // target for every blocked request, so it must never bounce to itself.
+  // Its links into the (now gated) site simply return keyless visitors
+  // here. The An Tonn hub (/AnTonn) is no longer public — the wing is
+  // closed with everything else under the 2026-08-07 "shut the door" policy.
   if (pathname === "/") return true;
-  // The An Tonn wing hub (the constellation, flipped in 2026-07-28) is public —
-  // the home-page An Tonn icon points here. Exact match only, so the parked
-  // magazine (/AnTonn/cover, /AnTonn/this-week, …) stays gated.
-  if (pathname === "/AnTonn") return true;
   if (PUBLIC_EXTENSIONS.test(pathname)) return true;
   return PUBLIC_PREFIXES.some(p => pathname.startsWith(p));
 }
