@@ -352,11 +352,11 @@ export default function Home() {
           zIndex: 10, display: 'block', lineHeight: 0 }}
       >
         <span className="gc-icon-cap" aria-hidden="true">
-          <span className="gc-cap-name">Global Ceilidh Radio</span>
-          <span className="gc-cap-status">available now — listen…</span>
+          <span className="gc-cap-name">{language === 'gd' ? 'Rèidio Global Ceilidh' : 'Global Ceilidh Radio'}</span>
+          <span className="gc-cap-status">{language === 'gd' ? 'ri fhaighinn a-nis — èist…' : 'available now — listen…'}</span>
         </span>
         <img src={REIDIO_ICON} alt="Global Ceilidh Radio"
-          style={{ width: 'clamp(64px, 9.5vw, 112px)', height: 'auto', display: 'block' }} />
+          style={{ width: 'clamp(72px, 10.5vw, 126px)', height: 'auto', display: 'block' }} />
       </a>
 
       {/* ── Bottom-centre: An Tonn → /AnTonn (between reidio and sruth) ── */}
@@ -367,10 +367,10 @@ export default function Home() {
       >
         <span className="gc-icon-cap" aria-hidden="true">
           <span className="gc-cap-name">An Tonn</span>
-          <span className="gc-cap-status">coming soon…</span>
+          <span className="gc-cap-status">{language === 'gd' ? 'a’ tighinn a dh’aithghearr…' : 'coming soon…'}</span>
         </span>
         <img src={ANTONN_ICON} alt="An Tonn"
-          style={{ width: 'clamp(84px, 12vw, 150px)', height: 'auto', display: 'block', mixBlendMode: 'screen' }} />
+          style={{ width: 'clamp(94px, 13.5vw, 168px)', height: 'auto', display: 'block', mixBlendMode: 'screen' }} />
       </a>
 
       {/* ── Bottom-right: sruth wordplate → /sruth ──────────────────── */}
@@ -384,7 +384,7 @@ export default function Home() {
           zIndex: 10, display: 'block' }}
       >
         <span className="gc-icon-cap" aria-hidden="true">
-          <span className="gc-cap-status">archives available now — read</span>
+          <span className="gc-cap-status">{language === 'gd' ? 'tasglann ri fhaighinn a-nis — leugh' : 'archives available now — read'}</span>
         </span>
         {SRUTH.ready ? (
           <span className="gc-sruth-logo" role="img" aria-label="sruth."
@@ -495,7 +495,7 @@ const STYLES = `
      letters only, not the empty bounding box. */
   .gc-sruth-logo {
     display: block; position: relative;
-    width: clamp(180px, 22vw, 340px); aspect-ratio: 1672 / 941;
+    width: clamp(200px, 24vw, 372px); aspect-ratio: 1672 / 941;
     background: var(--sruth) center / contain no-repeat;
     filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)) drop-shadow(0 0 16px rgba(255,255,255,0.22));
     transition: filter 240ms ease, transform 240ms ease;
@@ -558,6 +558,8 @@ const STYLES = `
   .gc-cap-status { font-family: var(--font-fraunces), Georgia, serif; font-style: italic;
     line-height: 1.15; color: rgba(255,255,255,0.82); font-size: clamp(10px, 1.3vmin, 13px);
     text-shadow: 0 1px 6px rgba(0,0,0,0.92); }
+  /* An Tonn + Sruth signage sits a little lower (closer to their icons). */
+  .gc-antonn .gc-icon-cap, .gc-sruth .gc-icon-cap { margin-bottom: clamp(2px, 0.7vh, 9px); }
   @media (max-width: 768px) {
     /* Countdown sits a touch higher on phones so it clears the icon row. */
     .gc-countdown { bottom: clamp(150px, 24vh, 260px); transform: translate(-50%, -8vh); }
@@ -566,7 +568,7 @@ const STYLES = `
     /* Trim the EN/GD pill (its size is inline, so scale the whole thing). */
     .gc-langpill { transform: scale(0.66); transform-origin: top left; }
     /* Sruth wordmark — a touch bigger, still balanced against the two icons. */
-    .gc-sruth-logo { width: clamp(108px, 30vw, 168px); }
+    .gc-sruth-logo { width: clamp(122px, 33vw, 186px); }
     /* Icon signage: narrower + smaller so the three don't collide on phones. */
     .gc-icon-cap { max-width: 32vw; margin-bottom: clamp(6px, 1vh, 12px); }
     .gc-cap-name { font-size: clamp(11px, 3vw, 15px); letter-spacing: 0.08em; }
