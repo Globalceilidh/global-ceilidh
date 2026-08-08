@@ -1098,9 +1098,13 @@ function TickerItem({ item }) {
 const HOUSE_ADS = [
   { tag: { en: 'JOIN US', gd: 'THIG A-STEACH' }, head: 'Global Ceilidh', img: '/radio/ad-globalceilidh.jpg', sub: { en: 'The whole Gaelic world, one gathering place.', gd: 'Saoghal na Gàidhlig gu lèir, aon àite-cruinneachaidh.' }, cta: { en: 'Come in', gd: 'Thig a-steach' }, href: '/' },
   { tag: { en: 'SRUTH', gd: 'SRUTH' }, head: 'Sruth', img: '/radio/ad-sruth.jpg', sub: { en: 'Gaelic culture & news, straight to your inbox.', gd: 'Cultar is naidheachdan na Gàidhlig, dhan bhogsa agad.' }, cta: { en: 'Subscribe', gd: 'Clàraich' }, href: '/sruth' },
-  { tag: { en: 'AN SAOGHAL', gd: 'AN SAOGHAL' }, head: 'An Saoghal', sub: { en: 'Explore the map of the Gaelic world.', gd: 'Rùraich mapa saoghal na Gàidhlig.' }, cta: { en: 'Explore', gd: 'Rùraich' }, href: '/saoghal' },
-  { tag: { en: 'AN TONN', gd: 'AN TONN' }, head: 'An Tonn', sub: { en: 'The Gaelic & Celtic music charts.', gd: 'Clàran-ciùil na Gàidhlig ’s nan Ceilteach.' }, cta: { en: 'Listen', gd: 'Èist' }, href: '/AnTonn' },
+  // Kept but not displayed (Scott, 2026-08-07) — no art yet; hidden until ready.
+  { hidden: true, tag: { en: 'AN SAOGHAL', gd: 'AN SAOGHAL' }, head: 'An Saoghal', sub: { en: 'Explore the map of the Gaelic world.', gd: 'Rùraich mapa saoghal na Gàidhlig.' }, cta: { en: 'Explore', gd: 'Rùraich' }, href: '/saoghal' },
+  { hidden: true, tag: { en: 'AN TONN', gd: 'AN TONN' }, head: 'An Tonn', sub: { en: 'The Gaelic & Celtic music charts.', gd: 'Clàran-ciùil na Gàidhlig ’s nan Ceilteach.' }, cta: { en: 'Listen', gd: 'Èist' }, href: '/AnTonn' },
 ];
+
+// The ads actually shown in rotation (hidden ones stay in HOUSE_ADS for later).
+const VISIBLE_ADS = HOUSE_ADS.filter((a) => !a.hidden);
 
 function HousePanel({ ad, language }) {
   const gd = language === 'gd';
@@ -1143,7 +1147,7 @@ function EmptyTile({ wide }) {
   const { language } = useLanguage();
   const base = wide ? videoTileStyle : photoTileStyle;
   // Slide 0 is the brand mark; the rest are house ads.
-  const slides = [{ type: 'brand' }, ...HOUSE_ADS.map((ad) => ({ type: 'ad', ad }))];
+  const slides = [{ type: 'brand' }, ...VISIBLE_ADS.map((ad) => ({ type: 'ad', ad }))];
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setIdx((i) => (i + 1) % slides.length), PHOTO_CAROUSEL_MS);
@@ -1196,9 +1200,9 @@ function PhotoTile({ artist, offset = 0, wide = false }) {
   const slides = [];
   photos.forEach((src, i) => {
     slides.push({ type: 'img', src });
-    if ((i + 1) % 3 === 0) slides.push({ type: 'ad', ad: HOUSE_ADS[Math.floor(i / 3) % HOUSE_ADS.length] });
+    if ((i + 1) % 3 === 0) slides.push({ type: 'ad', ad: VISIBLE_ADS[Math.floor(i / 3) % VISIBLE_ADS.length] });
   });
-  if (photos.length && slides.length === photos.length) slides.push({ type: 'ad', ad: HOUSE_ADS[0] });
+  if (photos.length && slides.length === photos.length) slides.push({ type: 'ad', ad: VISIBLE_ADS[0] });
 
   const [idx, setIdx] = useState(0);
   useEffect(() => { setIdx(0); }, [artist?.id]);
@@ -1562,6 +1566,10 @@ const housePanelImgStyle = {
 const houseBgImgStyle = {
   position: 'absolute', inset: 0, width: '100%', height: '100%',
   objectFit: 'cover', objectPosition: 'right center', userSelect: 'none',
+  // Brighten the character's white rim-light. Contrast crushes near-black to 0
+  // BEFORE brightness multiplies, so the black stays black while the bright
+  // edges pop — fixing the too-dim outline.
+  filter: 'contrast(1.25) brightness(1.08)',
 };
 const houseScrimStyle = {
   position: 'absolute', inset: 0, pointerEvents: 'none',
