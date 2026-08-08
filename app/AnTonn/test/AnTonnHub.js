@@ -1,7 +1,7 @@
 'use client'
 
 // /AnTonn/test — sandbox surface. Solid black canvas with the standard
-// AnTonn chrome (Coingeal homepage icon top-left, Let's Talk pill top-right,
+// AnTonn chrome (Cuairt-shruth homepage icon top-left, Let's Talk pill top-right,
 // EN/GD language slider bottom-right). Plus a WebGL wave shader in the
 // background that trails ripples from the cursor.
 
@@ -36,18 +36,18 @@ export default function AnTonnTest() {
   return (
     <div style={pageStyle} onPointerMove={onPointerMove}>
       <WaveBackground mouseRef={mouseRef} />
-      {/* Coingeal — the core GlobalCeilidh design motif. Links back to
+      {/* Cuairt-shruth — the core GlobalCeilidh design motif. Links back to
           the homepage. Hover fires the light-glint sweep (see <style>). */}
       <Link
         href="/"
-        className="coingeal-wrap"
+        className="cuairt-shruth-wrap"
         aria-label="GlobalCeilidh home"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/AnTonn/test/coingeal.png"
+          src="/AnTonn/test/cuairt-shruth.png"
           alt="GlobalCeilidh — home"
-          className="coingeal-img"
+          className="cuairt-shruth-img"
           draggable={false}
         />
         {/* Glint overlay — a rotating conic gradient masked to the
@@ -56,7 +56,7 @@ export default function AnTonnTest() {
             mode adds brightness rather than replacing pixels, so the
             spiral geometry stays visible under the glint. Idle: hidden
             + paused (zero cost). Hover: fade in + spin. */}
-        <span className="coingeal-glint" aria-hidden="true" />
+        <span className="cuairt-shruth-glint" aria-hidden="true" />
       </Link>
 
       {/* An Tonn masthead — the heart-wave icon (replaces the letter wordmark).
@@ -160,7 +160,7 @@ export default function AnTonnTest() {
           z-index: 30;
           transition: transform 220ms ease, box-shadow 220ms ease;
         }
-        .coingeal-wrap {
+        .cuairt-shruth-wrap {
           position: absolute;
           top: 30px;
           left: 30px;
@@ -170,13 +170,13 @@ export default function AnTonnTest() {
           z-index: 30;
           line-height: 0;
         }
-        .coingeal-img {
+        .cuairt-shruth-img {
           width: 100%;
           height: 100%;
           display: block;
           user-select: none;
         }
-        .coingeal-glint {
+        .cuairt-shruth-glint {
           position: absolute;
           inset: 0;
           pointer-events: none;
@@ -190,8 +190,8 @@ export default function AnTonnTest() {
             transparent 30deg,
             transparent 360deg
           );
-          -webkit-mask-image: url(/AnTonn/test/coingeal.png);
-          mask-image: url(/AnTonn/test/coingeal.png);
+          -webkit-mask-image: url(/AnTonn/test/cuairt-shruth.png);
+          mask-image: url(/AnTonn/test/cuairt-shruth.png);
           -webkit-mask-size: 100% 100%;
           mask-size: 100% 100%;
           -webkit-mask-repeat: no-repeat;
@@ -201,16 +201,16 @@ export default function AnTonnTest() {
           mix-blend-mode: screen;
           filter: blur(4px);
           opacity: 0;
-          animation: coingeal-spin 1.8s linear infinite;
+          animation: cuairt-shruth-spin 1.8s linear infinite;
           animation-play-state: paused;
           transition: opacity 320ms ease;
         }
-        .coingeal-wrap:hover .coingeal-glint,
-        .coingeal-wrap:focus-visible .coingeal-glint {
+        .cuairt-shruth-wrap:hover .cuairt-shruth-glint,
+        .cuairt-shruth-wrap:focus-visible .cuairt-shruth-glint {
           opacity: 1;
           animation-play-state: running;
         }
-        @keyframes coingeal-spin {
+        @keyframes cuairt-shruth-spin {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
@@ -378,18 +378,18 @@ export default function AnTonnTest() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .coingeal-glint { animation: none; }
+          .cuairt-shruth-glint { animation: none; }
         }
 
         /* ── Mobile / phone widths ─────────────────────────────────────
            Desktop chrome is sized for a big canvas; on a phone the
-           coingeal, both pills and the 4-across tile row are all wrong.
+           cuairt-shruth, both pills and the 4-across tile row are all wrong.
            Shrink the chrome and re-flow the tiles into a 2x2 grid
            (Music · Bhidio / Books · Podcasts), larger, with each icon
            sitting ABOVE its name-ring (the desktop -140px ring pull
            dwarfs a small tile and floats the ring over it). */
         @media (max-width: 680px) {
-          .coingeal-wrap { top: 14px; left: 14px; width: 62px; height: 62px; }
+          .cuairt-shruth-wrap { top: 14px; left: 14px; width: 62px; height: 62px; }
 
           .lets-talk-pill {
             top: 26px; right: 14px;

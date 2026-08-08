@@ -7,7 +7,7 @@ import RadioClient from './RadioClient';
 const SHARE_URL = 'https://globalceilidh.com/radio';
 
 // Purpose-built 1200x630 share card (Facebook's exact recommended size):
-// the rèidio emblem — broadcast tower rising from the Coingeal swirl —
+// the rèidio emblem — broadcast tower rising from the Cuairt-shruth swirl —
 // centered on black, so the card reads as one seamless image with no
 // letterboxing. Facebook renders the OG title beneath it. Kept separate
 // from gc-radio-logo-wide.png, which is still used as the on-page logo.

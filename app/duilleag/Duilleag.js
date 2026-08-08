@@ -4,7 +4,7 @@
 // Panel 1 — the Duilleag-cèilidh itself. Three columns floating on the
 // inside of the glass:
 //
-//   left    static. Coingeal + the ordinary link tree every app has, ending
+//   left    static. Cuairt-shruth + the ordinary link tree every app has, ending
 //           in settings. Deliberately ordinary: this is the part people
 //           shouldn't have to think about.
 //   middle  quick jumps, then the feed — what the people you have a

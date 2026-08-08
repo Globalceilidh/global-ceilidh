@@ -56,7 +56,7 @@ def main() -> int:
     root = Path(__file__).resolve().parent.parent
     target_dir = root / "public" / "AnTonn" / "test"
     targets = [
-        "coingeal.png",
+        "cuairt-shruth.png",
         "antonn-wordmark.png",
         "music-ceol.png",
         "film-bhidio.png",

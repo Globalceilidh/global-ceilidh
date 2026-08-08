@@ -2,7 +2,7 @@
 
 // Shared sandbox surface for the four AnTonn vertical test pages
 // (Ceòl, Bhidio, Leabhraichean, Pod-chraoladh). Same chrome as the
-// parent /AnTonn/test — Coingeal homepage icon top-left, Let's Talk pill
+// parent /AnTonn/test — Cuairt-shruth homepage icon top-left, Let's Talk pill
 // top-right, EN/GD slider bottom-right — plus the wave shader in the
 // background, with per-vertical tonal palette.
 //
@@ -66,7 +66,7 @@ export default function TestSurface({
         intensityScale={waveIntensity}
       />
 
-      {/* Top-left brand strip: Coingeal (GlobalCeilidh home link) — dash —
+      {/* Top-left brand strip: Cuairt-shruth (GlobalCeilidh home link) — dash —
           An Tonn wordmark (links back to the /AnTonn/test parent surface
           where all four vertical entrances live). Both icons at the same
           180x180 footprint. Assets reused from /AnTonn/test so we ship
@@ -75,7 +75,7 @@ export default function TestSurface({
         <Link href="/" style={iconLinkStyle} aria-label="GlobalCeilidh home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/AnTonn/test/coingeal.png"
+            src="/AnTonn/test/cuairt-shruth.png"
             alt="GlobalCeilidh — home"
             style={iconImgStyle}
             draggable={false}
@@ -156,7 +156,7 @@ const topLeftGroupStyle = {
   zIndex: 30,
 }
 
-// Each icon (coingeal, An Tonn wordmark) sits in a fixed 90x90 box —
+// Each icon (cuairt-shruth, An Tonn wordmark) sits in a fixed 90x90 box —
 // halved from the previous 180x180 so the chrome takes less of the
 // page real estate now that the verticals carry their own content.
 const iconLinkStyle = {
