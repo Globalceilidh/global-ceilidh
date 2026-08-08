@@ -1566,10 +1566,6 @@ const housePanelImgStyle = {
 const houseBgImgStyle = {
   position: 'absolute', inset: 0, width: '100%', height: '100%',
   objectFit: 'cover', objectPosition: 'right center', userSelect: 'none',
-  // Brighten the character's white rim-light. Contrast crushes near-black to 0
-  // BEFORE brightness multiplies, so the black stays black while the bright
-  // edges pop — fixing the too-dim outline.
-  filter: 'contrast(1.25) brightness(1.08)',
 };
 const houseScrimStyle = {
   position: 'absolute', inset: 0, pointerEvents: 'none',
