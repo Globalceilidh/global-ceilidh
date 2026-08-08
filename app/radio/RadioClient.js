@@ -1096,7 +1096,7 @@ function TickerItem({ item }) {
 // photos. Not third-party advertising: every panel drives a listener deeper
 // into Global Ceilidh, which is the whole point of the radio-launch funnel.
 const HOUSE_ADS = [
-  { tag: { en: 'JOIN US', gd: 'THIG A-STEACH' }, head: 'Global Ceilidh', sub: { en: 'The whole Gaelic world, one gathering place.', gd: 'Saoghal na Gàidhlig gu lèir, aon àite-cruinneachaidh.' }, cta: { en: 'Come in', gd: 'Thig a-steach' }, href: '/' },
+  { tag: { en: 'JOIN US', gd: 'THIG A-STEACH' }, head: 'Global Ceilidh', img: '/radio/ad-globalceilidh.jpg', sub: { en: 'The whole Gaelic world, one gathering place.', gd: 'Saoghal na Gàidhlig gu lèir, aon àite-cruinneachaidh.' }, cta: { en: 'Come in', gd: 'Thig a-steach' }, href: '/' },
   { tag: { en: 'SRUTH', gd: 'SRUTH' }, head: 'Sruth', sub: { en: 'Gaelic culture & news, straight to your inbox.', gd: 'Cultar is naidheachdan na Gàidhlig, dhan bhogsa agad.' }, cta: { en: 'Subscribe', gd: 'Clàraich' }, href: '/sruth' },
   { tag: { en: 'AN SAOGHAL', gd: 'AN SAOGHAL' }, head: 'An Saoghal', sub: { en: 'Explore the map of the Gaelic world.', gd: 'Rùraich mapa saoghal na Gàidhlig.' }, cta: { en: 'Explore', gd: 'Rùraich' }, href: '/saoghal' },
   { tag: { en: 'AN TONN', gd: 'AN TONN' }, head: 'An Tonn', sub: { en: 'The Gaelic & Celtic music charts.', gd: 'Clàran-ciùil na Gàidhlig ’s nan Ceilteach.' }, cta: { en: 'Listen', gd: 'Èist' }, href: '/AnTonn' },
@@ -1104,12 +1104,34 @@ const HOUSE_ADS = [
 
 function HousePanel({ ad, language }) {
   const gd = language === 'gd';
+  const tag = gd ? ad.tag.gd : ad.tag.en;
+  const sub = gd ? ad.sub.gd : ad.sub.en;
+  const cta = `${gd ? ad.cta.gd : ad.cta.en} →`;
+
+  // Image variant (Whitey's dramatic art): the graphic is the background, a
+  // left-heavy scrim keeps the (still bilingual, still clickable) text legible
+  // over it. Falls back to the flat cobalt gradient when no art is supplied.
+  if (ad.img) {
+    return (
+      <a href={ad.href} style={housePanelImgStyle}>
+        <img src={ad.img} alt="" aria-hidden="true" draggable={false} style={houseBgImgStyle} />
+        <span aria-hidden="true" style={houseScrimStyle} />
+        <span style={houseTextWrapStyle}>
+          <span style={{ ...houseTagStyle, textShadow: HOUSE_TS }}>{tag}</span>
+          <span style={{ ...houseHeadStyle, textShadow: HOUSE_TS }}>{ad.head}</span>
+          <span style={{ ...houseSubStyle, textShadow: HOUSE_TS }}>{sub}</span>
+          <span style={{ ...houseCtaStyle, textShadow: HOUSE_TS }}>{cta}</span>
+        </span>
+      </a>
+    );
+  }
+
   return (
     <a href={ad.href} style={housePanelStyle}>
-      <span style={houseTagStyle}>{gd ? ad.tag.gd : ad.tag.en}</span>
+      <span style={houseTagStyle}>{tag}</span>
       <span style={houseHeadStyle}>{ad.head}</span>
-      <span style={houseSubStyle}>{gd ? ad.sub.gd : ad.sub.en}</span>
-      <span style={houseCtaStyle}>{gd ? ad.cta.gd : ad.cta.en} →</span>
+      <span style={houseSubStyle}>{sub}</span>
+      <span style={houseCtaStyle}>{cta}</span>
     </a>
   );
 }
@@ -1530,6 +1552,24 @@ const housePanelStyle = {
   position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center',
   gap: 9, padding: '0 32px', textDecoration: 'none', boxSizing: 'border-box',
   background: 'linear-gradient(150deg, rgba(16,46,124,0.96) 0%, rgba(6,14,32,0.98) 100%)',
+};
+// Image variant: full-bleed art + left-heavy scrim, text floated over the top.
+const HOUSE_TS = '0 1px 14px rgba(0,0,0,0.92), 0 0 5px rgba(0,0,0,0.85)';
+const housePanelImgStyle = {
+  position: 'absolute', inset: 0, display: 'block', textDecoration: 'none',
+  overflow: 'hidden', background: '#050709',
+};
+const houseBgImgStyle = {
+  position: 'absolute', inset: 0, width: '100%', height: '100%',
+  objectFit: 'cover', objectPosition: 'right center', userSelect: 'none',
+};
+const houseScrimStyle = {
+  position: 'absolute', inset: 0, pointerEvents: 'none',
+  background: 'linear-gradient(100deg, rgba(4,6,10,0.92) 0%, rgba(4,6,10,0.72) 38%, rgba(4,6,10,0.18) 66%, rgba(4,6,10,0) 86%)',
+};
+const houseTextWrapStyle = {
+  position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column',
+  justifyContent: 'center', gap: 9, padding: '0 32px', boxSizing: 'border-box',
 };
 const houseTagStyle = {
   fontFamily: '"IBM Plex Mono", Menlo, monospace', fontSize: 11, letterSpacing: 2.4,
