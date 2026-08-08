@@ -1097,7 +1097,7 @@ function TickerItem({ item }) {
 // into Global Ceilidh, which is the whole point of the radio-launch funnel.
 const HOUSE_ADS = [
   { tag: { en: 'JOIN US', gd: 'THIG A-STEACH' }, head: 'Global Ceilidh', img: '/radio/ad-globalceilidh.jpg', sub: { en: 'The whole Gaelic world, one gathering place.', gd: 'Saoghal na Gàidhlig gu lèir, aon àite-cruinneachaidh.' }, cta: { en: 'Come in', gd: 'Thig a-steach' }, href: '/' },
-  { tag: { en: 'SRUTH', gd: 'SRUTH' }, head: 'Sruth', sub: { en: 'Gaelic culture & news, straight to your inbox.', gd: 'Cultar is naidheachdan na Gàidhlig, dhan bhogsa agad.' }, cta: { en: 'Subscribe', gd: 'Clàraich' }, href: '/sruth' },
+  { tag: { en: 'SRUTH', gd: 'SRUTH' }, head: 'Sruth', img: '/radio/ad-sruth.jpg', sub: { en: 'Gaelic culture & news, straight to your inbox.', gd: 'Cultar is naidheachdan na Gàidhlig, dhan bhogsa agad.' }, cta: { en: 'Subscribe', gd: 'Clàraich' }, href: '/sruth' },
   { tag: { en: 'AN SAOGHAL', gd: 'AN SAOGHAL' }, head: 'An Saoghal', sub: { en: 'Explore the map of the Gaelic world.', gd: 'Rùraich mapa saoghal na Gàidhlig.' }, cta: { en: 'Explore', gd: 'Rùraich' }, href: '/saoghal' },
   { tag: { en: 'AN TONN', gd: 'AN TONN' }, head: 'An Tonn', sub: { en: 'The Gaelic & Celtic music charts.', gd: 'Clàran-ciùil na Gàidhlig ’s nan Ceilteach.' }, cta: { en: 'Listen', gd: 'Èist' }, href: '/AnTonn' },
 ];
