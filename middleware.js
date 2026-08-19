@@ -34,6 +34,11 @@ const PUBLIC_PREFIXES = [
   // the third door left open. (LetsTalk.js also opens it as an in-place
   // overlay on the public pages, so it works without navigation too.)
   "/contact",
+  // The privacy policy. Linked from the Let's Talk footer, which renders on
+  // every public page — so it has to be reachable without the cookie key, or
+  // the link bounces keyless visitors to "/". A policy nobody can read is
+  // worse than no link at all.
+  "/privacy",
   // Clerk embedded sign-in / sign-up. Kept public so the auth surface is
   // reachable and Clerk's protect→/sign-in redirect never loops back to
   // "/". These leak no GC content; a signed-in user still needs the
