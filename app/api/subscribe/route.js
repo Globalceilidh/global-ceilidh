@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 
 import { isDisposable } from '@/app/emails/disposable-domains';
 import { welcomeHtml, welcomeSubject, EMAIL_CONSTANTS } from '@/app/emails/templates';
+import { resendKey } from '../../../lib/resend';
 
 // Force Node runtime — Edge runtime doesn't expose dns/crypto for MX lookups
 // and token generation.
@@ -58,7 +59,7 @@ async function hasMxRecords(email) {
 }
 
 export async function POST(request) {
-  const RESEND_KEY = process.env.RESEND_API_KEY;
+  const RESEND_KEY = resendKey();
   try {
     const ip =
       request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||

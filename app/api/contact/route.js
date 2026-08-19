@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { EMAIL_CONSTANTS } from '@/app/emails/templates';
+import { resendKey } from '../../../lib/resend';
 
 // The "Let's Talk" contact form. Emails the message straight to the editor via
 // Resend (same path the welcome email uses), reply_to set to the sender so a
@@ -24,7 +25,7 @@ function checkRateLimit(ip) {
 const esc = (s) => String(s || '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 
 export async function POST(request) {
-  const RESEND_KEY = process.env.RESEND_API_KEY;
+  const RESEND_KEY = resendKey();
   try {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim()
       || request.headers.get('x-real-ip') || 'unknown';
