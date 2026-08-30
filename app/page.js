@@ -34,9 +34,9 @@ const REIDIO_ICON = '/AnTonn/test/reidio-icon.png';
 const ANTONN_ICON = '/AnTonn/test/AnTonn.png';   // wave-heart emblem (An Tonn wing)
 
 // LAUNCH — the cuairt-shruth stays STILL (dormant) until this instant, then the
-// mercury whirlpool starts spinning: Global Ceilidh begins. Scott, 2026-08-07:
-// 1 September 2026, 09:00 BST = 08:00 UTC. Month is 0-indexed (8 = September).
-const LAUNCH_MS = Date.UTC(2026, 8, 1, 8, 0, 0);
+// mercury whirlpool starts spinning: Global Ceilidh begins. Scott, 2026-08-30:
+// 1 January 2027, 12:01 AM EST = 05:01 UTC. Month is 0-indexed (0 = January).
+const LAUNCH_MS = Date.UTC(2027, 0, 1, 5, 1, 0);
 
 const SRUTH = { ready: true, src: '/gc-sruth-logo.png' };
 
@@ -307,7 +307,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Launch countdown — the cuairt-shruth is dormant until 1 Sept 09:00 BST.
+      {/* ── Launch countdown — the cuairt-shruth is dormant until 1 Jan 2027 12:01am EST.
              Fixed overlay in the lower-centre (above the icon row); pointer-
              events:none so the core + signpost stay clickable through it. ── */}
       {showCountdown && (
@@ -408,7 +408,7 @@ export default function Home() {
           radio station, the Sruth culture newsletter, and An Saoghal, a map of the
           Gaelic world. Enter through the centre to begin.
         </p>
-        <p>Global Ceilidh opens on 1 September 2026 at 9am.</p>
+        <p>Global Ceilidh opens on 1 January 2027 at 12:01am EST.</p>
         <nav aria-label="Global Ceilidh">
           <a href="/saoghal">An Saoghal — the map of the Gaelic world</a>
           <a href="/radio">Global Ceilidh Radio — Scottish Gaelic music, streaming</a>
